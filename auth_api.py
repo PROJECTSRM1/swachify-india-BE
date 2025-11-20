@@ -55,7 +55,6 @@ def signup(request: SignupRequest):
 
     users_db[request.email] = user
 
-    # Example: you can generate ids dynamically later
     return api_response(
         success=True,
         message="User created successfully",
