@@ -18,3 +18,5 @@ def create_refresh_token(data: dict):
     expire = datetime.utcnow() + timedelta(days=REFRESH_EXP_DAYS)
     data.update({"exp": expire})
     return jwt.encode(data, SECRET, algorithm=ALGO)
+
+

@@ -1,19 +1,23 @@
 # routes/auth.py
-from fastapi import APIRouter, Depends, HTTPException, Response, Request, status, Cookie
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 from datetime import datetime
 from core.database import get_db
 from models.user_models import UserRegistration
 from utils.hash import verify_password, hash_password
 from utils.jwt_utils import create_access_token, create_refresh_token, verify_token
-from schemas.user_schema import RegisterUser, LoginRequest, LoginResponse,UpdateUser,VerifyTokenRequest,VerifyTokenResponse
+from schemas.user_schema import (
+    RegisterUser, LoginRequest, LoginResponse,
+    UpdateUser, VerifyTokenRequest, VerifyTokenResponse
+)
 import os
-import json
-from jose import jwt, JWTError, ExpiredSignatureError
-from fastapi import HTTPException
+from jose import JWTError, ExpiredSignatureError
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
+# --------------------------------------------------
+# REGISTER
+# --------------------------------------------------
 @router.post("/register", status_code=201)
 def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
 
@@ -21,7 +25,7 @@ def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Passwords do not match")
 
     exists = db.query(UserRegistration).filter(
-        (UserRegistration.email == payload.email)
+        UserRegistration.email == payload.email
     ).first()
 
     if exists:
@@ -44,19 +48,18 @@ def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
     return {"message": "User registered", "user_id": new_user.id}
 
 
+# --------------------------------------------------
+# LOGIN
+# --------------------------------------------------
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
 
     identifier = payload.email_or_phone.strip()
 
     user = db.query(UserRegistration).filter(
-        UserRegistration.email == identifier
+        (UserRegistration.email == identifier) |
+        (UserRegistration.mobile == identifier)
     ).first()
-
-    if not user:
-        user = db.query(UserRegistration).filter(
-            UserRegistration.mobile == identifier
-        ).first()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -64,7 +67,8 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     if not verify_password(payload.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    subject = {"user_id": user.id, "email": user.email}
+    # subject → put user_id directly
+    subject = {"sub": user.id, "email": user.email}
 
     access_token = create_access_token(subject)
     refresh_token = create_refresh_token(subject)
@@ -72,6 +76,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     refresh_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
     refresh_max_age = refresh_days * 24 * 3600
 
+    # Store refresh token in cookie
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
@@ -91,54 +96,17 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         refresh_expires_in=refresh_max_age
     )
 
-
-@router.post("/verify-token", response_model=VerifyTokenResponse)
-async def verify_any_token(data: VerifyTokenRequest, db: Session = Depends(get_db)):
-
-    token = data.token
-
-    try:
-        payload = verify_token(token)
-        return VerifyTokenResponse(
-            authenticated=False,
-            message="Token expired"
-        )
-    except JWTError:
-        return VerifyTokenResponse(
-            authenticated=False,
-            message="Invalid token"
-        )
-
-    # Extract data from token
-    token_type = payload.get("type")
-    sub = payload.get("sub")
-
-    if not sub:
-        return VerifyTokenResponse(
-            authenticated=False,
-            message="Invalid token payload"
-        )
-
-    user_id = sub.get("user_id")
-
-    # Check if user actually exists
-    user = db.query(UserRegistration).filter(UserRegistration.id == user_id).first()
-    if not user:
-        return VerifyTokenResponse(
-            authenticated=False,
-            message="User does not exist"
-        )
-
-    # SUCCESS
-    return VerifyTokenResponse(
-        authenticated=True,
-        token_type=token_type,
-        user_id=user.id,
-        email=user.email,
-        message="Token is valid"
-    )
+@router.get("/me")
+def get_current_user(user=Depends(verify_token)):
+    return {
+        "message": "Authenticated user",
+        "user": user
+    }
 
 
+# --------------------------------------------------
+# LOGOUT
+# --------------------------------------------------
 @router.post("/logout/{user_id}")
 def logout(user_id: int, response: Response, db: Session = Depends(get_db)):
 
@@ -151,8 +119,9 @@ def logout(user_id: int, response: Response, db: Session = Depends(get_db)):
     return {"message": f"User {user_id} logged out successfully"}
 
 
-
-
+# --------------------------------------------------
+# UPDATE USER
+# --------------------------------------------------
 @router.put("/update/{user_id}")
 def update_user(user_id: int, payload: UpdateUser, db: Session = Depends(get_db)):
 
@@ -175,16 +144,21 @@ def update_user(user_id: int, payload: UpdateUser, db: Session = Depends(get_db)
     db.commit()
     db.refresh(user)
 
-    return {"message": "User updated successfully", "user": {
-        "id": user.id,
-        "full_name": user.full_name,
-        "email": user.email,
-        "phone": user.mobile,
-        "gender_id": user.gender_id
-    }}
+    return {
+        "message": "User updated successfully",
+        "user": {
+            "id": user.id,
+            "full_name": user.full_name,
+            "email": user.email,
+            "phone": user.mobile,
+            "gender_id": user.gender_id
+        }
+    }
 
 
-
+# --------------------------------------------------
+# DELETE USER
+# --------------------------------------------------
 @router.delete("/delete/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):
 
