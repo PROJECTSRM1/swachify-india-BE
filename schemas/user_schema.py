@@ -42,19 +42,27 @@ class LoginResponse(BaseModel):
     refresh_expires_in: int
 
 
-class UpdateUser(BaseModel):
-    p_first_name: Optional[str] = None
-    p_last_name: Optional[str] = None
-    p_mobile: Optional[str] = None
-    p_gender_id: Optional[int] = None
-    p_password: Optional[str] = None
-    p_state_id: Optional[int] = None
-    p_district_id: Optional[int] = None
-    p_profile_image: Optional[str] = None
-    p_experience_summary: Optional[str] = None
-    p_experience_doc: Optional[str] = None
-    p_skill_id: Optional[int] = None
+class LogoutRequest(BaseModel):
+    user_id: int
 
+
+class UpdateUser(BaseModel):
+    email: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    mobile: Optional[str] = None
+    password: Optional[str] = None
+    dob: Optional[date] = None
+    age: Optional[int] = None
+    profile_image: Optional[str] = None
+    experience_summary: Optional[str] = None
+    experience_doc: Optional[str] = None
+    government_id: Optional[str] = None
+    gender_id: Optional[int] = None
+    role_id: Optional[int] = None
+    state_id: Optional[int] = None
+    district_id: Optional[int] = None
+    skill_id: Optional[int] = None
 
 class VerifyTokenRequest(BaseModel):
     token: str

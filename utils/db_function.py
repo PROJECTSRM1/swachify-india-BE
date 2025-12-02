@@ -34,11 +34,17 @@ def execute_create_user_function(db, params):
         db.rollback()
         raise e
 
+
 def execute_function_raw(db, query, params):
     try:
         result = db.execute(text(query), params).fetchone()
         db.commit()
-        return result
+
+        if not result:
+            return None
+
+        return dict(result._mapping)   # <--- guaranteed keys
     except Exception as e:
         db.rollback()
         raise e
+

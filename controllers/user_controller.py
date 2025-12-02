@@ -1,8 +1,19 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from utils.db_function import execute_create_user_function
-from utils.hash import hash_password
 from schemas.user_schema import RegisterUser
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(
+    schemes=["sha256_crypt"],
+    deprecated="auto"
+)
+
+def hash_password(password: str):
+    return pwd_context.hash(password)
+
+def verify_password(plain, hashed):
+    return pwd_context.verify(plain, hashed)
 
 
 def register_user_controller(db: Session, payload: RegisterUser):
