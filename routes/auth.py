@@ -1,9 +1,9 @@
-# routes/auth.py
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy import text
 from sqlalchemy.orm import Session
-from datetime import datetime
 from core.database import get_db
-from models.user_models import UserRegistration
+from controllers.user_controller import register_user_controller
+from utils.db_function import execute_create_user_function, execute_function_raw
 from utils.hash import verify_password, hash_password
 from utils.jwt_utils import create_access_token, create_refresh_token, verify_token
 from schemas.user_schema import (
@@ -15,68 +15,48 @@ from jose import JWTError, ExpiredSignatureError
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-# --------------------------------------------------
-# REGISTER
-# --------------------------------------------------
+
 @router.post("/register", status_code=201)
 def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
-
-    if payload.password != payload.confirm_password:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
-
-    exists = db.query(UserRegistration).filter(
-        UserRegistration.email == payload.email
-    ).first()
-
-    if exists:
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    hashed = hash_password(payload.password)
-
-    new_user = UserRegistration(
-        full_name=payload.full_name,
-        email=payload.email,
-        mobile=payload.phone,
-        password=hashed,
-        gender_id=payload.gender_id
-    )
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return {"message": "User registered", "user_id": new_user.id}
+    return register_user_controller(db, payload)
 
 
-# --------------------------------------------------
-# LOGIN
-# --------------------------------------------------
+
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
 
     identifier = payload.email_or_phone.strip()
 
-    user = db.query(UserRegistration).filter(
-        (UserRegistration.email == identifier) |
-        (UserRegistration.mobile == identifier)
-    ).first()
+    query = """
+        SELECT * FROM fn_login_user(:p_identifier);
+    """
+    params = {"p_identifier": identifier}
 
-    if not user:
+    result = execute_function_raw(db, query, params)
+
+    if not result:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not verify_password(payload.password, user.password):
+    # Convert Row to dict
+    user = dict(result._mapping)
+
+    # Validate password
+    if not verify_password(payload.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # subject → put user_id directly
-    subject = {"sub": user.id, "email": user.email}
+    # JWT subject
+    subject = {
+        "sub": user["user_id"],
+        "email": user["email"]
+    }
 
     access_token = create_access_token(subject)
     refresh_token = create_refresh_token(subject)
 
+    # Cookie expiry
     refresh_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
     refresh_max_age = refresh_days * 24 * 3600
 
-    # Store refresh token in cookie
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
@@ -96,77 +76,61 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         refresh_expires_in=refresh_max_age
     )
 
-@router.get("/me")
-def get_current_user(user=Depends(verify_token)):
-    return {
-        "message": "Authenticated user",
-        "user": user
-    }
 
-
-# --------------------------------------------------
-# LOGOUT
-# --------------------------------------------------
-@router.post("/logout/{user_id}")
-def logout(user_id: int, response: Response, db: Session = Depends(get_db)):
-
-    user = db.query(UserRegistration).filter(UserRegistration.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
+@router.post("/logout")
+def logout(response: Response):
     response.delete_cookie("refresh_token")
+    return {"message": "Logged out successfully"}
 
-    return {"message": f"User {user_id} logged out successfully"}
 
-
-# --------------------------------------------------
-# UPDATE USER
-# --------------------------------------------------
 @router.put("/update/{user_id}")
 def update_user(user_id: int, payload: UpdateUser, db: Session = Depends(get_db)):
 
-    user = db.query(UserRegistration).filter(UserRegistration.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
+    # 1. Build dynamic SQL SET clause
+    updates = {}
     if payload.full_name:
-        user.full_name = payload.full_name
-
+        updates["full_name"] = payload.full_name
     if payload.phone:
-        user.mobile = payload.phone
-
+        updates["mobile"] = payload.phone
     if payload.gender_id:
-        user.gender_id = payload.gender_id
-
+        updates["gender_id"] = payload.gender_id
     if payload.password:
-        user.password = hash_password(payload.password)
+        updates["password"] = hash_password(payload.password)
 
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields provided to update")
+
+    set_clause = ", ".join([f"{key} = :{key}" for key in updates.keys()])
+    updates["id"] = user_id
+
+    # 2. Execute dynamically generated update SQL
+    query = text(f"""
+        UPDATE user_registration
+        SET {set_clause}
+        WHERE id = :id
+        RETURNING id, first_name, last_name, email, mobile, gender_id;
+    """)
+
+    result = db.execute(query, updates).fetchone()
     db.commit()
-    db.refresh(user)
 
-    return {
-        "message": "User updated successfully",
-        "user": {
-            "id": user.id,
-            "full_name": user.full_name,
-            "email": user.email,
-            "phone": user.mobile,
-            "gender_id": user.gender_id
-        }
-    }
+    if not result:
+        raise HTTPException(status_code=404, detail="User not found or update failed")
+
+    updated_user = dict(result._mapping)
+
+    return {"message": "User updated successfully", "user": updated_user}
 
 
-# --------------------------------------------------
-# DELETE USER
-# --------------------------------------------------
+
 @router.delete("/delete/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user_controller(user_id: int, db: Session = Depends(get_db)):
+    query = text("SELECT * FROM fn_delete_user_list(:p_user_id);")
+    params = {"p_user_id": user_id}
 
-    user = db.query(UserRegistration).filter(UserRegistration.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    result = execute_function_raw(db, query, params)
 
-    db.delete(user)
-    db.commit()
+    if not result:
+        raise HTTPException(status_code=404, detail="User not found or delete failed")
 
     return {"message": f"User {user_id} deleted successfully"}

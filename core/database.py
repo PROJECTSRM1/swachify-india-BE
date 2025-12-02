@@ -13,7 +13,6 @@ DB_NAME = os.getenv("DB_NAME", "postgres")
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 
-# URL-encode credentials (important if password contains @, :, / etc.)
 USER_ENC = urllib.parse.quote_plus(DB_USER)
 PASSWORD_ENC = urllib.parse.quote_plus(DB_PASSWORD)
 
