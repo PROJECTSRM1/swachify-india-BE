@@ -40,24 +40,32 @@ def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
 
     except ValidationError as e:
         error = e.errors()[0]["msg"]
-
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=error
         )
 
-    existing = db.execute(
+    # Check email exists
+    existing_email = db.execute(
         text("SELECT 1 FROM user_registration WHERE email=:email"),
         {"email": payload.email}
     ).fetchone()
 
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already exists"
-        )
+    if existing_email:
+        raise HTTPException(status_code=409, detail="Email already exists")
 
+    # Check mobile exists
+    existing_mobile = db.execute(
+        text("SELECT 1 FROM user_registration WHERE mobile=:mobile"),
+        {"mobile": payload.mobile}
+    ).fetchone()
+
+    if existing_mobile:
+        raise HTTPException(status_code=409, detail="Mobile already exists")
+
+    # Call controller
     return register_user_controller(db, payload)
+
 
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):

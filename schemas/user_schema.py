@@ -9,20 +9,19 @@ from datetime import date
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 import re
-
+import uuid
 
 
 class RegisterUser(BaseModel):
+    # unique_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     first_name: str = Field(..., min_length=2, max_length=50)
     last_name: Optional[str] = Field(None, min_length=2, max_length=50)
     email: EmailStr
-    mobile: str = Field(..., pattern=r"^[6-9]\d{9}$")  # FIXED: regex → pattern
+    mobile: str = Field(..., pattern=r"^[6-9]\d{9}$")
     password: str
     confirm_password: str
     gender_id: int
     address: str
-
-    # ---------------- VALIDATIONS ---------------- #
 
     @field_validator("email")
     def email_must_be_gmail(cls, v):
@@ -35,22 +34,14 @@ class RegisterUser(BaseModel):
         pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$"
         if not re.match(pattern, v):
             raise ValueError(
-                "Password must contain at least 8 characters including uppercase, lowercase, number & special char."
+                "Password must contain uppercase, lowercase, number & special char."
             )
         return v
 
     @field_validator("confirm_password")
     def confirm_password_match(cls, v, info):
-        password = info.data.get("password")
-        if password and v != password:
+        if v != info.data.get("password"):
             raise ValueError("Password and Confirm Password must match")
-        return v
-
-    @field_validator("first_name")
-    def validate_first_last(cls, v, info):
-        last_name = info.data.get("last_name")
-        if last_name and v.lower() == last_name.lower():
-            raise ValueError("First name and Last name must not be the same")
         return v
 
     @field_validator("address")
@@ -59,8 +50,6 @@ class RegisterUser(BaseModel):
         if len(parts) < 4:
             raise ValueError("Address must be: Area, City, District, State")
         return v
-
-
 
 class LoginRequest(BaseModel):
     email_or_phone: str
