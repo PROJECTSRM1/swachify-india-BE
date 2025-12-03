@@ -70,13 +70,17 @@ class LogoutRequest(BaseModel):
 
 
 class UpdateUser(BaseModel):
-    first_name: str = Field(..., min_length=2, max_length=50)
+    user_id: int   # required always
+
+    first_name: Optional[str] = Field(None, min_length=2, max_length=50)
     last_name: Optional[str] = Field(None, min_length=2, max_length=50)
-    email: EmailStr
-    mobile: str = Field(..., pattern=r"^[6-9]\d{9}$")
-    password: Optional[str] = None  
-    gender_id: int
-    address: str
+    email: Optional[EmailStr] = None
+    mobile: Optional[str] = Field(None, pattern=r"^[6-9]\d{9}$")
+    password: Optional[str] = None
+    gender_id: Optional[int] = None
+    address: Optional[str] = None
+
+
 
 
     @field_validator("email")

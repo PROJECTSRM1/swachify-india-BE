@@ -166,35 +166,44 @@ def get_current_user(token: str):
     payload = verify_token(token)
     return {"user": payload}
 
-
-
-
 @router.put("/update")
 def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
 
-    params = {
-        "p_email": payload.email,
-        "p_first_name": payload.first_name,
-        "p_last_name": payload.last_name,
-        "p_mobile": payload.mobile,
-        "p_password": hash_password(payload.password) if payload.password else None,
-        "p_gender_id": payload.gender_id,
-        "p_dob": None,
-        "p_age": None,
-        "p_profile_image": None,
-        "p_experience_summary": None,
-        "p_experience_doc": None,
-        "p_government_id": None,
-        "p_role_id": None,
-        "p_state_id": None,
-        "p_district_id": None,
-        "p_skill_id": None,
-        "p_created_by": None,
-        "p_address": payload.address
+    user_query = db.execute(text("SELECT * FROM user_registration WHERE id = :id"), {"id": payload.user_id})
+    user = user_query.fetchone()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user = dict(user._mapping)
+    updated_data = {
+        "p_user_id": payload.user_id,
+        "p_email": payload.email or user["email"],
+        "p_first_name": payload.first_name or user["first_name"],
+        "p_last_name": payload.last_name or user["last_name"],
+        "p_mobile": payload.mobile or user["mobile"],
+        "p_password": hash_password(payload.password) if payload.password else user["password"],
+        "p_gender_id": payload.gender_id or user["gender_id"],
+
+        # Optional fixed values
+        "p_dob": user["dob"],
+        "p_age": user["age"],
+        "p_profile_image": user["profile_image"],
+        "p_experience_summary": user["experience_summary"],
+        "p_experience_doc": user["experience_doc"],
+        "p_government_id": user["government_id"],
+        "p_role_id": user["role_id"],
+        "p_state_id": user["state_id"],
+        "p_district_id": user["district_id"],
+        "p_skill_id": user["skill_id"],
+        "p_created_by": user["created_by"],
+
+        "p_address": payload.address or user["address"]
     }
 
+    # 3. Call Function
     query = """
     SELECT * FROM fn_user_update_list(
+        :p_user_id,
         :p_email,
         :p_first_name,
         :p_last_name,
@@ -216,16 +225,10 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
     );
     """
 
-    result = db.execute(text(query), params).fetchone()
+    result = db.execute(text(query), updated_data).fetchone()
     db.commit()
 
-    if not result:
-        raise HTTPException(status_code=404, detail="Update failed")
-
-    return {
-        "message": "User updated successfully",
-        "updated": result._mapping
-    }
+    return {"message": "User updated successfully", "updated": dict(result._mapping)}
 
 
 
