@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from core.database import Base, engine
 from routes.auth import router as user_router
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 Base.metadata.create_all(bind=engine)
 

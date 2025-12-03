@@ -28,18 +28,7 @@ def register_user_controller(db: Session, payload: RegisterUser):
         "p_mobile": payload.mobile,
         "p_password": hash_password(payload.password),
         "p_gender_id": payload.gender_id,
-        "p_unique_id": payload.unique_id,
-        "p_dob": payload.dob,
-        "p_age": payload.age,
-        "p_role_id": payload.role_id,
-        "p_state_id": payload.state_id,
-        "p_district_id": payload.district_id,
-        "p_created_by": payload.created_by,
-        "p_profile_image": payload.profile_image,
-        "p_skill_id": payload.skill_id,
-        "p_experience_summary": payload.experience_summary,
-        "p_experience_doc": payload.experience_doc,
-        "p_government_id": payload.government_id
+        "p_address": payload.address
     }
 
     result = execute_create_user_function(db, params)
@@ -47,15 +36,7 @@ def register_user_controller(db: Session, payload: RegisterUser):
     if not result:
         raise HTTPException(status_code=500, detail="User creation failed")
 
-    try:
-        data = dict(result._mapping)
-    except:
-        try:
-            data = dict(result)
-        except:
-            data = result
-
     return {
         "message": "User registered successfully",
-        "data": data
+        "data": dict(result._mapping)
     }

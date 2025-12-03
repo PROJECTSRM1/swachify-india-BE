@@ -1,22 +1,21 @@
-# utils/jwt_utils.py
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError, ExpiredSignatureError
 from fastapi import HTTPException
-import os
+from app.config.settings import settings
 
-SECRET_KEY = os.getenv("JWT_SECRET")
-ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-ACCESS_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES",120))
-REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS",7))
+SECRET_KEY = settings.JWT_SECRET
+ALGORITHM = settings.JWT_ALGORITHM
+ACCESS_EXPIRE_MINUTES = settings.JWT_EXPIRE_MINUTES
+REFRESH_EXPIRE_DAYS = settings.REFRESH_EXPIRE_DAYS
 
 
 def create_access_token(subject: dict) -> str:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     expire = now + timedelta(minutes=ACCESS_EXPIRE_MINUTES)
 
     payload = {
-        "sub": str(subject["user_id"]),       # 🔥 FIXED: must be string
+        "sub": str(subject["user_id"]),
         "email": subject.get("email"),
         "iat": int(now.timestamp()),
         "exp": int(expire.timestamp()),
@@ -25,29 +24,39 @@ def create_access_token(subject: dict) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
+
 def create_refresh_token(subject: dict) -> str:
     now = datetime.utcnow()
     expire = now + timedelta(days=REFRESH_EXPIRE_DAYS)
 
     payload = {
-        "sub": str(subject["user_id"]),       # 🔥 FIXED
+        "sub": str(subject["user_id"]),
         "email": subject.get("email"),
         "iat": int(now.timestamp()),
         "exp": int(expire.timestamp()),
         "type": "refresh",
     }
+
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def verify_token(token: str) -> dict:
+    print("\n========== VERIFY TOKEN CALLED ==========")
+    print("TOKEN RECEIVED:", token)
+    print("TOKEN LENGTH:", len(token))
+    print("USING SECRET_KEY:", SECRET_KEY)
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print("DECODE SUCCESS PAYLOAD:", payload)
         return payload
 
-    except ExpiredSignatureError:
+    except ExpiredSignatureError as e:
+        print("ERROR TYPE: ExpiredSignatureError")
+        print("ERROR MESSAGE:", str(e))
         raise HTTPException(status_code=401, detail="Token expired")
 
     except JWTError as e:
-        # Print actual decode error for debugging
-        print("JWT DECODE ERROR:", str(e))
+        print("ERROR TYPE:", type(e).__name__)
+        print("ERROR MESSAGE:", str(e))
         raise HTTPException(status_code=401, detail="Invalid token")

@@ -6,27 +6,61 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import date
 
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from typing import Optional
+import re
+
+
 
 class RegisterUser(BaseModel):
-    first_name: str
-    last_name: Optional[str] = None
+    first_name: str = Field(..., min_length=2, max_length=50)
+    last_name: Optional[str] = Field(None, min_length=2, max_length=50)
     email: EmailStr
-    mobile: str
+    mobile: str = Field(..., pattern=r"^[6-9]\d{9}$")  # FIXED: regex → pattern
     password: str
     confirm_password: str
     gender_id: int
-    unique_id: Optional[str] = None
-    dob: Optional[date] = None
-    age: Optional[int] = None
-    role_id: Optional[int] = None
-    state_id: Optional[int] = None
-    district_id: Optional[int] = None
-    created_by: Optional[int] = None
-    profile_image: Optional[str] = None
-    skill_id: Optional[int] = None
-    experience_summary: Optional[str] = None
-    experience_doc: Optional[str] = None
-    government_id: Optional[str] = None
+    address: str
+
+    # ---------------- VALIDATIONS ---------------- #
+
+    @field_validator("email")
+    def email_must_be_gmail(cls, v):
+        if not v.endswith("@gmail.com"):
+            raise ValueError("Email must end with @gmail.com")
+        return v
+
+    @field_validator("password")
+    def strong_password(cls, v):
+        pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                "Password must contain at least 8 characters including uppercase, lowercase, number & special char."
+            )
+        return v
+
+    @field_validator("confirm_password")
+    def confirm_password_match(cls, v, info):
+        password = info.data.get("password")
+        if password and v != password:
+            raise ValueError("Password and Confirm Password must match")
+        return v
+
+    @field_validator("first_name")
+    def validate_first_last(cls, v, info):
+        last_name = info.data.get("last_name")
+        if last_name and v.lower() == last_name.lower():
+            raise ValueError("First name and Last name must not be the same")
+        return v
+
+    @field_validator("address")
+    def validate_address(cls, v):
+        parts = [p.strip() for p in v.split(",")]
+        if len(parts) < 4:
+            raise ValueError("Address must be: Area, City, District, State")
+        return v
+
+
 
 class LoginRequest(BaseModel):
     email_or_phone: str
@@ -47,23 +81,48 @@ class LogoutRequest(BaseModel):
 
 
 class UpdateUser(BaseModel):
-    email: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    mobile: Optional[str] = None
-    password: Optional[str] = None
-    dob: Optional[date] = None
-    age: Optional[int] = None
-    profile_image: Optional[str] = None
-    experience_summary: Optional[str] = None
-    experience_doc: Optional[str] = None
-    government_id: Optional[str] = None
-    gender_id: Optional[int] = None
-    role_id: Optional[int] = None
-    state_id: Optional[int] = None
-    district_id: Optional[int] = None
-    skill_id: Optional[int] = None
+    first_name: str = Field(..., min_length=2, max_length=50)
+    last_name: Optional[str] = Field(None, min_length=2, max_length=50)
+    email: EmailStr
+    mobile: str = Field(..., pattern=r"^[6-9]\d{9}$")
+    password: Optional[str] = None  
+    gender_id: int
+    address: str
 
+
+    @field_validator("email")
+    def email_must_be_gmail(cls, v):
+        if not v.endswith("@gmail.com"):
+            raise ValueError("Email must end with @gmail.com")
+        return v
+
+    @field_validator("password")
+    def strong_password(cls, v):
+        if v is None:
+            return v
+        pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                "Password must have uppercase, lowercase, number & special char and be 8+ chars."
+            )
+        return v
+
+    @field_validator("first_name")
+    def validate_first_last(cls, v, info):
+        last_name = info.data.get("last_name")
+        if last_name and v.lower() == last_name.lower():
+            raise ValueError("First name and Last name must NOT be the same")
+        return v
+
+    @field_validator("address")
+    def validate_address(cls, v):
+        parts = [p.strip() for p in v.split(",")]
+        if len(parts) < 4:
+            raise ValueError("Address must be: Area, City, District, State")
+        return v
+
+
+    
 class VerifyTokenRequest(BaseModel):
     token: str
 
@@ -74,3 +133,7 @@ class VerifyTokenResponse(BaseModel):
     user_id: Optional[int] = None
     email: Optional[str] = None
     message: Optional[str] = None
+
+class RefreshRequest(BaseModel):
+    user_id: int
+    refresh_token: str
