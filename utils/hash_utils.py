@@ -6,3 +6,5 @@ def hash_password(password: str):
     if len(password) > 72:
         password = password[:72] 
     return pwd_context.hash(password)
+def verify_password(plain_password: str, hashed_password: str):
+    return pwd_context.verify(plain_password, hashed_password)

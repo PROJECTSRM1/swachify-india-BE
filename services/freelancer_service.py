@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models.user_registration import UserRegistration
-from utils.hash_utils import hash_password
+from utils.hash_utils import hash_password,verify_password
 from services.master_default_service import (
     fetch_default_skill,
     fetch_default_state,
@@ -29,7 +29,7 @@ def freelancer_register_service(db: Session, payload):
 
     # Default values from master tables
     state = fetch_default_state(db) if not payload.state_id else None
-    district = fetch_default_district(db, state.id) if state and not payload.district_id else None
+    district = fetch_default_district(db,state.id) if state and not payload.district_id else None
     skill = fetch_default_skill(db) if not payload.skill_id else None
     gender_id = payload.gender_id if payload.gender_id not in (None, 0) else None
     if not gender_id:
@@ -89,7 +89,9 @@ def freelancer_login_service(db: Session, payload):
     if not user:
         raise HTTPException(404, "Freelancer not found")
 
-    
+    if not verify_password(payload.password, user.password):
+        raise HTTPException(status_code=400, detail="Invalid password")
+
 
     subject = {
         "user_id": user.id,
