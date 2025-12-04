@@ -21,15 +21,12 @@ def freelancer_register_service(db: Session, payload):
     Register a freelancer with full auto-default master lookup
     and JSON-packed government ID storage.
     """
-    # Unique email
     if db.query(UserRegistration).filter(UserRegistration.email == payload.email).first():
         raise HTTPException(400, "Email already exists")
 
-    # Unique mobile
     if db.query(UserRegistration).filter(UserRegistration.mobile == payload.mobile).first():
         raise HTTPException(400, "Mobile already exists")
 
-    # Default values from master tables
     state = fetch_default_state(db) if not payload.state_id else None
     district = fetch_default_district(db,state.id) if state and not payload.district_id else None
     skill = fetch_default_skill(db) if not payload.skill_id else None
@@ -78,7 +75,6 @@ def freelancer_login_service(db: Session, payload, response):
 
     identifier = payload.email_or_phone.strip()
 
-    # Find user by email or phone
     if "@" in identifier:
         user = db.query(UserRegistration).filter(
             UserRegistration.email == identifier,
@@ -96,22 +92,18 @@ def freelancer_login_service(db: Session, payload, response):
     if not verify_password(payload.password, user.password):
         raise HTTPException(status_code=400, detail="Invalid password")
 
-    # JWT Payload
     subject = {
         "user_id": user.id,
         "email": user.email,
         "role": "freelancer"
     }
 
-    # Generate tokens
     access_token = create_access_token(subject)
     refresh_token = create_refresh_token(subject)
 
-    # COOKIE SETTINGS
     refresh_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
     max_age = refresh_days * 24 * 3600
 
-    # Set refresh token cookie
     response.set_cookie(
         key="freelancer_refresh_token",
         value=refresh_token,
@@ -120,7 +112,6 @@ def freelancer_login_service(db: Session, payload, response):
         max_age=max_age
     )
 
-    # Send response
     return {
         "message": "Freelancer login successful",
         "user_id": user.id,
@@ -141,7 +132,6 @@ def freelancer_update_service(db: Session, freelancer_id: int, payload):
     if not user:
         raise HTTPException(status_code=404, detail="Freelancer not found")
 
-    # Update allowed fields
     user.first_name = payload.first_name or user.first_name
     user.last_name = payload.last_name or user.last_name
     user.email = payload.email or user.email

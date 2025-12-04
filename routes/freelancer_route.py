@@ -95,14 +95,11 @@ def verify_token_endpoint(token: str):
     )
 
 
-
-# ------------------- UPDATE FREELANCER -------------------
 @router.put("/update/{freelancer_id}")
 def update_freelancer(freelancer_id: int, payload: FreelancerRegister, db: Session = Depends(get_db)):
     return freelancer_update_service(db, freelancer_id, payload)
 
 
-# ------------------- DELETE FREELANCER -------------------
 @router.delete("/delete/{freelancer_id}")
 def delete_freelancer(freelancer_id: int, db: Session = Depends(get_db)):
     return freelancer_delete_service(db, freelancer_id)

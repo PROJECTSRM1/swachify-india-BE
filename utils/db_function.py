@@ -1,8 +1,5 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
-
-
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -39,8 +36,6 @@ def execute_create_user_function(db: Session, params: dict):
     except Exception as e:
         db.rollback()
         raise e
-
-
 
 
 def execute_function_raw(db, query, params):

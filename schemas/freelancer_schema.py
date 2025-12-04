@@ -64,7 +64,6 @@ class FreelancerRegister(BaseModel):
             raise ValueError(f"government_id_type must be one of {VALID_GOV_ID_TYPES}")
         return value.lower() if value else value
 
-    # ---------------- GOVERNMENT ID NUMBER ----------------
     @field_validator("government_id_number")
     def validate_gov_number(cls, value, info):
         gov_type = info.data.get("government_id_type")
@@ -90,30 +89,25 @@ class FreelancerRegister(BaseModel):
     @field_validator("address")
     def validate_address(cls, value):
         if not value:
-            return value  # address is optional
+            return value 
 
         value = value.strip()
 
-        # Minimum length check
         if len(value) < 10:
             raise ValueError("Address must be at least 10 characters long.")
 
-        # Maximum length check
         if len(value) > 250:
             raise ValueError("Address cannot exceed 250 characters.")
 
-        # Allowed characters: letters, numbers, space, comma, dot, slash, hyphen
         pattern = r"^[A-Za-z0-9\s,.-/]+$"
         if not re.fullmatch(pattern, value):
             raise ValueError(
                 "Address contains invalid characters. Only letters, numbers, spaces, commas, dots, slashes, and hyphens are allowed."
             )
 
-        # Address should contain alphabet characters (prevents '1234567890' only)
         if not re.search(r"[A-Za-z]", value):
             raise ValueError("Address must contain at least one letter.")
 
-        # Address should contain at least one number (house/flat number)
         if not re.search(r"\d", value):
             raise ValueError("Address must contain at least one number.")
 
