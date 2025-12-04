@@ -3,18 +3,14 @@ uvicorn[standard]
 sqlalchemy
 psycopg2-binary
 python-dotenv
-
 pydantic==2.6.4
 pydantic-core==2.16.3
 email-validator
 python-multipart
-
-passlib      # <-- NOT passlib[bcrypt]
-bcrypt==4.0.1    # older version that does NOT need Rust
-
-python-jose==3.3.0   # <-- pure python
-cryptography==41.0.7 # <-- last version without Rust
-
+passlib[bcrypt]
+bcrypt
+python-jose[cryptography]
+cryptography
 jinja2
 fastapi-mail
 requests
