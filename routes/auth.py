@@ -145,6 +145,33 @@ def logout(payload: LogoutRequest, response: Response, db: Session = Depends(get
 
 
 
+@router.post("/refresh")
+def refresh_access_token(payload: RefreshRequest):
+    
+    refresh_token = payload.refresh_token
+
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+
+    decoded = verify_token(refresh_token)
+
+    if decoded.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    new_access_token = create_access_token({
+        "user_id": decoded.get("sub"),
+        "email": decoded.get("email")
+    })
+
+    return {
+        "message": "New access token generated",
+        "user_id": payload.user_id,
+        "access_token": new_access_token,
+        "token_type": "bearer"
+    }
+
+
+
 @router.get("/verify-token", response_model=VerifyTokenResponse)
 def verify_token_endpoint(token: str):
     payload = verify_token(token)
@@ -169,6 +196,41 @@ def get_current_user(token: str):
 
     payload = verify_token(token)
     return {"user": payload}
+
+
+
+
+
+
+@router.get("/users")
+def get_all_users(db: Session = Depends(get_db)):
+    query = text("SELECT * FROM user_registration ORDER BY id;")
+    result = db.execute(query).fetchall()
+
+    users = [dict(row._mapping) for row in result]
+
+    return {
+        "total_users": len(users),
+        "users": users
+    }
+
+
+
+
+
+@router.get("/users/{user_id}")
+def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    query = text("SELECT * FROM user_registration WHERE id = :id LIMIT 1;")
+    row = db.execute(query, {"id": user_id}).fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"user": dict(row._mapping)}
+
+
+
+
 
 
 
@@ -239,35 +301,6 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
 
 
 
-@router.get("/users")
-def get_all_users(db: Session = Depends(get_db)):
-    query = text("SELECT * FROM user_registration ORDER BY id;")
-    result = db.execute(query).fetchall()
-
-    users = [dict(row._mapping) for row in result]
-
-    return {
-        "total_users": len(users),
-        "users": users
-    }
-
-
-
-
-
-@router.get("/users/{user_id}")
-def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
-    query = text("SELECT * FROM user_registration WHERE id = :id LIMIT 1;")
-    row = db.execute(query, {"id": user_id}).fetchone()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return {"user": dict(row._mapping)}
-
-
-
-
 
 @router.delete("/delete")
 def delete_user_controller(email: str, db: Session = Depends(get_db)):
@@ -284,28 +317,3 @@ def delete_user_controller(email: str, db: Session = Depends(get_db)):
 
 
 
-
-@router.post("/refresh")
-def refresh_access_token(payload: RefreshRequest):
-    
-    refresh_token = payload.refresh_token
-
-    if not refresh_token:
-        raise HTTPException(status_code=401, detail="Refresh token missing")
-
-    decoded = verify_token(refresh_token)
-
-    if decoded.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-
-    new_access_token = create_access_token({
-        "user_id": decoded.get("sub"),
-        "email": decoded.get("email")
-    })
-
-    return {
-        "message": "New access token generated",
-        "user_id": payload.user_id,
-        "access_token": new_access_token,
-        "token_type": "bearer"
-    }
