@@ -3,13 +3,13 @@ uvicorn[standard]
 sqlalchemy
 psycopg2-binary
 python-dotenv
-pydantic==2.6.4
-pydantic-core==2.16.3
+pydantic
+pydantic-core
 email-validator
 python-multipart
-passlib[bcrypt]
+passlib
 bcrypt
-python-jose[cryptography]
+python-jose
 cryptography
 jinja2
 fastapi-mail
