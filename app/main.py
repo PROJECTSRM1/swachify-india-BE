@@ -5,11 +5,8 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
 Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
-
 app.include_router(user_router)
 
 @app.get("/")

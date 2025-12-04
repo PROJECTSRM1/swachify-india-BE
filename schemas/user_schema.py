@@ -1,11 +1,9 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import date
-
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import date
-
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 import re
@@ -13,7 +11,6 @@ import uuid
 
 
 class RegisterUser(BaseModel):
-    # unique_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     first_name: str = Field(..., min_length=2, max_length=50)
     last_name: Optional[str] = Field(None, min_length=2, max_length=50)
     email: EmailStr
@@ -70,7 +67,7 @@ class LogoutRequest(BaseModel):
 
 
 class UpdateUser(BaseModel):
-    user_id: int   # required always
+    user_id: int  
 
     first_name: Optional[str] = Field(None, min_length=2, max_length=50)
     last_name: Optional[str] = Field(None, min_length=2, max_length=50)
@@ -79,8 +76,6 @@ class UpdateUser(BaseModel):
     password: Optional[str] = None
     gender_id: Optional[int] = None
     address: Optional[str] = None
-
-
 
 
     @field_validator("email")
@@ -115,7 +110,6 @@ class UpdateUser(BaseModel):
         return v
 
 
-    
 class VerifyTokenRequest(BaseModel):
     token: str
 

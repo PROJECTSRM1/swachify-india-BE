@@ -17,8 +17,6 @@ from fastapi import HTTPException, status
 from pydantic import ValidationError
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-
-
 security = HTTPBearer()
 
 pwd_context = CryptContext(
@@ -28,9 +26,10 @@ pwd_context = CryptContext(
 
 def hash_password(password: str):
     return pwd_context.hash(password)
-
 def verify_password(plain: str, hashed: str):
     return pwd_context.verify(plain, hashed)
+
+
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
@@ -44,8 +43,6 @@ def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=error
         )
-
-    # Check email exists
     existing_email = db.execute(
         text("SELECT 1 FROM user_registration WHERE email=:email"),
         {"email": payload.email}
@@ -54,7 +51,6 @@ def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
     if existing_email:
         raise HTTPException(status_code=409, detail="Email already exists")
 
-    # Check mobile exists
     existing_mobile = db.execute(
         text("SELECT 1 FROM user_registration WHERE mobile=:mobile"),
         {"mobile": payload.mobile}
@@ -63,8 +59,9 @@ def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
     if existing_mobile:
         raise HTTPException(status_code=409, detail="Mobile already exists")
 
-    # Call controller
     return register_user_controller(db, payload)
+
+
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -128,6 +125,8 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     )
 
 
+
+
 @router.post("/logout")
 def logout(payload: LogoutRequest, response: Response, db: Session = Depends(get_db)):
 
@@ -142,6 +141,9 @@ def logout(payload: LogoutRequest, response: Response, db: Session = Depends(get
     response.delete_cookie("refresh_token")
 
     return {"message": f"User {user_id} logged out successfully"}
+
+
+
 
 @router.get("/verify-token", response_model=VerifyTokenResponse)
 def verify_token_endpoint(token: str):
@@ -158,6 +160,8 @@ def verify_token_endpoint(token: str):
     )
 
 
+
+
 @router.get("/me")
 def get_current_user(token: str):
     print("PYTHON UTC NOW:", datetime.utcnow())
@@ -165,6 +169,8 @@ def get_current_user(token: str):
 
     payload = verify_token(token)
     return {"user": payload}
+
+
 
 @router.put("/update")
 def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
@@ -200,7 +206,6 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
         "p_address": payload.address or user["address"]
     }
 
-    # 3. Call Function
     query = """
     SELECT * FROM fn_user_update_list(
         :p_user_id,
@@ -232,6 +237,8 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
 
 
 
+
+
 @router.get("/users")
 def get_all_users(db: Session = Depends(get_db)):
     query = text("SELECT * FROM user_registration ORDER BY id;")
@@ -245,6 +252,9 @@ def get_all_users(db: Session = Depends(get_db)):
     }
 
 
+
+
+
 @router.get("/users/{user_id}")
 def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     query = text("SELECT * FROM user_registration WHERE id = :id LIMIT 1;")
@@ -254,6 +264,9 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
 
     return {"user": dict(row._mapping)}
+
+
+
 
 
 @router.delete("/delete")
@@ -267,6 +280,9 @@ def delete_user_controller(email: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Delete failed")
 
     return {"message": f"User {email} deleted successfully"}
+
+
+
 
 
 @router.post("/refresh")

@@ -5,6 +5,7 @@ from schemas.user_schema import RegisterUser
 from passlib.context import CryptContext
 import uuid
 
+
 pwd_context = CryptContext(
     schemes=["sha256_crypt"],
     deprecated="auto"
@@ -12,7 +13,6 @@ pwd_context = CryptContext(
 
 def hash_password(password: str):
     return pwd_context.hash(password)
-
 def verify_password(plain, hashed):
     return pwd_context.verify(plain, hashed)
 
@@ -33,7 +33,6 @@ def register_user_controller(db: Session, payload: RegisterUser):
         "p_mobile": payload.mobile,
         "p_password": hash_password(payload.password),
         "p_gender_id": payload.gender_id,
-
         "p_dob": None,
         "p_age": None,
         "p_role_id": None,
@@ -45,13 +44,11 @@ def register_user_controller(db: Session, payload: RegisterUser):
         "p_experience_summary": None,
         "p_experience_doc": None,
         "p_government_id": None,
-
         "p_address": payload.address
     }
 
 
     result = execute_create_user_function(db, params)
-
     if not result:
         raise HTTPException(status_code=500, detail="User creation failed")
 
