@@ -9,13 +9,11 @@ pydantic-core==2.16.3
 email-validator
 python-multipart
 
-passlib            # removed bcrypt backend that requires Rust
-
+passlib
 python-jose[cryptography]
-cryptography
+
+cryptography==41.0.7
 
 jinja2
 fastapi-mail
 requests
-
-
