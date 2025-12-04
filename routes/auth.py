@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
 from fastapi.security import HTTPBearer
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -31,12 +31,10 @@ def verify_password(plain: str, hashed: str):
 
 
 
-
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
+def register_user(payload: RegisterUser, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     try:
         payload = RegisterUser(**payload.dict())
-
     except ValidationError as e:
         error = e.errors()[0]["msg"]
         raise HTTPException(
@@ -59,7 +57,9 @@ def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
     if existing_mobile:
         raise HTTPException(status_code=409, detail="Mobile already exists")
 
-    return register_user_controller(db, payload)
+    return register_user_controller(db, payload, background_tasks)
+
+
 
 
 
