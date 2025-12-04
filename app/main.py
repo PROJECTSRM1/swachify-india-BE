@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 from routes.freelancer_route import router as freelancer_router
 from fastapi.middleware.cors import CORSMiddleware
-from routes.auth import router as user_router
+
 
 app = FastAPI()  # <-- You must define this BEFORE using app.add_middleware
 
@@ -23,7 +23,6 @@ app.include_router(user_router)
 
 load_dotenv()
 Base.metadata.create_all(bind=engine)
-app = FastAPI()
 app.include_router(user_router)
 app.include_router(freelancer_router)
 
