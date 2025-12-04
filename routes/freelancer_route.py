@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, Response, HTTPException
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from core.database import get_db
+from utils.mail_agent import send_welcome_email
+from utils.sms_agent import send_welcome_sms
 from utils.jwt_utils import create_access_token
 from schemas.user_schema import RefreshRequest, VerifyTokenResponse
 from utils.jwt_utils import verify_token
@@ -18,9 +20,39 @@ from services.freelancer_service import (
 router = APIRouter(prefix="/freelancer", tags=["Freelancer"])
 
 
+# @router.post("/register")
+# def register_freelancer(payload: FreelancerRegister, db: Session = Depends(get_db)):
+#     return freelancer_register_service(db, payload)
+
+
 @router.post("/register")
-def register_freelancer(payload: FreelancerRegister, db: Session = Depends(get_db)):
-    return freelancer_register_service(db, payload)
+async def register_freelancer(payload: FreelancerRegister, db: Session = Depends(get_db)):
+
+    # 1️⃣ Register user in DB
+    user = freelancer_register_service(db, payload)
+
+    # 2️⃣ Send Welcome Email
+    try:
+        await send_welcome_email(
+            email=payload.email,
+            name=payload.first_name
+        )
+    except Exception as e:
+        print("EMAIL SEND ERROR:", e)
+
+    # 3️⃣ Send Welcome SMS
+    try:
+        send_welcome_sms(
+            mobile=payload.mobile,
+            firstname=payload.first_name
+        )
+    except Exception as e:
+        print("SMS SEND ERROR:", e)
+
+    return {
+        "message": "Freelancer registered successfully. Notifications sent.",
+        "user_id": user["user_id"] if isinstance(user, dict) else user
+    }
 
 
 @router.post("/login")
