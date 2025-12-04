@@ -5,13 +5,15 @@ psycopg2-binary
 python-dotenv
 pydantic==2.6.4
 pydantic-core==2.16.3
+email-validator
 python-multipart
-passlib
+passlib[bcrypt]
 bcrypt
 python-jose[cryptography]
 cryptography
 jinja2
-email-validator
+fastapi-mail
+requests
 
 
 # fastapi==0.115.0
