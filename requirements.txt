@@ -10,7 +10,8 @@ email-validator
 python-multipart
 
 passlib
-python-jose[cryptography]
+python-jose
+
 
 cryptography==41.0.7
 
