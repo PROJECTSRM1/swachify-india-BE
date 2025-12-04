@@ -16,7 +16,7 @@ import os
 from fastapi import HTTPException, status
 from pydantic import ValidationError
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/api/auth", tags=["Customer"])
 security = HTTPBearer()
 
 pwd_context = CryptContext(
@@ -28,7 +28,6 @@ def hash_password(password: str):
     return pwd_context.hash(password)
 def verify_password(plain: str, hashed: str):
     return pwd_context.verify(plain, hashed)
-
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
@@ -58,10 +57,6 @@ def register_user(payload: RegisterUser, background_tasks: BackgroundTasks, db: 
         raise HTTPException(status_code=409, detail="Mobile already exists")
 
     return register_user_controller(db, payload, background_tasks)
-
-
-
-
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -124,9 +119,6 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         refresh_expires_in=refresh_max_age
     )
 
-
-
-
 @router.post("/logout")
 def logout(payload: LogoutRequest, response: Response, db: Session = Depends(get_db)):
 
@@ -141,8 +133,6 @@ def logout(payload: LogoutRequest, response: Response, db: Session = Depends(get
     response.delete_cookie("refresh_token")
 
     return {"message": f"User {user_id} logged out successfully"}
-
-
 
 
 @router.post("/refresh")
@@ -187,8 +177,6 @@ def verify_token_endpoint(token: str):
     )
 
 
-
-
 @router.get("/me")
 def get_current_user(token: str):
     print("PYTHON UTC NOW:", datetime.utcnow())
@@ -196,10 +184,6 @@ def get_current_user(token: str):
 
     payload = verify_token(token)
     return {"user": payload}
-
-
-
-
 
 
 @router.get("/users")
@@ -215,9 +199,6 @@ def get_all_users(db: Session = Depends(get_db)):
     }
 
 
-
-
-
 @router.get("/users/{user_id}")
 def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     query = text("SELECT * FROM user_registration WHERE id = :id LIMIT 1;")
@@ -227,11 +208,6 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
 
     return {"user": dict(row._mapping)}
-
-
-
-
-
 
 
 @router.put("/update")

@@ -1,5 +1,3 @@
-# utils/mail_agent.py
-
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from dotenv import load_dotenv
 import os
