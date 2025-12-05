@@ -1,15 +1,24 @@
 from fastapi import FastAPI
-from core.database import Base, engine
-from routes.auth import router as user_router
-from dotenv import load_dotenv
-import os
-from routes.freelancer_route import router as freelancer_router
 from fastapi.middleware.cors import CORSMiddleware
+from core.database import Base, engine
+from dotenv import load_dotenv
+
+# ROUTERS
+from routes.auth import router as user_router
+from routes.freelancer_route import router as freelancer_router
+from controllers.payment_routes import router as payment_router
 
 
-app = FastAPI()  # <-- You must define this BEFORE using app.add_middleware
+# Load environment first
+load_dotenv()
 
-# CORS Middleware
+# FastAPI App
+app = FastAPI(
+    title="Swachify India API",
+    version="1.0"
+)
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,15 +27,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routes
-app.include_router(user_router)
-
-load_dotenv()
+# DATABASE
 Base.metadata.create_all(bind=engine)
-app.include_router(user_router)
-app.include_router(freelancer_router)
 
-
+# API ROUTES
+app.include_router(user_router, prefix="/api/auth", tags=["Auth"])
+app.include_router(freelancer_router, prefix="/api/freelancer", tags=["Freelancer"])
+app.include_router(payment_router, prefix="/api/payments", tags=["Payments"])  # <-- NOW VISIBLE IN SWAGGER
 
 @app.get("/")
 def home():
