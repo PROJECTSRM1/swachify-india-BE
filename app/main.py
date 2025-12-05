@@ -31,8 +31,8 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 # API ROUTES
-app.include_router(user_router, prefix="/api/auth", tags=["Auth"])
-app.include_router(freelancer_router, prefix="/api/freelancer", tags=["Freelancer"])
+app.include_router(user_router, tags=["Customer"])
+app.include_router(freelancer_router, tags=["Freelancer"])
 app.include_router(payment_router, prefix="/api/payments", tags=["Payments"])  # <-- NOW VISIBLE IN SWAGGER
 
 @app.get("/")
