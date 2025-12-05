@@ -17,7 +17,7 @@ from services.freelancer_service import (
     freelancer_delete_service
 )
 
-router = APIRouter(prefix="/freelancer", tags=["Freelancer"])
+router = APIRouter(prefix="/api/freelancer", tags=["Freelancer"])
 
 
 # @router.post("/register")
