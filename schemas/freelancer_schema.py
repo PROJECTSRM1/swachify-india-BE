@@ -86,32 +86,6 @@ class FreelancerRegister(BaseModel):
 
         return value
     
-    @field_validator("address")
-    def validate_address(cls, value):
-        if not value:
-            return value 
-
-        value = value.strip()
-
-        if len(value) < 10:
-            raise ValueError("Address must be at least 10 characters long.")
-
-        if len(value) > 250:
-            raise ValueError("Address cannot exceed 250 characters.")
-
-        pattern = r"^[A-Za-z0-9\s,.-/]+$"
-        if not re.fullmatch(pattern, value):
-            raise ValueError(
-                "Address contains invalid characters. Only letters, numbers, spaces, commas, dots, slashes, and hyphens are allowed."
-            )
-
-        if not re.search(r"[A-Za-z]", value):
-            raise ValueError("Address must contain at least one letter.")
-
-        if not re.search(r"\d", value):
-            raise ValueError("Address must contain at least one number.")
-
-        return value
 
 
 

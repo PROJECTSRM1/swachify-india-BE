@@ -280,8 +280,9 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
 
 @router.delete("/delete")
 def delete_user_controller(email: str, db: Session = Depends(get_db)):
-    query = "SELECT * FROM fn_user_delete_list(:p_email)"
-    params = {"p_email": email}
+    query = "SELECT * FROM fn_user_delete_list(:p_user_id)"
+    params = {"p_user_id": user_id}
+
 
     result = execute_function_raw(db, query, params)
 
@@ -292,4 +293,10 @@ def delete_user_controller(email: str, db: Session = Depends(get_db)):
 
 
 
+@router.delete("/delete-all-users")
+def delete_all_users(db: Session = Depends(get_db)):
+    query = text("DELETE FROM user_registration;")
+    db.execute(query)
+    db.commit()
+    return {"message": "All users deleted successfully"}
 
