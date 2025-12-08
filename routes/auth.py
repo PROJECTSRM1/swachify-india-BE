@@ -277,20 +277,17 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
 
 
 
-
-@router.delete("/delete")
-def delete_user_controller(email: str, db: Session = Depends(get_db)):
+@router.delete("/delete/{user_id}")
+def delete_user_controller(user_id: int, db: Session = Depends(get_db)):
     query = "SELECT * FROM fn_user_delete_list(:p_user_id)"
     params = {"p_user_id": user_id}
-
 
     result = execute_function_raw(db, query, params)
 
     if not result:
-        raise HTTPException(status_code=404, detail="Delete failed")
+        raise HTTPException(status_code=404, detail="Delete failed or user not found")
 
-    return {"message": f"User {email} deleted successfully"}
-
+    return {"message": f"User {user_id} deleted successfully"}
 
 
 @router.delete("/delete-all-users")
