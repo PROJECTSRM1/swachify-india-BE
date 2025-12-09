@@ -41,12 +41,12 @@ class RegisterUser(BaseModel):
             raise ValueError("Password and Confirm Password must match")
         return v
 
-    @field_validator("address")
-    def validate_address(cls, v):
-        parts = [p.strip() for p in v.split(",")]
-        if len(parts) < 4:
-            raise ValueError("Address must be: Area, City, District, State")
-        return v
+    # @field_validator("address")
+    # def validate_address(cls, v):
+    #     parts = [p.strip() for p in v.split(",")]
+    #     if len(parts) < 4:
+    #         raise ValueError("Address must be: Area, City, District, State")
+    #     return v
 
 class LoginRequest(BaseModel):
     email_or_phone: str
@@ -124,11 +124,6 @@ class VerifyTokenResponse(BaseModel):
 class RefreshRequest(BaseModel):
     user_id: int
     refresh_token: str
-
-
-
-
-
 
 
 # class ForgotPasswordRequest(BaseModel):
