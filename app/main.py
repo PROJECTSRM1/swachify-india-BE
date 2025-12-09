@@ -38,3 +38,8 @@ app.include_router(payment_router, prefix="/api/payments", tags=["Payments"])  #
 @app.get("/")
 def home():
     return {"message": "Swachify India Backend Running Successfully!"}
+
+
+
+
+

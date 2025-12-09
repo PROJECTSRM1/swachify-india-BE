@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError, ExpiredSignatureError
 from fastapi import HTTPException
@@ -8,6 +7,9 @@ SECRET_KEY = settings.JWT_SECRET
 ALGORITHM = settings.JWT_ALGORITHM
 ACCESS_EXPIRE_MINUTES = settings.JWT_EXPIRE_MINUTES
 REFRESH_EXPIRE_DAYS = settings.REFRESH_EXPIRE_DAYS
+
+# NEW: separate expiry for password-reset tokens
+RESET_EXPIRE_MINUTES = 15  # you can move this to settings later if you want
 
 
 def create_access_token(subject: dict) -> str:
@@ -24,7 +26,6 @@ def create_access_token(subject: dict) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
-
 def create_refresh_token(subject: dict) -> str:
     now = datetime.utcnow()
     expire = now + timedelta(days=REFRESH_EXPIRE_DAYS)
@@ -35,6 +36,22 @@ def create_refresh_token(subject: dict) -> str:
         "iat": int(now.timestamp()),
         "exp": int(expire.timestamp()),
         "type": "refresh",
+    }
+
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+# NEW: this is what forgot_password_service is trying to import
+def create_reset_token(subject: dict, expires_minutes: int = RESET_EXPIRE_MINUTES) -> str:
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=expires_minutes)
+
+    payload = {
+        "sub": str(subject["user_id"]),
+        "email": subject.get("email"),
+        "iat": int(now.timestamp()),
+        "exp": int(expire.timestamp()),
+        "type": "reset",        # IMPORTANT: mark this as reset token
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)

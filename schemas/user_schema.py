@@ -124,3 +124,38 @@ class VerifyTokenResponse(BaseModel):
 class RefreshRequest(BaseModel):
     user_id: int
     refresh_token: str
+
+
+
+
+
+
+
+# class ForgotPasswordRequest(BaseModel):
+#     email: EmailStr
+
+# class VerifyOtpRequest(BaseModel):
+#     email: EmailStr
+#     otp: str = Field(min_length=4, max_length=8)
+
+# class ResetPasswordRequest(BaseModel):
+#     reset_token: str
+#     new_password: str = Field(min_length=6)
+#     confirm_password: str = Field(min_length=6)
+
+
+
+class ForgotPasswordRequest(BaseModel):
+    # STEP 1: user enters email once
+    email: EmailStr
+
+
+class VerifyOtpRequest(BaseModel):
+    # STEP 2: user enters ONLY otp
+    otp: str = Field(min_length=4, max_length=8)
+
+
+class ResetPasswordRequest(BaseModel):
+    # STEP 3: user enters ONLY new passwords (no otp, no token)
+    new_password: str = Field(min_length=6)
+    confirm_password: str = Field(min_length=6)
