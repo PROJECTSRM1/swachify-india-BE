@@ -43,3 +43,60 @@ async def send_welcome_email(email: str, name: str):
     )
 
     await fast_mail.send_message(message)
+
+
+
+
+
+# async def send_forgot_password_otp(email: str, otp: str):
+#     subject = "Swachify India - Password Reset OTP"
+
+#     body = f"""
+#     Dear User,
+
+#     Your OTP to reset your Swachify India password is: {otp}
+
+#     This OTP is valid for 10 minutes. If you did not request a password reset,
+#     please ignore this email.
+
+#     Regards,
+#     Swachify India Team
+#     """
+
+#     message = MessageSchema(
+#         subject=subject,
+#         recipients=[email],
+#         body=body,
+#         subtype="plain"
+#     )
+
+#     await fast_mail.send_message(message)
+
+
+
+async def send_forgot_password_otp(email: str, otp: str, first_name: str | None = None):
+    display_name = first_name or "User"
+
+    subject = "Swachify India - Password Reset OTP"
+
+    body = f"""
+    Dear {display_name},
+
+    Your OTP to reset your Swachify India password is: {otp}
+
+    This OTP is valid for 10 minutes. If you did not request a password reset,
+    please ignore this email.
+
+    Regards,
+    Swachify India Team
+    """
+
+    message = MessageSchema(
+        subject=subject,
+        recipients=[email],
+        body=body,
+        subtype="plain"
+    )
+
+    await fast_mail.send_message(message)
+
