@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 # ROUTERS
 from routes.auth import router as user_router
 from routes.freelancer_route import router as freelancer_router
-
 from controllers.payment_routes import router as payment_router
+from routes.admin_route import router as admin_router
 
 
 # Load environment first
@@ -32,6 +32,7 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 # API ROUTES
+app.include_router(admin_router)
 app.include_router(user_router, tags=["Customer"])
 app.include_router(freelancer_router, tags=["Freelancer"])
 app.include_router(payment_router, prefix="/api/payments", tags=["Payments"])  # <-- NOW VISIBLE IN SWAGGER
