@@ -275,8 +275,6 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
 
 
 
-
-
 @router.delete("/delete/{user_id}")
 def delete_user_controller(user_id: int, db: Session = Depends(get_db)):
     query = "SELECT * FROM fn_user_delete_list(:p_user_id)"
