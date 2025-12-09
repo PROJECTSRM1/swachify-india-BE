@@ -1,13 +1,13 @@
 import time
 from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.security import HTTPBearer
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from core.database import get_db
 from controllers.user_controller import register_user_controller
-from utils.db_function import execute_create_user_function, execute_function_raw
+from utils.db_function import execute_function_raw
 from utils.jwt_utils import create_access_token, create_refresh_token, verify_token
 from schemas.user_schema import LogoutRequest, RefreshRequest, RegisterUser, LoginRequest, LoginResponse, UpdateUser, VerifyTokenResponse
 from passlib.context import CryptContext
@@ -31,7 +31,7 @@ def verify_password(plain: str, hashed: str):
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register_user(payload: RegisterUser, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
     try:
         payload = RegisterUser(**payload.dict())
     except ValidationError as e:
@@ -56,7 +56,7 @@ def register_user(payload: RegisterUser, background_tasks: BackgroundTasks, db: 
     if existing_mobile:
         raise HTTPException(status_code=409, detail="Mobile already exists")
 
-    return register_user_controller(db, payload, background_tasks)
+    return await register_user_controller(db, payload)
 
 
 @router.post("/login", response_model=LoginResponse)
