@@ -1,12 +1,13 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, BackgroundTasks
+from fastapi import HTTPException
 from utils.db_function import execute_create_user_function
 from schemas.user_schema import RegisterUser
 from passlib.context import CryptContext
 from utils.mail_agent import send_welcome_email
 from utils.sms_agent import send_welcome_sms
 import uuid
-import re 
+import re
+
 
 
 pwd_context = CryptContext(
@@ -14,41 +15,37 @@ pwd_context = CryptContext(
     deprecated="auto"
 )
 
+
 def hash_password(password: str):
     return pwd_context.hash(password)
+
 
 def verify_password(plain, hashed):
     return pwd_context.verify(plain, hashed)
 
 
 def format_mobile(mobile: str) -> str:
-    """
-    Ensures only numbers & trims country codes if user enters +91 or spaces.
-    """
-    mobile = re.sub(r"\D", "", mobile)  # remove non-numeric
-
+    mobile = re.sub(r"\D", "", mobile)
     if mobile.startswith("91") and len(mobile) == 12:
-        mobile = mobile[2:]  # remove 91
-
+        mobile = mobile[2:]
     if len(mobile) != 10:
         raise HTTPException(status_code=400, detail="Invalid mobile number format")
-
     return mobile
 
 
-def register_user_controller(db: Session, payload: RegisterUser, background_tasks: BackgroundTasks):
 
-    # 1️⃣ Validate Password
+# 👇 MAKE CONTROLLER ASYNC
+async def register_user_controller(db: Session, payload: RegisterUser):
+
+
     if payload.password != payload.confirm_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")
 
-    # 2️⃣ Sanitize mobile number
-    mobile = format_mobile(payload.mobile)
 
-    # 3️⃣ Generate Unique User ID
+    mobile = format_mobile(payload.mobile)
     generated_unique_id = str(uuid.uuid4())
 
-    # 4️⃣ Prepare Parameters
+
     params = {
         "p_unique_id": generated_unique_id,
         "p_first_name": payload.first_name,
@@ -71,18 +68,28 @@ def register_user_controller(db: Session, payload: RegisterUser, background_task
         "p_address": payload.address
     }
 
-    # 5️⃣ Execute Stored Procedure
+
     result = execute_create_user_function(db, params)
     if not result:
         raise HTTPException(status_code=500, detail="User creation failed")
 
-    # 6️⃣ Trigger Notifications in Background
-    background_tasks.add_task(send_welcome_email, payload.email, payload.first_name)
-    background_tasks.add_task(send_welcome_sms, mobile, payload.first_name)
 
-    # 7️⃣ Return Response
+    email_status = await send_welcome_email(payload.email, payload.first_name)
+
+
+    sms_status = send_welcome_sms(mobile, payload.first_name)
+
+
+    if not email_status:
+        raise HTTPException(status_code=500, detail="Email sending failed")
+
+
+    if not sms_status:
+        raise HTTPException(status_code=500, detail="SMS sending failed")
+
+
     return {
         "message": "User registered successfully",
-        "notifications": "Welcome email and SMS queued",
+        "notifications": "Welcome email and SMS sent successfully",
         "data": dict(result._mapping)
     }
