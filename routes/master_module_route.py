@@ -1,0 +1,142 @@
+# from fastapi import APIRouter, Depends, HTTPException
+# from sqlalchemy.orm import Session
+# from core.database import get_db
+
+# from schemas.master_module_schema import (
+#     MasterModuleCreate,
+#     MasterModuleUpdate,
+#     MasterModuleResponse,
+# )
+
+# from services.master_module_service import (
+#     create_module,
+#     get_all_modules,
+#     get_module_by_id,
+#     update_module,
+#     delete_module
+# )
+
+# router = APIRouter(prefix="/master/module", tags=["Master Module"])
+
+
+# @router.post("/", response_model=MasterModuleResponse)
+# def create(data: MasterModuleCreate, db: Session = Depends(get_db)):
+#     return create_module(db, data)
+
+
+# @router.get("/", response_model=list[MasterModuleResponse])
+# def get_all(db: Session = Depends(get_db)):
+#     return get_all_modules(db)
+
+
+# @router.get("/{module_id}", response_model=MasterModuleResponse)
+# def get_by_id(module_id: int, db: Session = Depends(get_db)):
+#     module = get_module_by_id(db, module_id)
+#     if not module:
+#         raise HTTPException(404, "Module not found")
+#     return module
+
+
+# @router.put("/{module_id}", response_model=MasterModuleResponse)
+# def update(module_id: int, data: MasterModuleUpdate, db: Session = Depends(get_db)):
+#     updated = update_module(db, module_id, data)
+#     if not updated:
+#         raise HTTPException(status_code=404, detail="Module not found")
+#     return updated
+
+# @router.delete("/{module_id}")
+# def delete(module_id: int, db: Session = Depends(get_db)):
+#     deleted = delete_module(db, module_id)
+#     if not deleted:
+#         raise HTTPException(404, "Module not found")
+#     return {"message": "Module deleted successfully"}
+
+
+
+
+
+
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from core.database import get_db
+from services.master_module_service import *
+from services.sub_module_service import *
+from services.master_service_service import *
+
+router = APIRouter(prefix="/master", tags=["Master API"])
+
+
+VALID_TYPES = ["module", "submodule", "service"]
+
+
+@router.post("/{type}")
+def create_master(type: str, data: dict, db: Session = Depends(get_db)):
+    if type not in VALID_TYPES:
+        raise HTTPException(400, "Invalid master type")
+
+    if type == "module":
+        return create_module(db, data)
+
+    if type == "submodule":
+        return create_sub_module(db, data)
+
+    if type == "service":
+        return create_service(db, data)
+
+
+@router.get("/{type}")
+def get_all_master(type: str, db: Session = Depends(get_db)):
+    if type == "module":
+        return get_all_modules(db)
+
+    if type == "submodule":
+        return get_all_sub_modules(db)
+
+    if type == "service":
+        return get_all_services(db)
+
+    raise HTTPException(400, "Invalid master type")
+
+
+@router.get("/{type}/{id}")
+def get_master(type: str, id: int, db: Session = Depends(get_db)):
+    if type == "module":
+        return get_module_by_id(db, id)
+
+    if type == "submodule":
+        return get_sub_module(db, id)
+
+    if type == "service":
+        return get_service(db, id)
+
+    raise HTTPException(400, "Invalid master type")
+
+
+@router.put("/{type}/{id}")
+def update_master(type: str, id: int, data: dict, db: Session = Depends(get_db)):
+    if type == "module":
+        return update_module(db, id, data)
+
+    if type == "submodule":
+        return update_sub_module(db, id, data)
+
+    if type == "service":
+        return update_service(db, id, data)
+
+    raise HTTPException(400, "Invalid master type")
+
+
+@router.delete("/{type}/{id}")
+def delete_master(type: str, id: int, db: Session = Depends(get_db)):
+    if type == "module":
+        return delete_module(db, id)
+
+    if type == "submodule":
+        return delete_sub_module(db, id)
+
+    if type == "service":
+        return delete_service(db, id)
+
+    raise HTTPException(400, "Invalid master type")

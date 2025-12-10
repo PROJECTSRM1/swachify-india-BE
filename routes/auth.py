@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 
+import anyio
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
 from fastapi.security import HTTPBearer
 from sqlalchemy import text
@@ -19,16 +20,13 @@ from pydantic import ValidationError
 router = APIRouter(prefix="/api/auth", tags=["Customer"])
 security = HTTPBearer()
 
-pwd_context = CryptContext(
-    schemes=["sha256_crypt"],
-    deprecated="auto"
-)
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-def hash_password(password: str):
-    return pwd_context.hash(password)
-def verify_password(plain: str, hashed: str):
-    return pwd_context.verify(plain, hashed)
+async def hash_password(password: str) -> str:
+    return await anyio.to_thread.run_sync(pwd_context.hash, password)
 
+async def verify_password(plain: str, hashed: str) -> bool:
+    return await anyio.to_thread.run_sync(pwd_context.verify, plain, hashed)
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register_user(payload: RegisterUser, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
