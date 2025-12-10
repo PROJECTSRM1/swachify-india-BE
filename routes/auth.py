@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from core.database import get_db
 from controllers.user_controller import register_user_controller
-from utils.db_function import execute_create_user_function, execute_function_raw
+from utils.db_function import execute_function_raw
 from utils.jwt_utils import create_access_token, create_refresh_token, verify_token
 from schemas.user_schema import LogoutRequest, RefreshRequest, RegisterUser, LoginRequest, LoginResponse, UpdateUser, VerifyTokenResponse
 from passlib.context import CryptContext
@@ -29,7 +29,7 @@ async def verify_password(plain: str, hashed: str) -> bool:
     return await anyio.to_thread.run_sync(pwd_context.verify, plain, hashed)
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register_user(payload: RegisterUser, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
     try:
         payload = RegisterUser(**payload.dict())
     except ValidationError as e:
@@ -54,7 +54,7 @@ def register_user(payload: RegisterUser, background_tasks: BackgroundTasks, db: 
     if existing_mobile:
         raise HTTPException(status_code=409, detail="Mobile already exists")
 
-    return register_user_controller(db, payload, background_tasks)
+    return await register_user_controller(db, payload)
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -293,3 +293,110 @@ def delete_all_users(db: Session = Depends(get_db)):
     db.commit()
     return {"message": "All users deleted successfully"}
 
+# from core.database import get_db
+from schemas.user_schema import (
+    ForgotPasswordRequest,
+    VerifyOtpRequest,
+    ResetPasswordRequest,
+)
+from services import forgot_password_service as fp_service
+from sqlalchemy.orm import Session
+from fastapi import Depends, HTTPException, status, Response, Request
+from core.database import get_db
+
+# router = APIRouter(prefix="/api/auth", tags=["Customer"])  # already defined at top
+
+
+# 1) Request OTP  (user enters EMAIL once)
+@router.post("/forgot-password/request-otp")
+async def forgot_password_request(
+    body: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        await fp_service.request_password_reset(body.email, db)
+    except fp_service.UserNotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Email not registered",
+        )
+
+    return {"message": "OTP sent to registered email"}
+
+
+# 2) Verify OTP  (user enters ONLY OTP)
+@router.post("/forgot-password/verify-otp")
+def forgot_password_verify(
+    body: VerifyOtpRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    try:
+        reset_token = fp_service.verify_otp(body.otp, db)
+    except fp_service.OtpExpired:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OTP expired, please request again",
+        )
+    except fp_service.InvalidOtp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid OTP",
+        )
+    except fp_service.UserNotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    max_age = 15 * 60  # 15 minutes in seconds
+    response.set_cookie(
+        key="reset_token",
+        value=reset_token,
+        httponly=True,
+        samesite="lax",
+        max_age=max_age,
+    )
+
+    return {"message": "OTP verified successfully"}
+
+
+# 3) Reset password  (user enters ONLY new password + confirm)
+@router.post("/forgot-password/reset")
+def forgot_password_reset(
+    body: ResetPasswordRequest,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    if body.new_password != body.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match",
+        )
+
+    # read reset token from cookie; user doesn't need to provide it
+    reset_token = request.cookies.get("reset_token")
+    if not reset_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Reset token missing or expired. Please verify OTP again.",
+        )
+
+    try:
+        fp_service.reset_password(reset_token, body.new_password, db)
+    except fp_service.InvalidOtp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token. Please verify OTP again.",
+        )
+    except fp_service.UserNotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    # clear the cookie after successful reset
+    response.delete_cookie("reset_token")
+
+    return {"message": "Password updated successfully"}

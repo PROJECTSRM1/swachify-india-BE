@@ -20,16 +20,68 @@ conf = ConnectionConfig(
 fast_mail = FastMail(conf)
 
 
-async def send_welcome_email(email: str, name: str):
-    subject = "Welcome to Swachify India 🇮🇳"
+async def send_welcome_email(email: str, name: str) -> bool:
+    """
+    Sends a welcome email to the user.
+    Returns True on success, False on failure.
+    """
+
+
+    try:
+        subject = "Welcome to Swachify India 🇮🇳"
+
+
+        body = f"""
+        Dear {name},
+
+
+        🎉 Welcome to Swachify India!
+
+
+        Your registration is successful. Now you can explore our platform,
+        book services, post tasks, and grow with our ecosystem.
+
+
+        Regards,
+        Swachify India Team
+        """
+
+
+        message = MessageSchema(
+            subject=subject,
+            recipients=[email],  # must be a list
+            body=body,
+            subtype="plain"
+        )
+
+
+        # Attempt sending the email
+        await fast_mail.send_message(message)
+
+
+        print("📧 EMAIL SENT SUCCESSFULLY TO:", email)
+        return True
+
+
+    except Exception as error:
+        print("❌ EMAIL SENDING ERROR:", str(error))
+        return False
+
+
+
+
+async def send_forgot_password_otp(email: str, otp: str, first_name: str | None = None):
+    display_name = first_name or "User"
+
+    subject = "Swachify India - Password Reset OTP"
 
     body = f"""
-    Dear {name},
+    Dear {display_name},
 
-    🎉 Welcome to Swachify India!
+    Your OTP to reset your Swachify India password is: {otp}
 
-    Your registration is successful. Now you can explore our platform,
-    post services, request cleaning, and grow with our ecosystem.
+    This OTP is valid for 10 minutes. If you did not request a password reset,
+    please ignore this email.
 
     Regards,
     Swachify India Team
@@ -43,3 +95,4 @@ async def send_welcome_email(email: str, name: str):
     )
 
     await fast_mail.send_message(message)
+

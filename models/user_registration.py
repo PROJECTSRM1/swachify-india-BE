@@ -22,7 +22,6 @@ class UserRegistration(Base):
     modified_date = Column(DateTime, onupdate=func.now())
     is_active = Column(Boolean, default=True)
 
-
     profile_image = Column(String)
     skill_id = Column(Integer)
     experience_summary = Column(String)
