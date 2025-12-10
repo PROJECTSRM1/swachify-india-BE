@@ -1,99 +1,34 @@
-# from fastapi import APIRouter, Depends
-# from sqlalchemy.orm import Session
-# from core.database import get_db
-# from schemas.service_schema import ServiceOrder
-# from services.service_order_service import save_service_order
-
-# router = APIRouter(prefix="/api/cleaning", tags=["Service Booking"])
-
-# @router.post("/service")
-# def create_service_order(payload: ServiceOrder, db: Session = Depends(get_db)):
-#     order_id = save_service_order(db, payload)
-    
-#     return {
-#         "message": "Service order created successfully!",
-#         "order_id": order_id,
-#     }
-
-
-
-
-from fastapi import APIRouter, HTTPException
-from schemas.service_schema import ServiceOrder
-from services.service_order_service import (
-    save_service_order,
-    get_all_orders,
-    get_order_by_id,
-    update_order,
-    delete_order
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from schemas.service_schema import HomeServiceCreate
+from core.database import get_db
+from services.home_service import (
+    create_home_service,
+    get_all_home_services,
+    get_home_service_by_id,
+    delete_home_service
 )
 
-router = APIRouter(prefix="/api/cleaning", tags=["Cleaning Services"])
+router = APIRouter(prefix="/home-service")
 
+@router.post("/")
+def create_service(db: Session = Depends(get_db), payload: HomeServiceCreate = None):
+    return create_home_service(db, payload)
 
-# -----------------------
-# CREATE ORDER
-# -----------------------
-@router.post("/service")
-def create_service_order(payload: ServiceOrder):
-    order_id = save_service_order(payload)
+@router.get("/")
+def fetch_all(db: Session = Depends(get_db)):
+    return get_all_home_services(db)
 
-    return {
-        "message": "Service order created successfully!",
-        "order_id": order_id,
-        "customer": payload.fullName,
-        "service": payload.moduleTitle,
-    }
+@router.get("/{service_id}")
+def fetch_by_id(service_id: int, db: Session = Depends(get_db)):
+    service = get_home_service_by_id(db, service_id)
+    if not service:
+        return {"error": "Service not found"}
+    return service
 
-
-# -----------------------
-# GET ALL ORDERS
-# -----------------------
-@router.get("/service")
-def fetch_all_orders():
-    return {
-        "total_orders": len(get_all_orders()),
-        "orders": get_all_orders()
-    }
-
-
-# -----------------------
-# GET ORDER BY ID
-# -----------------------
-@router.get("/service/{order_id}")
-def fetch_order(order_id: int):
-    order = get_order_by_id(order_id)
-
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    return order
-
-
-# -----------------------
-# UPDATE ORDER
-# -----------------------
-@router.put("/service/{order_id}")
-def update_service(order_id: int, payload: ServiceOrder):
-    updated = update_order(order_id, payload)
-
-    if not updated:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    return {
-        "message": "Order updated successfully",
-        "data": updated
-    }
-
-
-# -----------------------
-# DELETE ORDER
-# -----------------------
-@router.delete("/service/{order_id}")
-def delete_service(order_id: int):
-    deleted = delete_order(order_id)
-
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    return {"message": f"Order {order_id} deleted successfully"}
+@router.delete("/{service_id}")
+def delete(service_id: int, db: Session = Depends(get_db)):
+    result = delete_home_service(db, service_id)
+    if not result:
+        return {"error": "Service not found"}
+    return {"message": "Service deleted successfully"}
