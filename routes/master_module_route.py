@@ -64,11 +64,33 @@ from core.database import get_db
 from services.master_module_service import *
 from services.sub_module_service import *
 from services.master_service_service import *
+from services.master_sub_service_service import (
+    create_sub_service,
+    get_all_sub_services,
+    get_sub_service,
+    update_sub_service,
+    delete_sub_service
+)
+from services.master_sub_group_service import (
+    create_sub_group,
+    get_all_sub_groups,
+    get_sub_group,
+    update_sub_group,
+    delete_sub_group
+)
+from services.master_service_type_service import (
+    create_service_type,
+    get_all_service_types,
+    get_service_type,
+    update_service_type,
+    delete_service_type
+)
+
 
 router = APIRouter(prefix="/master", tags=["Master API"])
 
 
-VALID_TYPES = ["module", "submodule", "service"]
+VALID_TYPES = ["module", "submodule", "service", "subservice","subgroup","servicetype"]
 
 
 @router.post("/{type}")
@@ -84,6 +106,13 @@ def create_master(type: str, data: dict, db: Session = Depends(get_db)):
 
     if type == "service":
         return create_service(db, data)
+    if type == "subservice":
+        return create_sub_service(db, data)
+    if type == "subgroup":
+        return create_sub_group(db, data)
+    if type == "servicetype":
+        return create_service_type(db, data)
+
 
 
 @router.get("/{type}")
@@ -96,6 +125,14 @@ def get_all_master(type: str, db: Session = Depends(get_db)):
 
     if type == "service":
         return get_all_services(db)
+    if type == "subservice":
+        return get_all_sub_services(db)
+    if type == "subgroup":
+        return get_all_sub_groups(db)
+    if type == "servicetype":
+        return get_all_service_types(db)
+
+   
 
     raise HTTPException(400, "Invalid master type")
 
@@ -110,6 +147,14 @@ def get_master(type: str, id: int, db: Session = Depends(get_db)):
 
     if type == "service":
         return get_service(db, id)
+    if type == "subservice":
+        return get_sub_service(db, id)
+    if type == "subgroup":
+        return get_sub_group(db, id)
+    if type == "servicetype":
+        return get_service_type(db, id)
+
+
 
     raise HTTPException(400, "Invalid master type")
 
@@ -124,6 +169,14 @@ def update_master(type: str, id: int, data: dict, db: Session = Depends(get_db))
 
     if type == "service":
         return update_service(db, id, data)
+    if type == "subservice":
+        return update_sub_service(db, id, data)
+    if type == "subgroup":
+        return update_sub_group(db, id, data)
+    if type == "servicetype":
+        return update_service_type(db, id, data)
+
+
 
     raise HTTPException(400, "Invalid master type")
 
@@ -138,5 +191,15 @@ def delete_master(type: str, id: int, db: Session = Depends(get_db)):
 
     if type == "service":
         return delete_service(db, id)
+    
+    if type == "subservice":
+        return delete_sub_service(db, id)
+    if type == "subgroup":
+        return delete_sub_group(db, id)
+    if type == "servicetype":
+        return delete_service_type(db, id)
+
+
 
     raise HTTPException(400, "Invalid master type")
+
