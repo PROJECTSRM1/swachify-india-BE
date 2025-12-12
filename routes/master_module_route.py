@@ -85,12 +85,20 @@ from services.master_service_type_service import (
     update_service_type,
     delete_service_type
 )
+from services.master_time_slot_service import (
+    create_time_slot,
+    get_all_time_slots,
+    get_time_slot,
+    update_time_slot,
+    delete_time_slot
+)
+
 
 
 router = APIRouter(prefix="/master", tags=["Master API"])
 
 
-VALID_TYPES = ["module", "submodule", "service", "subservice","subgroup","servicetype"]
+VALID_TYPES = ["module", "submodule", "service", "subservice","subgroup","servicetype","timeslot"]
 
 
 @router.post("/{type}")
@@ -112,6 +120,9 @@ def create_master(type: str, data: dict, db: Session = Depends(get_db)):
         return create_sub_group(db, data)
     if type == "servicetype":
         return create_service_type(db, data)
+    if type == "timeslot":
+        return create_time_slot(db, data)
+
 
 
 
@@ -131,6 +142,9 @@ def get_all_master(type: str, db: Session = Depends(get_db)):
         return get_all_sub_groups(db)
     if type == "servicetype":
         return get_all_service_types(db)
+    if type == "timeslot":
+        return get_all_time_slots(db)
+
 
    
 
@@ -153,6 +167,8 @@ def get_master(type: str, id: int, db: Session = Depends(get_db)):
         return get_sub_group(db, id)
     if type == "servicetype":
         return get_service_type(db, id)
+    if type == "timeslot":
+        return get_time_slot(db, id)
 
 
 
@@ -175,6 +191,8 @@ def update_master(type: str, id: int, data: dict, db: Session = Depends(get_db))
         return update_sub_group(db, id, data)
     if type == "servicetype":
         return update_service_type(db, id, data)
+    if type == "timeslot":
+        return update_time_slot(db, id, data)
 
 
 
@@ -198,6 +216,8 @@ def delete_master(type: str, id: int, db: Session = Depends(get_db)):
         return delete_sub_group(db, id)
     if type == "servicetype":
         return delete_service_type(db, id)
+    if type == "timeslot":
+        return delete_time_slot(db, id)
 
 
 
