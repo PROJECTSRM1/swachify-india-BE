@@ -51,30 +51,30 @@ def delete_module(module_id: int, db: Session = Depends(get_db)):
     return MasterModuleService.delete(db, module_id)
 
 
-# ------------------------------------------------
-#            MASTER SUB MODULE CRUD
-# ------------------------------------------------
+# # ------------------------------------------------
+# #            MASTER SUB MODULE CRUD
+# # ------------------------------------------------
 
-@router.post("/sub-module", response_model=MasterSubModuleResponse)
-def create_sub_module(payload: MasterSubModuleCreate, db: Session = Depends(get_db)):
-    return MasterSubModuleService.create(db, payload)
-
-
-@router.get("/sub-module/{module_id}", response_model=list[MasterSubModuleResponse])
-def get_sub_modules(module_id: int, db: Session = Depends(get_db)):
-    return MasterSubModuleService.list_by_module(db, module_id)
+# @router.post("/sub-module", response_model=MasterSubModuleResponse)
+# def create_sub_module(payload: MasterSubModuleCreate, db: Session = Depends(get_db)):
+#     return MasterSubModuleService.create(db, payload)
 
 
-@router.get("/sub-module/detail/{sub_id}", response_model=MasterSubModuleResponse)
-def get_single_submodule(sub_id: int, db: Session = Depends(get_db)):
-    return MasterSubModuleService.get_by_id(db, sub_id)
+# @router.get("/sub-module/{module_id}", response_model=list[MasterSubModuleResponse])
+# def get_sub_modules(module_id: int, db: Session = Depends(get_db)):
+#     return MasterSubModuleService.list_by_module(db, module_id)
 
 
-@router.put("/sub-module/{sub_id}", response_model=MasterSubModuleResponse)
-def update_sub_module(sub_id: int, payload: MasterSubModuleUpdate, db: Session = Depends(get_db)):
-    return MasterSubModuleService.update(db, sub_id, payload)
+# @router.get("/sub-module/detail/{sub_id}", response_model=MasterSubModuleResponse)
+# def get_single_submodule(sub_id: int, db: Session = Depends(get_db)):
+#     return MasterSubModuleService.get_by_id(db, sub_id)
 
 
-@router.delete("/sub-module/{sub_id}")
-def delete_sub_module(sub_id: int, db: Session = Depends(get_db)):
-    return MasterSubModuleService.delete(db, sub_id)
+# @router.put("/sub-module/{sub_id}", response_model=MasterSubModuleResponse)
+# def update_sub_module(sub_id: int, payload: MasterSubModuleUpdate, db: Session = Depends(get_db)):
+#     return MasterSubModuleService.update(db, sub_id, payload)
+
+
+# @router.delete("/sub-module/{sub_id}")
+# def delete_sub_module(sub_id: int, db: Session = Depends(get_db)):
+#     return MasterSubModuleService.delete(db, sub_id)
