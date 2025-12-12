@@ -1,43 +1,63 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from models.master_module import MasterModule
-from schemas.master_module_schema import MasterModuleCreate, MasterModuleUpdate
 
-def create_module(db: Session, data: MasterModuleCreate):
-    # new_module = MasterModule(**data.dict())
-    new_module = MasterModule(**data)
-    db.add(new_module)
-    db.commit()
-    db.refresh(new_module)
-    return new_module
+from models.master_module_model import MasterModule
+from schemas.master_module_schema import (
+    MasterModuleCreate,
+    MasterModuleUpdate
+)
 
 
-def get_all_modules(db: Session):
-    return db.query(MasterModule).all()
+class MasterModuleService:
 
+    # CREATE
+    @staticmethod
+    def create(db: Session, payload: MasterModuleCreate):
+        module = MasterModule(**payload.dict())
+        db.add(module)
+        db.commit()
+        db.refresh(module)
+        return module
 
-def get_module_by_id(db: Session, module_id: int):
-    return db.query(MasterModule).filter(MasterModule.id == module_id).first()
+    # READ ALL
+    @staticmethod
+    def list_all(db: Session):
+        return db.query(MasterModule).order_by(MasterModule.id).all()
 
+    # READ ONE
+    @staticmethod
+    def get_by_id(db: Session, module_id: int):
+        module = db.query(MasterModule).filter(MasterModule.id == module_id).first()
 
-def update_module(db: Session, module_id: int, data: MasterModuleUpdate):
-    module = get_module_by_id(db, module_id)
-    if not module:
-        return None
+        if not module:
+            raise HTTPException(status_code=404, detail="Module not found")
 
-    update_data = data.dict(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(module, key, value)
+        return module
 
-    db.commit()
-    db.refresh(module)
-    return module
+    # UPDATE
+    @staticmethod
+    def update(db: Session, module_id: int, payload: MasterModuleUpdate):
+        module = db.query(MasterModule).filter(MasterModule.id == module_id).first()
 
+        if not module:
+            raise HTTPException(status_code=404, detail="Module not found")
 
-def delete_module(db: Session, module_id: int):
-    module = get_module_by_id(db, module_id)
-    if not module:
-        return False
+        # Apply only fields that the user sent
+        for key, value in payload.dict(exclude_unset=True).items():
+            setattr(module, key, value)
 
-    db.delete(module)
-    db.commit()
-    return True
+        db.commit()
+        db.refresh(module)
+        return module
+
+    # DELETE
+    @staticmethod
+    def delete(db: Session, module_id: int):
+        module = db.query(MasterModule).filter(MasterModule.id == module_id).first()
+
+        if not module:
+            raise HTTPException(status_code=404, detail="Module not found")
+
+        db.delete(module)
+        db.commit()
+        return {"message": "Module deleted successfully"}
