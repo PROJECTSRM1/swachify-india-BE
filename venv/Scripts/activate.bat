@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set "VIRTUAL_ENV=C:\Users\Lokesh.M\Desktop\swachify_india_BE\swachify-india-BE\venv"
+set "VIRTUAL_ENV=C:\Users\Rajashekar\Documents\House_front_backend\swachify-india-BE\venv"
 
 if not defined PROMPT set PROMPT=$P$G
 
