@@ -41,3 +41,10 @@ def delete_module(db: Session, module_id: int):
     db.delete(module)
     db.commit()
     return True
+
+git init
+git add .
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/Rajashekar157/swachify_india_BE.git
+git push -u origin main
