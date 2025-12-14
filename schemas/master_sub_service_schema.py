@@ -1,29 +1,41 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Optional
 
+# =========================
+# BASE
+# =========================
 class SubServiceBase(BaseModel):
-    sub_service_name: str
+    sub_service_name: str = Field(..., min_length=2)
     service_id: int
     is_active: bool = True
 
+    model_config = {
+        "from_attributes": True
+    }
+
+
+# =========================
+# CREATE
+# =========================
 class SubServiceCreate(SubServiceBase):
     pass
 
-class SubServiceUpdate(SubServiceBase):
-    pass
 
-class SubServiceResponse(BaseModel):
+# =========================
+# UPDATE
+# =========================
+class SubServiceUpdate(BaseModel):
+    sub_service_name: Optional[str] = None
+    service_id: Optional[int] = None
+    is_active: Optional[bool] = None
+
+    model_config = {
+        "from_attributes": True
+    }
+
+
+# =========================
+# RESPONSE (simple)
+# =========================
+class SubServiceResponse(SubServiceBase):
     id: int
-    sub_service_name: str
-    is_active: bool
-    
-    service_id: int
-    service_name: str
-    
-    sub_module_id: int
-    sub_module_name: str
-    
-    module_id: int
-    module_name: str
-
-    class Config:
-        orm_mode = True

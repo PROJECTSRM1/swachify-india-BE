@@ -33,8 +33,6 @@ def format_mobile(mobile: str) -> str:
     return mobile
 
 
-
-# 👇 MAKE CONTROLLER ASYNC
 async def register_user_controller(db: Session, payload: RegisterUser):
 
 

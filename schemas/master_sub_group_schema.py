@@ -1,33 +1,41 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Optional
 
+# =========================
+# BASE
+# =========================
 class SubGroupBase(BaseModel):
-    sub_group_name: str
+    sub_group_name: str = Field(..., min_length=2)
     sub_service_id: int
     is_active: bool = True
 
+    model_config = {
+        "from_attributes": True
+    }
+
+
+# =========================
+# CREATE
+# =========================
 class SubGroupCreate(SubGroupBase):
     pass
 
-class SubGroupUpdate(SubGroupBase):
-    pass
 
-class SubGroupResponse(BaseModel):
+# =========================
+# UPDATE
+# =========================
+class SubGroupUpdate(BaseModel):
+    sub_group_name: Optional[str] = None
+    sub_service_id: Optional[int] = None
+    is_active: Optional[bool] = None
+
+    model_config = {
+        "from_attributes": True
+    }
+
+
+# =========================
+# RESPONSE
+# =========================
+class SubGroupResponse(SubGroupBase):
     id: int
-    sub_group_name: str
-    is_active: bool
-
-    # relations
-    sub_service_id: int
-    sub_service_name: str
-
-    service_id: int
-    service_name: str
-
-    sub_module_id: int
-    sub_module_name: str
-
-    module_id: int
-    module_name: str
-
-    class Config:
-        orm_mode = True

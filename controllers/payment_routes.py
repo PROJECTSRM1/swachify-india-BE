@@ -15,17 +15,15 @@ RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
 
 client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-
 class CreateOrderRequest(BaseModel):
     amount: int
     bookingId: str
-
 
 @router.post("/create-order")
 
 def create_order(req: CreateOrderRequest):
     order = client.order.create({
-        "amount": req.amount,   # paise
+        "amount": req.amount,
         "currency": "INR",
         "receipt": f"receipt_{req.bookingId}"
     })

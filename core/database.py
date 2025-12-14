@@ -1,4 +1,3 @@
-# core/database.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
@@ -16,7 +15,7 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 USER_ENC = urllib.parse.quote_plus(DB_USER)
 PASSWORD_ENC = urllib.parse.quote_plus(DB_PASSWORD)
 
-DATABASE_URL = f"postgresql+psycopg://{USER_ENC}:{PASSWORD_ENC}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = f"postgresql://{USER_ENC}:{PASSWORD_ENC}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 engine = create_engine(
     DATABASE_URL,
