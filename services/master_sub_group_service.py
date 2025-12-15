@@ -1,71 +1,54 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
+
 from models.master_sub_group import MasterSubGroup
-from schemas.master_sub_group_schema import SubGroupCreate, SubGroupUpdate
+from schemas.master_sub_group_schema import (SubGroupCreate,SubGroupUpdate)
 
-def build_response(record: MasterSubGroup):
-    ss = record.sub_service
-    srv = ss.service
-    sm = srv.submodule
-    module = sm.module
 
-    return {
-        "id": record.id,
-        "sub_group_name": record.sub_group_name,
-        "is_active": record.is_active,
 
-        # direct fk
-        "sub_service_id": record.sub_service_id,
-        "sub_service_name": ss.sub_service_name,
-
-        # from service table
-        "service_id": srv.id,
-        "service_name": srv.service_name,
-
-        # from sub module
-        "sub_module_id": sm.id,
-        "sub_module_name": sm.sub_module_name,
-
-        # from module
-        "module_id": module.id,
-        "module_name": module.module_name,
-    }
-
+def get_sub_groups(db: Session, sub_service_id: int):
+    return (
+        db.query(MasterSubGroup)
+        .filter(
+            MasterSubGroup.sub_service_id == sub_service_id,
+            MasterSubGroup.is_active == True
+        )
+        .all()
+    )
 
 def create_sub_group(db: Session, data: SubGroupCreate):
-    record = MasterSubGroup(**data.dict())
-    db.add(record)
+    obj = MasterSubGroup(**data.model_dump())
+    db.add(obj)
     db.commit()
-    db.refresh(record)
-    return build_response(record)
+    db.refresh(obj)
+    return obj
+def update_sub_group(
+    db: Session,
+    sub_group_id: int,
+    data: SubGroupUpdate
+):
+    obj = db.get(MasterSubGroup, sub_group_id)
 
+    if not obj:
+        raise HTTPException(status_code=404, detail="Sub group not found")
 
-def get_all_sub_groups(db: Session):
-    records = db.query(MasterSubGroup).all()
-    return [build_response(r) for r in records]
+    update_data = data.model_dump(exclude_unset=True)
 
+    for key, value in update_data.items():
+        setattr(obj, key, value)
 
-def get_sub_group(db: Session, id: int):
-    r = db.query(MasterSubGroup).filter(MasterSubGroup.id == id).first()
-    if not r:
-        return None
-    return build_response(r)
-
-
-def update_sub_group(db: Session, id: int, data: SubGroupUpdate):
-    r = db.query(MasterSubGroup).filter(MasterSubGroup.id == id).first()
-    if not r:
-        return None
-    for k, v in data.dict().items():
-        setattr(r, k, v)
     db.commit()
-    db.refresh(r)
-    return build_response(r)
+    db.refresh(obj)
+    return obj
+def delete_sub_group(db: Session, sub_group_id: int):
+    obj = db.get(MasterSubGroup, sub_group_id)
 
+    if not obj:
+        raise HTTPException(status_code=404, detail="Sub group not found")
 
-def delete_sub_group(db: Session, id: int):
-    r = db.query(MasterSubGroup).filter(MasterSubGroup.id == id).first()
-    if not r:
-        return None
-    db.delete(r)
+    if not obj.is_active:
+        return {"message": "Sub group already deleted"}
+
+    obj.is_active = False
     db.commit()
-    return True
+    return {"message": "Sub group deleted successfully"}

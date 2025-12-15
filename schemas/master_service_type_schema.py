@@ -1,10 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
-
-
 class ServiceTypeBase(BaseModel):
-    service_type_name: str = Field(..., min_length=2)
+    service_type: str = Field(..., min_length=2)
     is_active: bool = True
 
     model_config = {
@@ -17,7 +15,7 @@ class ServiceTypeCreate(ServiceTypeBase):
 
 
 class ServiceTypeUpdate(BaseModel):
-    service_type_name: Optional[str] = None
+    service_type: Optional[str] = None
     is_active: Optional[bool] = None
 
     model_config = {

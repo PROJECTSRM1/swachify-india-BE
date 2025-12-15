@@ -1,35 +1,58 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
+
 from models.master_service import MasterService
+from schemas.master_service_schema import (
+    MasterServiceCreate,
+    MasterServiceUpdate
+)
 
-def get_all_services(db:Session):
-    return db.query(MasterService).all()
 
-def get_service(db:Session,service_id:int):
-    return db.query(MasterService).filter(MasterService.id == service_id).first()
+def get_services_by_sub_module(db: Session, sub_module_id: int):
+    return (
+        db.query(MasterService)
+        .filter(
+            MasterService.sub_module_id == sub_module_id,
+            MasterService.is_active == True
+        )
+        .all()
+    )
 
-def create_service(db:Session,data):
-    # service = MasterService(**data.dict())
-    service = MasterService(**data)
-    db.add(service)
+
+def create_service_service(db: Session, data: MasterServiceCreate):
+    obj = MasterService(**data.model_dump())
+    db.add(obj)
     db.commit()
-    db.refresh(service)
-    return service
+    db.refresh(obj)
+    return obj
 
-def update_service(db:Session,service_id:int,data):
-    service = get_service(db,service_id)
-    if not service:
-        return None
-    for key,value in data.dict(exclude_unset=True).items():
-        setattr(service,key,value)
+
+def update_service_service(db: Session,service_id: int,data: MasterServiceUpdate):
+    obj = db.get(MasterService, service_id)
+
+    if not obj:
+        raise HTTPException(status_code=404, detail="Service not found")
+
+    update_data = data.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(obj, key, value)
 
     db.commit()
-    db.refresh(service)
-    return service
+    db.refresh(obj)
+    return obj
 
-def delete_service(db:Session,service_id:int):
-    service = get_service(db,service_id)
-    if not service:
-        return None
-    db.delete(service)
+
+def delete_service_service(db: Session, service_id: int):
+    obj = db.get(MasterService, service_id)
+
+    if not obj:
+        raise HTTPException(status_code=404, detail="Service not found")
+
+    if not obj.is_active:
+        return {"message": "Service already deleted"}
+
+    obj.is_active = False
     db.commit()
-    return service
+
+    return {"message": "Service deleted successfully"}

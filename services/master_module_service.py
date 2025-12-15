@@ -1,50 +1,50 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
+
 from models.master_module import MasterModule
-from schemas.master_module_schema import MasterModuleCreate, MasterModuleUpdate
+from schemas.master_module_schema import (MasterModuleCreate,MasterModuleUpdate)
 
-def create_module(db: Session, data: MasterModuleCreate):
-    # new_module = MasterModule(**data.dict())
-    new_module = MasterModule(**data)
-    db.add(new_module)
+def get_modules_service(db: Session):
+    return db.query(MasterModule).filter(
+        MasterModule.is_active == True
+    ).all()
+
+
+def create_module_service(db: Session, data: MasterModuleCreate):
+    obj = MasterModule(**data.model_dump())
+    db.add(obj)
     db.commit()
-    db.refresh(new_module)
-    return new_module
+    db.refresh(obj)
+    return obj
 
 
-def get_all_modules(db: Session):
-    return db.query(MasterModule).all()
+def update_module_service(db: Session,module_id: int,data: MasterModuleUpdate):
+    obj = db.get(MasterModule, module_id)
 
+    if not obj:
+        raise HTTPException(status_code=404, detail="Module not found")
 
-def get_module_by_id(db: Session, module_id: int):
-    return db.query(MasterModule).filter(MasterModule.id == module_id).first()
+    update_data = data.model_dump(exclude_unset=True)
 
-
-def update_module(db: Session, module_id: int, data: MasterModuleUpdate):
-    module = get_module_by_id(db, module_id)
-    if not module:
-        return None
-
-    update_data = data.dict(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(module, key, value)
+        setattr(obj, key, value)
 
     db.commit()
-    db.refresh(module)
-    return module
+    db.refresh(obj)
+    return obj
 
 
-def delete_module(db: Session, module_id: int):
-    module = get_module_by_id(db, module_id)
-    if not module:
-        return False
+def delete_module_service(db: Session, module_id: int):
+    obj = db.get(MasterModule, module_id)
 
-    db.delete(module)
+    if not obj:
+        raise HTTPException(status_code=404, detail="Module not found")
+
+    if not obj.is_active:
+        return {"message": "Module already deleted"}
+
+    obj.is_active = False
     db.commit()
-    return True
+    db.refresh(obj)
 
-git init
-git add .
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/Rajashekar157/swachify_india_BE.git
-git push -u origin main
+    return {"message": "Module deleted successfully"}
