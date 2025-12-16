@@ -93,9 +93,12 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         max_age=refresh_max_age,
     )
 
-    return LoginSuccessResponse(
-        message="Login successful"
-    )
+    return {
+    "access_token": access_token,
+    "token_type": "bearer",
+    "expires_in": 900
+}
+
 
 @router.post("/logout")
 def logout(payload: LogoutRequest, response: Response, db: Session = Depends(get_db)):
