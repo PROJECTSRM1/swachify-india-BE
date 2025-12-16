@@ -14,8 +14,10 @@ from services.freelancer_service import (
     freelancer_register_service,
     freelancer_login_service,
     freelancer_update_service,
-    freelancer_delete_service
+    freelancer_delete_service,
+    freelancer_status_service
 )
+
 
 router = APIRouter(prefix="/api/freelancer", tags=["Freelancer"])
 
@@ -47,6 +49,12 @@ async def register_freelancer(payload: FreelancerRegister, db: Session = Depends
         "user_id": user["user_id"] if isinstance(user, dict) else user
     }
 
+@router.get("/status/{freelancer_id}")
+def get_freelancer_status(
+    freelancer_id: int,
+    db: Session = Depends(get_db)
+):
+  return freelancer_status_service(db, freelancer_id)
 
 @router.post("/login")
 def login_freelancer(payload: FreelancerLogin, response: Response, db: Session = Depends(get_db)):
@@ -68,13 +76,27 @@ def logout_freelancer(payload: FreelancerLogout, response: Response):
     }
 
 
+# ============================
+# CURRENT USER (ME)
+# ============================
 @router.get("/me")
-def get_current_user(token: str):
-    print("PYTHON UTC NOW:", datetime.utcnow())
-    print("PYTHON TIMESTAMP:", int(time.time()))
-
+def get_current_freelancer(token: str):
+    """
+    Access token must be passed as query param:
+    /me?token=ACCESS_TOKEN
+    """
     payload = verify_token(token)
-    return {"user": payload}
+
+    if payload.get("role") != "freelancer":
+        raise HTTPException(status_code=403, detail="Unauthorized role")
+
+    return {
+        "authenticated": True,
+        "user_id": payload.get("sub"),
+        "email": payload.get("email"),
+        "role": payload.get("role")
+    }
+
 
 
 
@@ -121,7 +143,11 @@ def verify_token_endpoint(token: str):
 
 
 @router.put("/update/{freelancer_id}")
-def update_freelancer(freelancer_id: int, payload: FreelancerRegister, db: Session = Depends(get_db)):
+def update_freelancer(
+    freelancer_id: int,
+    payload: FreelancerRegister,
+    db: Session = Depends(get_db)
+):
     return freelancer_update_service(db, freelancer_id, payload)
 
 

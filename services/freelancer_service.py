@@ -13,7 +13,13 @@ from services.master_default_service import (
 import uuid
 import json
 
+
 FREELANCER_ROLE_ID = 4
+
+STATUS_APPROVED = 1
+STATUS_PENDING = 2
+STATUS_REJECTED = 3
+
 
 
 def freelancer_register_service(db: Session, payload):
@@ -55,7 +61,8 @@ def freelancer_register_service(db: Session, payload):
         state_id = payload.state_id or (state.id if state else None),
         district_id = payload.district_id or (district.id if district else None),
         skill_id = payload.skill_id or (skill.id if skill else None),
-        role_id = FREELANCER_ROLE_ID,
+        role_id=FREELANCER_ROLE_ID,
+        status_id=STATUS_PENDING,   
         government_id=government_json,
         address = payload.address,
         unique_id = str(uuid.uuid4())
@@ -66,8 +73,9 @@ def freelancer_register_service(db: Session, payload):
     db.refresh(user)
 
     return {
-        "message": "Freelancer registered successfully",
-        "user_id": user.id
+        "message": "Freelancer registered successfully. Waiting for admin approval.",
+        "user_id": user.id,
+        "status": "Pending"
     }
 
 
@@ -91,6 +99,20 @@ def freelancer_login_service(db: Session, payload, response):
 
     if not verify_password(payload.password, user.password):
         raise HTTPException(status_code=400, detail="Invalid password")
+    
+    # ---- STATUS ENFORCEMENT ----
+    if user.status_id == STATUS_PENDING:
+        raise HTTPException(
+            status_code=403,
+            detail="Your account is pending, wait for admin actions"
+        )
+
+    if user.status_id == STATUS_REJECTED:
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has been rejected by admin"
+        )
+
 
     subject = {
         "user_id": user.id,
@@ -131,6 +153,13 @@ def freelancer_update_service(db: Session, freelancer_id: int, payload):
 
     if not user:
         raise HTTPException(status_code=404, detail="Freelancer not found")
+    
+    if user.status_id != STATUS_APPROVED:
+        raise HTTPException(
+            status_code=403,
+            detail="Profile update allowed only after admin approval"
+        )
+
 
     user.first_name = payload.first_name or user.first_name
     user.last_name = payload.last_name or user.last_name
@@ -140,6 +169,12 @@ def freelancer_update_service(db: Session, freelancer_id: int, payload):
 
     if payload.password:
         user.password = hash_password(payload.password)
+
+    if user.status_id != STATUS_APPROVED:
+     raise HTTPException(
+        status_code=403,
+        detail="Profile update allowed only after admin approval"
+    )
 
     db.commit()
     db.refresh(user)
@@ -162,3 +197,31 @@ def freelancer_delete_service(db: Session, freelancer_id: int):
     db.commit()
 
     return {"message": "Freelancer deleted successfully"}
+
+def freelancer_status_service(db: Session, freelancer_id: int):
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == freelancer_id,
+        UserRegistration.role_id == FREELANCER_ROLE_ID
+    ).first()
+
+    if not user:
+        raise HTTPException(404, "Freelancer not found")
+
+    status_map = {
+        STATUS_PENDING: "Pending",
+        STATUS_APPROVED: "Approved",
+        STATUS_REJECTED: "Rejected"
+    }
+
+    message_map = {
+        STATUS_PENDING: "Your account is pending, wait for admin actions",
+        STATUS_APPROVED: "Your account has been approved by admin",
+        STATUS_REJECTED: "Your account has been rejected by admin"
+    }
+
+    return {
+        "freelancer_id": user.id,
+        "status": status_map.get(user.status_id),
+        "message": message_map.get(user.status_id)
+    }

@@ -9,6 +9,13 @@ import os
 from sqlalchemy import or_
 from datetime import datetime
 
+ADMIN_ROLE_ID = 1
+FREELANCER_ROLE_ID = 4
+
+STATUS_APPROVED = 1
+STATUS_PENDING = 2
+STATUS_REJECTED = 3
+
 def register_admin_service(request: RegisterAdmin, db: Session):
     # Validate duplicate email
     if db.query(UserRegistration).filter(UserRegistration.email == request.email).first():
@@ -164,3 +171,54 @@ def admin_hard_delete_service(db: Session, admin_id: int):
     db.delete(admin)
     db.commit()
     return {"message": "Admin deleted permanently"}
+
+def get_pending_freelancers_service(db: Session):
+    return db.query(UserRegistration).filter(
+        UserRegistration.role_id == FREELANCER_ROLE_ID,
+        UserRegistration.status_id == STATUS_PENDING,
+        UserRegistration.is_active == True
+    ).all()
+
+
+def approve_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == freelancer_id,
+        UserRegistration.role_id == FREELANCER_ROLE_ID
+    ).first()
+
+    if not user:
+        raise HTTPException(404, "Freelancer not found")
+
+    user.status_id = STATUS_APPROVED
+    user.modified_by = admin_id
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "Freelancer approved successfully",
+        "freelancer_id": user.id,
+        "status": "Approved"
+    }
+
+
+def reject_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == freelancer_id,
+        UserRegistration.role_id == FREELANCER_ROLE_ID
+    ).first()
+
+    if not user:
+        raise HTTPException(404, "Freelancer not found")
+
+    user.status_id = STATUS_REJECTED
+    user.modified_by = admin_id
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "Freelancer rejected",
+        "freelancer_id": user.id,
+        "status": "Rejected"
+    }
