@@ -53,16 +53,15 @@ class LoginRequest(BaseModel):
     password: str
 
 
-# class LoginResponse(BaseModel):
-#     email_or_phone: str
-#     access_token: str
-#     refresh_token: str
-#     token_type: str = "bearer"
-#     expires_in: int
-#     refresh_expires_in: int
+class LoginResponse(BaseModel):
+    email_or_phone: str
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    refresh_expires_in: int
 
-class LoginSuccessResponse(BaseModel):
-    message: str
+
 class LogoutRequest(BaseModel):
     user_id: int
 

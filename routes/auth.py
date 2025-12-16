@@ -12,7 +12,7 @@ from utils.mail_agent import send_welcome_email
 from utils.sms_agent import send_welcome_sms
 from utils.db_function import execute_function_raw
 from utils.jwt_utils import create_access_token, create_refresh_token, verify_token
-from schemas.user_schema import LogoutRequest, RefreshRequest, RegisterUser, LoginRequest, LoginSuccessResponse, UpdateUser, VerifyTokenResponse
+from schemas.user_schema import LogoutRequest, RefreshRequest, RegisterUser, LoginRequest, LoginResponse, UpdateUser, VerifyTokenResponse
 from passlib.context import CryptContext
 import os
 
@@ -54,21 +54,33 @@ async def register_user(
         "message": "User registered successfully",
         "user_id": user["user_id"] if isinstance(user, dict) else user,
     }
-@router.post("/login", response_model=LoginSuccessResponse)
+
+@router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
     identifier = payload.email_or_phone.strip()
 
     query = """
         SELECT * FROM fn_user_login_list(:p_identifier);
     """
-    params = {"p_identifier": identifier}
+
+    params = {
+        "p_identifier": identifier
+    }
 
     row = execute_function_raw(db, query, params)
 
     if not row:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user = dict(row._mapping) if hasattr(row, "_mapping") else dict(row)
+    if hasattr(row, "_mapping"):
+        user = dict(row._mapping)
+    else:
+        try:
+            user = dict(row)
+        except Exception:
+            raise HTTPException(status_code=500, detail="Unexpected DB result format")
+
+    print("DB RESULT (login):", user)
 
     if not verify_password(payload.password, user.get("password", "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -78,7 +90,6 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         "email": user.get("email")
     }
 
-    # ✅ Tokens are still created
     access_token = create_access_token(subject)
     refresh_token = create_refresh_token(subject)
 
@@ -93,8 +104,15 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         max_age=refresh_max_age,
     )
 
-    return LoginSuccessResponse(
-        message="Login successful"
+    expires_in = int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
+
+    return LoginResponse(
+        email_or_phone=payload.email_or_phone,
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        expires_in=expires_in,
+        refresh_expires_in=refresh_max_age
     )
 
 @router.post("/logout")
