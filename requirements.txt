@@ -15,8 +15,4 @@ jinja2
 fastapi-mail
 requests
 razorpay
-<<<<<<< HEAD
 sendgrid
-=======
-sendgrid
->>>>>>> 492a0353dfa88126e13f0a53f5920f1826252864
