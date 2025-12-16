@@ -8,6 +8,8 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from core.database import get_db
 from controllers.user_controller import register_user_controller
+from utils.mail_agent import send_welcome_email
+from utils.sms_agent import send_welcome_sms
 from utils.db_function import execute_function_raw
 from utils.jwt_utils import create_access_token, create_refresh_token, verify_token
 from schemas.user_schema import LogoutRequest, RefreshRequest, RegisterUser, LoginRequest, LoginResponse, UpdateUser, VerifyTokenResponse
@@ -29,33 +31,29 @@ async def verify_password(plain: str, hashed: str) -> bool:
     return await anyio.to_thread.run_sync(pwd_context.verify, plain, hashed)
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register_user(payload: RegisterUser, db: Session = Depends(get_db)):
-    try:
-        payload = RegisterUser(**payload.dict())
-    except ValidationError as e:
-        error = e.errors()[0]["msg"]
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=error
-        )
-    existing_email = db.execute(
-        text("SELECT 1 FROM user_registration WHERE email=:email"),
-        {"email": payload.email}
-    ).fetchone()
+async def register_user(
+    payload: RegisterUser,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    user = await register_user_controller(db, payload)
 
-    if existing_email:
-        raise HTTPException(status_code=409, detail="Email already exists")
+    # background_tasks.add_task(
+    #     send_welcome_email,
+    #     payload.email,
+    #     payload.first_name
+    # )
 
-    existing_mobile = db.execute(
-        text("SELECT 1 FROM user_registration WHERE mobile=:mobile"),
-        {"mobile": payload.mobile}
-    ).fetchone()
+    background_tasks.add_task(
+        send_welcome_sms,
+        payload.mobile,
+        payload.first_name
+    )
 
-    if existing_mobile:
-        raise HTTPException(status_code=409, detail="Mobile already exists")
-
-    return await register_user_controller(db, payload)
-
+    return {
+        "message": "User registered successfully",
+        "user_id": user["user_id"] if isinstance(user, dict) else user,
+    }
 
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):

@@ -1,11 +1,11 @@
 from datetime import datetime
 import time
-from fastapi import APIRouter, Depends, Response, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, Response, HTTPException,status
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from core.database import get_db
 # from utils.mail_agent import send_welcome_email
-# from utils.sms_agent import send_welcome_sms
+from utils.sms_agent import send_welcome_sms
 from utils.jwt_utils import create_access_token
 from schemas.user_schema import RefreshRequest, VerifyTokenResponse
 from utils.jwt_utils import verify_token
@@ -19,34 +19,32 @@ from services.freelancer_service import (
 
 router = APIRouter(prefix="/api/freelancer", tags=["Freelancer"])
 
-@router.post("/register")
-async def register_freelancer(payload: FreelancerRegister, db: Session = Depends(get_db)):
+@router.post("/register", status_code=status.HTTP_201_CREATED)
+async def register_freelancer(
+    payload: FreelancerRegister,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
 
     user = freelancer_register_service(db, payload)
 
-    # # 2️⃣ Send Welcome Email
-    # try:
-    #     await send_welcome_email(
-    #         email=payload.email,
-    #         name=payload.first_name
-    #     )
-    # except Exception as e:
-    #     print("EMAIL SEND ERROR:", e)
+    # background_tasks.add_task(
+    #     send_welcome_email,
+    #     payload.email,
+    #     payload.first_name
+    # )
 
-    # # 3️⃣ Send Welcome SMS
-    # try:
-    #     send_welcome_sms(
-    #         mobile=payload.mobile,
-    #         firstname=payload.first_name
-    #     )
-    # except Exception as e:
-    #     print("SMS SEND ERROR:", e)
+
+    background_tasks.add_task(
+        send_welcome_sms,
+        payload.mobile,
+        payload.first_name
+    )
 
     return {
-        "message": "Freelancer registered successfully. Notifications sent.",
+        "message": "Freelancer registered successfully",
         "user_id": user["user_id"] if isinstance(user, dict) else user
     }
-
 
 @router.post("/login")
 def login_freelancer(payload: FreelancerLogin, response: Response, db: Session = Depends(get_db)):
