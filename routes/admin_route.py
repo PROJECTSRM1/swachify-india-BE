@@ -23,14 +23,6 @@ def register_admin(request: RegisterAdmin, db: Session = Depends(get_db)):
 def admin_login(request: AdminLogin, db: Session = Depends(get_db),req: Request = None):
     return admin_login_service(request, db,req)
 
-@router.post("/logout")
-def admin_logout(data: AdminLogout):
-    return {
-        "status": "success",
-        "code": 200,
-        "message": f"Admin {data.admin_id} logged out successfully. Please clear token on client side."
-    }
-
 @router.get("/admin/profile")
 def get_admin_profile(payload = Depends(verify_admin_token)):
     return {"message": "Authorized", "admin": payload}

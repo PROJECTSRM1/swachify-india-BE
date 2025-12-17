@@ -115,71 +115,71 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         refresh_expires_in=refresh_max_age
     )
 
-@router.post("/logout")
-def logout(payload: LogoutRequest, response: Response, db: Session = Depends(get_db)):
+# @router.post("/logout")
+# def logout(payload: LogoutRequest, response: Response, db: Session = Depends(get_db)):
 
-    user_id = payload.user_id
+#     user_id = payload.user_id
 
-    query = text("SELECT id FROM user_registration WHERE id = :id LIMIT 1;")
-    result = db.execute(query, {"id": user_id}).fetchone()
+#     query = text("SELECT id FROM user_registration WHERE id = :id LIMIT 1;")
+#     result = db.execute(query, {"id": user_id}).fetchone()
 
-    if not result:
-        raise HTTPException(status_code=404, detail="User not found")
+#     if not result:
+#         raise HTTPException(status_code=404, detail="User not found")
 
-    response.delete_cookie("refresh_token")
+#     response.delete_cookie("refresh_token")
 
-    return {"message": f"User {user_id} logged out successfully"}
+#     return {"message": f"User {user_id} logged out successfully"}
 
 
-@router.post("/refresh")
-def refresh_access_token(payload: RefreshRequest):
+# @router.post("/refresh")
+# def refresh_access_token(payload: RefreshRequest):
     
-    refresh_token = payload.refresh_token
+#     refresh_token = payload.refresh_token
 
-    if not refresh_token:
-        raise HTTPException(status_code=401, detail="Refresh token missing")
+#     if not refresh_token:
+#         raise HTTPException(status_code=401, detail="Refresh token missing")
 
-    decoded = verify_token(refresh_token)
+#     decoded = verify_token(refresh_token)
 
-    if decoded.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
+#     if decoded.get("type") != "refresh":
+#         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    new_access_token = create_access_token({
-        "user_id": decoded.get("sub"),
-        "email": decoded.get("email")
-    })
+#     new_access_token = create_access_token({
+#         "user_id": decoded.get("sub"),
+#         "email": decoded.get("email")
+#     })
 
-    return {
-        "message": "New access token generated",
-        "user_id": payload.user_id,
-        "access_token": new_access_token,
-        "token_type": "bearer"
-    }
-
-
-
-@router.get("/verify-token", response_model=VerifyTokenResponse)
-def verify_token_endpoint(token: str):
-    payload = verify_token(token)
-
-    token_type = payload.get("type") 
-
-    return VerifyTokenResponse(
-        authenticated=True,
-        token_type=token_type,
-        user_id=payload.get("sub"),
-        email=payload.get("email"),
-        message=f"Valid {token_type} token"
-    )
+#     return {
+#         "message": "New access token generated",
+#         "user_id": payload.user_id,
+#         "access_token": new_access_token,
+#         "token_type": "bearer"
+#     }
 
 
-@router.get("/me")
-def get_current_user(token: str):
-    print("PYTHON UTC NOW:", datetime.utcnow())
-    print("PYTHON TIMESTAMP:", int(time.time()))
 
-    payload = verify_token(token)
-    return {"user": payload}
+# @router.get("/verify-token", response_model=VerifyTokenResponse)
+# def verify_token_endpoint(token: str):
+#     payload = verify_token(token)
+
+#     token_type = payload.get("type") 
+
+#     return VerifyTokenResponse(
+#         authenticated=True,
+#         token_type=token_type,
+#         user_id=payload.get("sub"),
+#         email=payload.get("email"),
+#         message=f"Valid {token_type} token"
+#     )
+
+
+# @router.get("/me")
+# def get_current_user(token: str):
+#     print("PYTHON UTC NOW:", datetime.utcnow())
+#     print("PYTHON TIMESTAMP:", int(time.time()))
+
+#     payload = verify_token(token)
+#     return {"user": payload}
 
 
 @router.get("/users")
@@ -283,13 +283,6 @@ def delete_user_controller(user_id: int, db: Session = Depends(get_db)):
 
     return {"message": f"User {user_id} deleted successfully"}
 
-
-@router.delete("/delete-all-users")
-def delete_all_users(db: Session = Depends(get_db)):
-    query = text("DELETE FROM user_registration;")
-    db.execute(query)
-    db.commit()
-    return {"message": "All users deleted successfully"}
 
 from schemas.user_schema import (
     ForgotPasswordRequest,

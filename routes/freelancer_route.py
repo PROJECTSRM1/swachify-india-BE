@@ -59,88 +59,6 @@ def get_freelancer_status(
 def login_freelancer(payload: FreelancerLogin, response: Response, db: Session = Depends(get_db)):
     return freelancer_login_service(db, payload, response)
 
-
-@router.post("/logout")
-def logout_freelancer(payload: FreelancerLogout, response: Response):
-    
-    # Clear refresh token cookie
-    response.delete_cookie(
-        key="freelancer_refresh_token",
-        samesite="lax"
-    )
-
-    return {
-        "message": "Freelancer logged out successfully",
-        "user_id": payload.user_id
-    }
-
-
-# ============================
-# CURRENT USER (ME)
-# ============================
-@router.get("/me")
-def get_current_freelancer(token: str):
-    """
-    Access token must be passed as query param:
-    /me?token=ACCESS_TOKEN
-    """
-    payload = verify_token(token)
-
-    if payload.get("role") != "freelancer":
-        raise HTTPException(status_code=403, detail="Unauthorized role")
-
-    return {
-        "authenticated": True,
-        "user_id": payload.get("sub"),
-        "email": payload.get("email"),
-        "role": payload.get("role")
-    }
-
-
-
-
-@router.post("/refresh")
-def refresh_access_token(payload: RefreshRequest):
-    
-    refresh_token = payload.refresh_token
-
-    if not refresh_token:
-        raise HTTPException(status_code=401, detail="Refresh token missing")
-
-    decoded = verify_token(refresh_token)
-
-    if decoded.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-
-    new_access_token = create_access_token({
-        "user_id": decoded.get("sub"),
-        "email": decoded.get("email")
-    })
-
-    return {
-        "message": "New access token generated",
-        "user_id": payload.user_id,
-        "access_token": new_access_token,
-        "token_type": "bearer"
-    }
-
-
-
-@router.get("/verify-token", response_model=VerifyTokenResponse)
-def verify_token_endpoint(token: str):
-    payload = verify_token(token)
-
-    token_type = payload.get("type") 
-
-    return VerifyTokenResponse(
-        authenticated=True,
-        token_type=token_type,
-        user_id=payload.get("sub"),
-        email=payload.get("email"),
-        message=f"Valid {token_type} token"
-    )
-
-
 @router.put("/update/{freelancer_id}")
 def update_freelancer(
     freelancer_id: int,
@@ -153,3 +71,4 @@ def update_freelancer(
 @router.delete("/delete/{freelancer_id}")
 def delete_freelancer(freelancer_id: int, db: Session = Depends(get_db)):
     return freelancer_delete_service(db, freelancer_id)
+
