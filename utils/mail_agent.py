@@ -133,6 +133,10 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
         print("SendGrid Email Error:", str(e))
         return False
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a092a2828f2d162a4b22ed8899b41f2968591c7d
 
 def send_welcome_email(email: str, name: str) -> bool:
     subject = "Welcome to Swachify India 🇮🇳"
@@ -209,3 +213,22 @@ def send_welcome_sms(mobile: str, user_name: str) -> bool:
         message=text,
         template_id=os.getenv("ADWINGS_WELCOME_TEMPLATE_ID")
     )
+
+
+
+
+def send_email_otp(email: str, otp: str):
+    message = Mail(
+        from_email=os.getenv("SENDGRID_FROM_EMAIL"),
+        to_emails=email,
+        subject="Your OTP Code",
+        html_content=f"""
+        <h3>Email Verification</h3>
+        <p>Your OTP is:</p>
+        <h2>{otp}</h2>
+        <p>Valid for 5 minutes</p>
+        """
+    )
+
+    sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+    sg.send(message)
