@@ -120,7 +120,6 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
             plain_text_content=body,
         )
 
-        # ✅ LOCAL WINDOWS FIX
         if os.getenv("ENV") == "local":
             ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -131,10 +130,13 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
         return True
 
     except Exception as e:
-        print("❌ SendGrid Email Error:", str(e))
+        print("SendGrid Email Error:", str(e))
         return False
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> a092a2828f2d162a4b22ed8899b41f2968591c7d
 
 def send_welcome_email(email: str, name: str) -> bool:
     subject = "Welcome to Swachify India 🇮🇳"
@@ -151,11 +153,6 @@ Regards,
 Swachify India Team
 """
     return send_email(email, subject, body)
-
-
-# ==================================================
-# FORGOT PASSWORD OTP EMAIL
-# ==================================================
 
 def send_forgot_password_otp(
     email: str,
@@ -182,10 +179,6 @@ Swachify India Team
     return send_email(email, subject, body)
 
 
-# ==================================================
-# ADWINGS SMS
-# ==================================================
-
 def send_sms(mobile: str, message: str, template_id: str) -> bool:
     try:
         payload = {
@@ -208,7 +201,7 @@ def send_sms(mobile: str, message: str, template_id: str) -> bool:
         return response.status_code == 200
 
     except Exception as e:
-        print("❌ SMS ERROR:", str(e))
+        print("SMS ERROR:", str(e))
         return False
 
 

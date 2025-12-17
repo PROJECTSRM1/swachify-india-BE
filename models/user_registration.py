@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, Boolean, Date, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, Date, DateTime,ForeignKey
 from sqlalchemy.sql import func
 from core.database import Base
+from sqlalchemy.orm import relationship
+from models.master_status import MasterStatus
 
 
 class UserRegistration(Base):
@@ -31,3 +33,6 @@ class UserRegistration(Base):
     last_name = Column(String)
     unique_id = Column(String)
     address = Column(String)
+    status_id = Column(Integer, ForeignKey("master_status.id"), default=2)
+
+    status = relationship("MasterStatus")

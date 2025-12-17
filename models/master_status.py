@@ -1,11 +1,9 @@
 from sqlalchemy import Column, Integer, String, Boolean
-from core.database import Base   
+from core.database import Base
 
-
-class MasterTimeSlot(Base):
-    __tablename__ = "master_time_slot"
+class MasterStatus(Base):
+    __tablename__ = "master_status"
 
     id = Column(Integer, primary_key=True, index=True)
-    slot_name = Column(String, nullable=False)
+    status_name = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
-

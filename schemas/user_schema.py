@@ -40,14 +40,6 @@ class RegisterUser(BaseModel):
         if v != info.data.get("password"):
             raise ValueError("Password and Confirm Password must match")
         return v
-
-    # @field_validator("address")
-    # def validate_address(cls, v):
-    #     parts = [p.strip() for p in v.split(",")]
-    #     if len(parts) < 4:
-    #         raise ValueError("Address must be: Area, City, District, State")
-    #     return v
-
 class LoginRequest(BaseModel):
     email_or_phone: str
     password: str
@@ -141,16 +133,13 @@ class RefreshRequest(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
-    # STEP 1: user enters email once
     email: EmailStr
 
 
 class VerifyOtpRequest(BaseModel):
-    # STEP 2: user enters ONLY otp
     otp: str = Field(min_length=4, max_length=8)
 
 
 class ResetPasswordRequest(BaseModel):
-    # STEP 3: user enters ONLY new passwords (no otp, no token)
     new_password: str = Field(min_length=6)
     confirm_password: str = Field(min_length=6)
