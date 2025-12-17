@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends,Request,Response,Header,HTTPException
 from sqlalchemy.orm import Session
 from core.database import get_db
 from schemas.admin_schema import RegisterAdmin, UserBase,AdminLogin,AdminLogout,AdminRegisterResponse,AdminUpdateResponse
-from services.admin_service import register_admin_service,admin_login_service,admin_update_service,admin_delete_service,admin_hard_delete_service
+from services.admin_service import register_admin_service,admin_login_service,admin_update_service,admin_delete_service,admin_hard_delete_service,get_pending_freelancers_service,approve_freelancer_service,reject_freelancer_service
 from utils.jwt_utils import verify_admin_token,verify_token
 from schemas.freelancer_details_schema import FreelancerDetailResponse,FreelancerSkill
 from models.user_registration import UserRegistration
@@ -47,6 +47,40 @@ def delete_admin(admin_id: int, db: Session = Depends(get_db)):
 @router.delete("/hard-delete/{admin_id}")
 def hard_delete_admin(admin_id: int, db: Session = Depends(get_db)):
     return admin_hard_delete_service(db, admin_id)
+
+def get_current_admin(token: str):
+    payload = verify_token(token)
+    if payload.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return payload
+
+@router.get("/pending")
+def get_pending_freelancers(
+    token: str,
+    db: Session = Depends(get_db)
+):
+    get_current_admin(token)
+    return get_pending_freelancers_service(db)
+
+
+@router.put("/{freelancer_id}/approve")
+def approve_freelancer(
+    freelancer_id: int,
+    token: str,
+    db: Session = Depends(get_db)
+):
+    admin = get_current_admin(token)
+    return approve_freelancer_service(db, freelancer_id, int(admin["sub"]))
+
+
+@router.put("/{freelancer_id}/reject")
+def reject_freelancer(
+    freelancer_id: int,
+    token: str,
+    db: Session = Depends(get_db)
+):
+    admin = get_current_admin(token)
+    return reject_freelancer_service(db, freelancer_id, int(admin["sub"]))
 
 
 @router.get("/freelancer/{freelancer_id}")

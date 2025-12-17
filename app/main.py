@@ -7,6 +7,8 @@ from routes.freelancer_route import router as freelancer_router
 from controllers.payment_routes import router as payment_router
 from routes.admin_route import router as admin_router
 from routes.master_module_route import router as master_module_router
+from models import user_registration
+from models import master_status
 
 load_dotenv()
 
