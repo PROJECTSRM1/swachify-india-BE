@@ -321,9 +321,10 @@ def remove_service_type(id: int, db: Session = Depends(get_db)):
 
 
 #master-home-service
-@router.get("/home-service", response_model=list[HomeServiceResponse])
+@router.get("/home-service")
 def read_home_services(db: Session = Depends(get_db)):
     return get_home_services(db)
+
 
 
 @router.get("/home-service/{id}", response_model=HomeServiceResponse)
