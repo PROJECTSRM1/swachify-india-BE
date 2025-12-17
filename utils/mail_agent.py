@@ -133,10 +133,6 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
         print("SendGrid Email Error:", str(e))
         return False
 
-<<<<<<< HEAD
-=======
-
->>>>>>> a092a2828f2d162a4b22ed8899b41f2968591c7d
 
 def send_welcome_email(email: str, name: str) -> bool:
     subject = "Welcome to Swachify India 🇮🇳"
