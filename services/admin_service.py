@@ -17,15 +17,12 @@ STATUS_PENDING = 2
 STATUS_REJECTED = 3
 
 def register_admin_service(request: RegisterAdmin, db: Session):
-    # Validate duplicate email
     if db.query(UserRegistration).filter(UserRegistration.email == request.email).first():
         raise HTTPException(status_code=400, detail="Email already exists")
 
-    # Validate duplicate mobile
     if db.query(UserRegistration).filter(UserRegistration.mobile == request.mobile).first():
         raise HTTPException(status_code=400, detail="Mobile number already exists")
 
-    # Save admin to DB
     admin = UserRegistration(
         first_name=request.first_name,
         last_name=request.last_name,
@@ -49,7 +46,6 @@ def register_admin_service(request: RegisterAdmin, db: Session):
     }
 
 def admin_login_service(credentials: AdminLogin, db: Session,http_request:Request):
-    # Check if already logged in
     if is_admin_already_logged_in(http_request):
         return {
             "status": "warning",
@@ -59,7 +55,6 @@ def admin_login_service(credentials: AdminLogin, db: Session,http_request:Reques
 
     identifier = credentials.username_or_email.strip()
 
-    # search only among admins (role_id = 1)
     query = db.query(UserRegistration).filter(UserRegistration.role_id == 1)
 
     admin = query.filter(
@@ -91,7 +86,6 @@ def admin_login_service(credentials: AdminLogin, db: Session,http_request:Reques
     access_token = create_access_token(payload)
     refresh_token = create_refresh_token(payload)
 
-    # convert SQLAlchemy object -> Pydantic
     user_data = UserBase.model_validate(admin)
 
     return {
@@ -107,26 +101,24 @@ def admin_login_service(credentials: AdminLogin, db: Session,http_request:Reques
 def admin_update_service(db: Session, admin_id: int, payload: dict):
     admin = db.query(UserRegistration).filter(
         UserRegistration.id == admin_id,
-        UserRegistration.role_id == 1  # only admins
+        UserRegistration.role_id == 1 
     ).first()
 
     if not admin:
         raise HTTPException(status_code=404, detail="Admin not found")
 
-    # Check duplicate email, but ignore current record
     if "email" in payload and payload["email"] != admin.email:
         existing_email = db.query(UserRegistration).filter(
             UserRegistration.email == payload["email"],
-            UserRegistration.id != admin_id   # <--- important
+            UserRegistration.id != admin_id  
         ).first()
         if existing_email:
             raise HTTPException(status_code=400, detail="Email already exists")
 
-    # Check duplicate mobile, but ignore current record
     if "mobile" in payload and payload["mobile"] != admin.mobile:
         existing_mobile = db.query(UserRegistration).filter(
             UserRegistration.mobile == payload["mobile"],
-            UserRegistration.id != admin_id   # <--- important
+            UserRegistration.id != admin_id   
         ).first()
         if existing_mobile:
             raise HTTPException(status_code=400, detail="Mobile number already exists")
@@ -147,7 +139,7 @@ def admin_update_service(db: Session, admin_id: int, payload: dict):
 def admin_delete_service(db: Session, admin_id: int):
     admin = db.query(UserRegistration).filter(
         UserRegistration.id == admin_id,
-        UserRegistration.role_id == 1  # only delete admins
+        UserRegistration.role_id == 1 
     ).first()
 
     if not admin:
