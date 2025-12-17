@@ -356,10 +356,3 @@ def remove_home_service(id: int, db: Session = Depends(get_db)):
 
 
 
-from schemas.master_data_schema import MasterDataResponse
-from services.master_data_service import get_master_data
-
-
-@router.get("/master-data", response_model=MasterDataResponse)
-def get_all_master_data(db: Session = Depends(get_db)):
-    return get_master_data(db)
