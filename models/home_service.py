@@ -20,7 +20,7 @@ class HomeService(Base):
     service_type_id = Column(Integer)
     problem_description = Column(String, nullable=True)
     property_size_sqft = Column(Integer, nullable=True)
-    add_on_id = Column(Integer, nullable=True)
+    # add_on_id = Column(Integer, nullable=True)
 
     preferred_date = Column(Date)
     time_slot_id = Column(Integer)

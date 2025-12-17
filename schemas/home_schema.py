@@ -18,7 +18,7 @@ class HomeServiceBase(BaseModel):
     service_type_id: int
     problem_description: Optional[str] = None
     property_size_sqft: Optional[int] = None
-    add_on_id: Optional[int] = None
+    # add_on_id: Optional[int] = None
 
     preferred_date: date
     time_slot_id: int
