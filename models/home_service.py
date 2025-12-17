@@ -1,39 +1,3 @@
-
-# from sqlalchemy import Column, Integer, String, Date, Text
-# from core.database import Base
-
-
-# class HomeService(Base):
-#     __tablename__ = "home_service"
-
-#     id = Column(Integer, primary_key=True, index=True)
-
-#     module_id = Column(Integer)
-#     sub_module_id = Column(Integer)
-#     service_id = Column(Integer)
-#     sub_service_id = Column(Integer)
-#     sub_group_id = Column(Integer)
-
-#     full_name = Column(String)
-#     email = Column(String)
-#     mobile = Column(String)
-#     address = Column(String)
-
-#     service_type_id = Column(Integer)
-#     problem_description = Column(Text, nullable=True)
-#     property_size_sqft = Column(Integer, nullable=True)
-#     add_on_id = Column(Integer, nullable=True)
-
-#     preferred_date = Column(Date)
-#     time_slot_id = Column(Integer)
-#     special_instructions = Column(Text, nullable=True)
-#     payment_type_id = Column(Integer)
-
-
-
-
-
-
 from sqlalchemy import Column, Integer, String, Date
 from core.database import Base
 

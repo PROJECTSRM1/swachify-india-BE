@@ -291,7 +291,6 @@ def delete_all_users(db: Session = Depends(get_db)):
     db.commit()
     return {"message": "All users deleted successfully"}
 
-# from core.database import get_db
 from schemas.user_schema import (
     ForgotPasswordRequest,
     VerifyOtpRequest,

@@ -11,7 +11,7 @@ from utils.mail_agent import send_forgot_password_otp
 from utils.jwt_utils import create_reset_token, verify_token
 
 OTP_EXP_MINUTES = 10
-RESET_TOKEN_EXP_MINUTES = 15  # lifetime of reset token (in minutes)
+RESET_TOKEN_EXP_MINUTES = 15
 
 
 class UserNotFound(Exception):
@@ -32,8 +32,6 @@ class OtpEntry:
     expires_at: datetime
     used: bool = False
 
-
-# In-memory OTP store: { otp -> OtpEntry }
 otp_store: Dict[str, OtpEntry] = {}
 
 
@@ -45,8 +43,6 @@ async def request_password_reset(email: str, db: Session) -> None:
     user = db.query(UserRegistration).filter(UserRegistration.email == email).first()
     if not user:
         raise UserNotFound("Email not registered")
-
-    # generate a unique OTP (avoid collision in otp_store)
     otp = generate_otp()
     while otp in otp_store:
         otp = generate_otp()
@@ -64,9 +60,7 @@ async def request_password_reset(email: str, db: Session) -> None:
     try:
         await send_forgot_password_otp(user.email, otp, first_name)
     except Exception as e:
-        # Don't crash API if email fails; just log
         print("ERROR SENDING RESET OTP EMAIL:", repr(e))
-        # If you prefer to fail, raise HTTPException here.
 
 
 def verify_otp(otp: str, db: Session) -> str:
@@ -87,14 +81,12 @@ def verify_otp(otp: str, db: Session) -> str:
     if entry.expires_at < now:
         raise OtpExpired("OTP expired")
 
-    # mark OTP as used so it can't be reused
     entry.used = True
 
     user = db.query(UserRegistration).filter(UserRegistration.id == entry.user_id).first()
     if not user:
         raise UserNotFound("User not found")
 
-    # issue password reset token (JWT)
     reset_token = create_reset_token(
         {"user_id": user.id, "email": user.email},
         expires_minutes=RESET_TOKEN_EXP_MINUTES,

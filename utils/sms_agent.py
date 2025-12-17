@@ -28,7 +28,6 @@ def send_welcome_sms(mobile: str, firstname: str) -> bool:
 
 
     try:
-        # Replace '*' placeholder with user's name in the SMS template
         message = WELCOME_SMS_TEXT.replace("*", firstname)
 
 
@@ -66,8 +65,6 @@ def send_welcome_sms(mobile: str, firstname: str) -> bool:
             }
         }
 
-
-        # Prepare Basic Auth token
         credentials = f"{CLIENT_ID}:{CLIENT_PASSWORD}".encode("ascii")
         auth = base64.b64encode(credentials).decode("ascii")
 
@@ -77,8 +74,6 @@ def send_welcome_sms(mobile: str, firstname: str) -> bool:
             "Authorization": f"Basic {auth}",
         }
 
-
-        # Send request to AdWings SMS gateway
         response = requests.post(
             ADWINGS_URL,
             headers=headers,
@@ -87,30 +82,24 @@ def send_welcome_sms(mobile: str, firstname: str) -> bool:
         )
 
 
-        # Debug logs
         print("\n SMS REQUEST PAYLOAD:", json.dumps(payload, indent=2))
         print(" SMS RESPONSE:", response.status_code, response.text)
 
 
-        # Validate response
         if response.status_code != 200:
             print(" SMS HTTP ERROR:", response.text)
             return False
 
 
-        # Check provider JSON body for success/failure
         try:
             result = response.json()
 
-
-            # If provider has a status field, validate it
             if "status" in result and result["status"].lower() not in ["success", "submitted", "queued"]:
                 print("SMS PROVIDER REPORTED FAILURE:", result)
                 return False
 
 
         except Exception as json_error:
-            # If response is not valid JSON
             print("SMS RESPONSE JSON PARSE ERROR:", json_error)
             return False
 
