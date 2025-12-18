@@ -41,7 +41,6 @@ def create_master_data(type: str, data: dict, db: Session = Depends(get_db)):
     db.refresh(obj)
     return obj
 
-
 @router.put("/master-data/{id}")
 def update_master_data(id: int, type: str, data: dict, db: Session = Depends(get_db)):
     model = MODEL_MAP.get(type)
