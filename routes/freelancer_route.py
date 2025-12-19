@@ -1,6 +1,6 @@
 from datetime import datetime
 import time
-from fastapi import APIRouter, BackgroundTasks, Depends, Response, HTTPException,status
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, HTTPException,status
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from core.database import get_db
@@ -11,6 +11,8 @@ from schemas.user_schema import RefreshRequest, VerifyTokenResponse
 from utils.jwt_utils import verify_token
 from schemas.freelancer_schema import FreelancerLogout, FreelancerRegister, FreelancerLogin
 from services.freelancer_service import (
+    fetch_customers_by_payment_status,
+    # freelancer_paid_customers_service,
     freelancer_register_service,
     freelancer_login_service,
     freelancer_update_service,
@@ -72,3 +74,19 @@ def update_freelancer(
 def delete_freelancer(freelancer_id: int, db: Session = Depends(get_db)):
     return freelancer_delete_service(db, freelancer_id)
 
+
+
+# @router.get("/{freelancer_id}/paid-services")
+# def get_paid_customers_for_freelancer(
+#     freelancer_id: int,
+#     db: Session = Depends(get_db)
+# ):
+#     return freelancer_paid_customers_service(db, freelancer_id)
+
+
+@router.get("/services")
+def get_services_by_payment_status(
+    payment_done: bool = Query(..., description="true = paid, false = unpaid"),
+    db: Session = Depends(get_db)
+):
+    return fetch_customers_by_payment_status(db, payment_done)

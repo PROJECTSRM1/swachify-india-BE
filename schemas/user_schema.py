@@ -46,6 +46,7 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
+    id:int
     email_or_phone: str
     access_token: str
     refresh_token: str

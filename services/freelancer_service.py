@@ -225,3 +225,34 @@ def freelancer_status_service(db: Session, freelancer_id: int):
         "status": status_map.get(user.status_id),
         "message": message_map.get(user.status_id)
     }
+
+
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+def fetch_customers_by_payment_status(db: Session, payment_done: bool):
+    """
+    Fetch customer data based on payment_done = true / false
+    """
+
+    query = text("""
+    SELECT
+        id AS service_id,
+        service_price,
+        
+        payment_done
+    FROM home_service
+    WHERE COALESCE(payment_done, FALSE) = :payment_done
+""")
+
+
+    rows = db.execute(query, {
+        "payment_done": payment_done
+    }).fetchall()
+
+    return {
+        "message": f"Customers fetched where payment_done = {payment_done}",
+        "count": len(rows),
+        "data": [dict(r._mapping) for r in rows]
+    }
+

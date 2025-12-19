@@ -68,25 +68,18 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     query = """
         SELECT * FROM fn_user_login_list(:p_identifier);
     """
-    params = {
-        "p_identifier": identifier
-    }
+    params = {"p_identifier": identifier}
 
     row = execute_function_raw(db, query, params)
 
     if not row:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if hasattr(row, "_mapping"):
-        user = dict(row._mapping)
-    else:
-        try:
-            user = dict(row)
-        except Exception:
-            raise HTTPException(status_code=500, detail="Unexpected DB result format")
+    user = dict(row._mapping) if hasattr(row, "_mapping") else dict(row)
 
     print("DB RESULT (login):", user)
 
+    # ✅ password check
     if not verify_password(payload.password, user.get("password", "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -97,8 +90,10 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 
     access_token = create_access_token(subject)
     refresh_token = create_refresh_token(subject)
+
     refresh_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
     refresh_max_age = refresh_days * 24 * 3600
+
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
@@ -110,6 +105,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     expires_in = int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
 
     return LoginResponse(
+        id=user.get("user_id"),        # ✅ FIXED
         email_or_phone=payload.email_or_phone,
         access_token=access_token,
         refresh_token=refresh_token,
