@@ -12,7 +12,7 @@ from models.master_service_type import MasterServiceType
 
 from schemas.home_schema import (HomeServiceCreate,HomeServiceResponse,HomeServiceUpdate)
 from schemas.master_data_schema import MasterDataResponse
-from services.home_service import (create_home_service,delete_home_service,get_home_service,get_home_services,update_home_service)
+from services.home_service import (create_home_service,delete_home_service,get_home_service,get_home_services, mark_payment_success,update_home_service)
 from services.master_data_service import get_master_data
 
 router = APIRouter(prefix="/api", tags=["Cleaning Services"])
@@ -78,6 +78,13 @@ def read_home_services(db: Session = Depends(get_db)):
 @router.get("/home-service/{id}", response_model=HomeServiceResponse)
 def read_home_service(id: int, db: Session = Depends(get_db)):
     return get_home_service(db, id)
+
+# @router.post("/{home_service_id}/payment-success", response_model=HomeServiceResponse)
+# def payment_success(
+#     home_service_id: int,
+#     db: Session = Depends(get_db)
+# ):
+#     return mark_payment_success(db, home_service_id)
 
 @router.post("/home-service", response_model=HomeServiceResponse)
 def create_new_home_service(data: HomeServiceCreate,db: Session = Depends(get_db)):
