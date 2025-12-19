@@ -30,8 +30,7 @@ def get_home_service(db: Session, home_service_id: int):
 
 def create_home_service(db: Session, data: HomeServiceCreate):
     obj = HomeService(
-        **data.model_dump(),
-        payment_done=False 
+        **data.model_dump()
     )
     db.add(obj)
     db.commit()

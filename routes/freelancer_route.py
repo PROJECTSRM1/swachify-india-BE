@@ -84,9 +84,14 @@ def delete_freelancer(freelancer_id: int, db: Session = Depends(get_db)):
 #     return freelancer_paid_customers_service(db, freelancer_id)
 
 
-@router.get("/services")
-def get_services_by_payment_status(
-    payment_done: bool = Query(..., description="true = paid, false = unpaid"),
-    db: Session = Depends(get_db)
-):
-    return fetch_customers_by_payment_status(db, payment_done)
+# @router.get("/services")
+# def get_services_by_payment_status(
+#     payment_done: bool = Query(..., description="true = paid, false = unpaid"),
+#     db: Session = Depends(get_db)
+# ):
+#     return fetch_customers_by_payment_status(db, payment_done)
+
+
+@router.get("/paid-services")
+def get_paid_services(db: Session = Depends(get_db)):
+    return fetch_customers_by_payment_status(db)
