@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Boolean, Column, Integer, Numeric, String, Date
 from core.database import Base
 
 class HomeService(Base):
@@ -26,3 +26,6 @@ class HomeService(Base):
     time_slot_id = Column(Integer)
     special_instructions = Column(String, nullable=True)
     payment_type_id = Column(Integer)
+
+    service_price = Column(Numeric(10, 2), nullable=True)
+    payment_done = Column(Boolean, default=False)

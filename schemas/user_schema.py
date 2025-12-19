@@ -54,10 +54,6 @@ class LoginResponse(BaseModel):
     refresh_expires_in: int
 
 
-class LogoutRequest(BaseModel):
-    user_id: int
-
-
 class UpdateUser(BaseModel):
     user_id: int  
 

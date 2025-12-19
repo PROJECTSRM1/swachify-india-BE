@@ -25,6 +25,8 @@ class HomeServiceBase(BaseModel):
     special_instructions: Optional[str] = None
     payment_type_id: int
 
+    service_price: float
+
     model_config = {
         "from_attributes": True
     }
@@ -40,6 +42,7 @@ class HomeServiceUpdate(HomeServiceCreate):
 
 class HomeServiceResponse(HomeServiceBase):
     id: int
+    payment_done: bool
 
 
 # from pydantic import BaseModel, EmailStr
