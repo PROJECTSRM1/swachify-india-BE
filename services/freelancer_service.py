@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -65,7 +66,8 @@ def freelancer_register_service(db: Session, payload):
         status_id=STATUS_PENDING,   
         government_id=government_json,
         address = payload.address,
-        unique_id = str(uuid.uuid4())
+        unique_id = str(uuid.uuid4()),
+        is_active = True
     )
 
     db.add(user)
@@ -75,7 +77,8 @@ def freelancer_register_service(db: Session, payload):
     return {
         "message": "Freelancer registered successfully. Waiting for admin approval.",
         "user_id": user.id,
-        "status": "Pending"
+        "status": "Pending",
+        "active": user.is_active
     }
 
 
@@ -86,19 +89,21 @@ def freelancer_login_service(db: Session, payload, response):
     if "@" in identifier:
         user = db.query(UserRegistration).filter(
             UserRegistration.email == identifier,
-            UserRegistration.role_id == FREELANCER_ROLE_ID
+            UserRegistration.role_id == FREELANCER_ROLE_ID,
+            UserRegistration.is_active == True
         ).first()
     else:
         user = db.query(UserRegistration).filter(
             UserRegistration.mobile == identifier,
-            UserRegistration.role_id == FREELANCER_ROLE_ID
+            UserRegistration.role_id == FREELANCER_ROLE_ID,
+            UserRegistration.is_active == True
         ).first()
 
     if not user:
         raise HTTPException(404, "Freelancer not found")
 
     if not verify_password(payload.password, user.password):
-        raise HTTPException(status_code=400, detail="Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid password")
     
     # ---- STATUS ENFORCEMENT ----
     if user.status_id == STATUS_PENDING:
@@ -123,15 +128,14 @@ def freelancer_login_service(db: Session, payload, response):
     access_token = create_access_token(subject)
     refresh_token = create_refresh_token(subject)
 
-    refresh_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
-    max_age = refresh_days * 24 * 3600
-
+   
+    
     response.set_cookie(
         key="freelancer_refresh_token",
         value=refresh_token,
         httponly=True,
         samesite="lax",
-        max_age=max_age
+        max_age=int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7)) * 24 * 60 * 60
     )
 
     return {
@@ -144,59 +148,50 @@ def freelancer_login_service(db: Session, payload, response):
         "expires_in": int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
     }
 
-def freelancer_update_service(db: Session, freelancer_id: int, payload):
+def freelancer_update_service(db: Session, current_user, payload):
 
     user = db.query(UserRegistration).filter(
-        UserRegistration.id == freelancer_id,
+        UserRegistration.id == current_user.id,
         UserRegistration.role_id == FREELANCER_ROLE_ID
     ).first()
 
     if not user:
         raise HTTPException(status_code=404, detail="Freelancer not found")
     
-    if user.status_id != STATUS_APPROVED:
+    if current_user.status_id != STATUS_APPROVED:
         raise HTTPException(
             status_code=403,
             detail="Profile update allowed only after admin approval"
         )
 
 
-    user.first_name = payload.first_name or user.first_name
-    user.last_name = payload.last_name or user.last_name
-    user.email = payload.email or user.email
-    user.mobile = payload.mobile or user.mobile
-    user.address = payload.address or user.address
+    for field in [
+        "first_name",
+        "last_name",
+        "email",
+        "mobile",
+        "address"
+    ]:
+        value = getattr(payload, field, None)
+        if value is not None:
+            setattr(user, field, value)
 
     if payload.password:
-        user.password = hash_password(payload.password)
-
-    if user.status_id != STATUS_APPROVED:
-     raise HTTPException(
-        status_code=403,
-        detail="Profile update allowed only after admin approval"
-    )
+        current_user.password = hash_password(payload.password)
 
     db.commit()
     db.refresh(user)
 
     return {"message": "Freelancer updated successfully", "freelancer_id": user.id}
 
+def freelancer_deactivate_service(db: Session, current_user:UserRegistration):
+    current_user.is_active = False
+    current_user.modified_date = datetime.utcnow()
 
-
-def freelancer_delete_service(db: Session, freelancer_id: int):
-
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == freelancer_id,
-        UserRegistration.role_id == FREELANCER_ROLE_ID
-    ).first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="Freelancer not found")
-
-    db.delete(user)
     db.commit()
 
-    return {"message": "Freelancer deleted successfully"}
+    return {"message": "Account deactivated successfully"}
+
 
 def freelancer_status_service(db: Session, freelancer_id: int):
 

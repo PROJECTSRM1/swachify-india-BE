@@ -26,3 +26,4 @@ class HomeService(Base):
     time_slot_id = Column(Integer)
     special_instructions = Column(String, nullable=True)
     payment_type_id = Column(Integer)
+   

@@ -80,6 +80,13 @@ class AdminLogin(BaseModel):
 class AdminLogout(BaseModel):
     admin_id: int = Field(..., gt=0, description="Admin database ID")
 
+class AdminUpdate(BaseModel):
+    first_name: Optional[str] = Field(None, min_length=2, max_length=50)
+    last_name: Optional[str] = Field(None, min_length=2, max_length=50)
+    email: Optional[EmailStr]
+    mobile: Optional[str] = Field(None, pattern=r"^[6-9]\d{9}$")
+    password: Optional[str] = Field(None, min_length=6, max_length=72)
+
 class AdminUpdateResponse(BaseModel):
     message: str
     data: UserBase

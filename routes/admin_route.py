@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends,Request,Response,Header,HTTPException
 from sqlalchemy.orm import Session
 from core.database import get_db
 from schemas.admin_schema import RegisterAdmin, UserBase,AdminLogin,AdminLogout,AdminRegisterResponse,AdminUpdateResponse
-from services.admin_service import register_admin_service,admin_login_service,admin_update_service,admin_delete_service,admin_hard_delete_service,get_pending_freelancers_service,approve_freelancer_service,reject_freelancer_service
+from services.admin_service import register_admin_service,admin_login_service,admin_update_service,admin_deactivate_service,activate_admin_service,activate_freelancer_service,get_pending_freelancers_service,approve_freelancer_service,reject_freelancer_service
 from utils.jwt_utils import verify_admin_token,verify_token
 from schemas.freelancer_details_schema import FreelancerDetailResponse,FreelancerSkill
 from models.user_registration import UserRegistration
@@ -11,8 +11,12 @@ from models.master.master_gender import MasterGender
 from models.master.master_skill import MasterSkill
 from models.master.master_state import MasterState
 from models.master.master_district import MasterDistrict
+from dependencies.admin_dependency import get_current_admin
 
-router = APIRouter(prefix="/api/admin", tags=["Admin Authentication"])
+# Define the role ID for super admin (update the value as per your application's logic)
+ADMIN_ROLE_ID = 1
+
+router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
 
 @router.post("/register", response_model=AdminRegisterResponse)
@@ -20,8 +24,8 @@ def register_admin(request: RegisterAdmin, db: Session = Depends(get_db)):
     return register_admin_service(request, db)
 
 @router.post("/login")   # no response_model to avoid strict validation issues
-def admin_login(request: AdminLogin, db: Session = Depends(get_db),req: Request = None):
-    return admin_login_service(request, db,req)
+def admin_login(request: AdminLogin, db: Session = Depends(get_db)):
+    return admin_login_service(request, db)
 
 @router.post("/logout")
 def admin_logout(data: AdminLogout):
@@ -31,28 +35,40 @@ def admin_logout(data: AdminLogout):
         "message": f"Admin {data.admin_id} logged out successfully. Please clear token on client side."
     }
 
-@router.get("/admin/profile")
+@router.get("/profile")
 def get_admin_profile(payload = Depends(verify_admin_token)):
     return {"message": "Authorized", "admin": payload}
 
+@router.delete("/me/deactivate", summary="Deactivate Admin Account")
+def deactivate_admin(
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin)
+):
+    return admin_deactivate_service(db, current_admin)
 
-@router.put("/update/{admin_id}", response_model=AdminUpdateResponse)
-def update_admin(admin_id: int, payload: dict, db: Session = Depends(get_db)):
-    return admin_update_service(db, admin_id, payload)
+@router.post("/admins/{admin_id}/activate", summary="Activate Admin")
+def activate_admin(
+    admin_id: int,
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin)
+):
+    if current_admin.role_id != ADMIN_ROLE_ID:
+        raise HTTPException(403, "admin required")
 
-@router.delete("/delete/{admin_id}")
-def delete_admin(admin_id: int, db: Session = Depends(get_db)):
-    return admin_delete_service(db, admin_id)
+    return activate_admin_service(db, admin_id)
 
-@router.delete("/hard-delete/{admin_id}")
-def hard_delete_admin(admin_id: int, db: Session = Depends(get_db)):
-    return admin_hard_delete_service(db, admin_id)
+@router.post("/freelancers/{freelancer_id}/activate", summary="Activate Freelancer")
+def activate_freelancer(
+    freelancer_id: int,
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin)
+):
+    return activate_freelancer_service(
+        db,
+        freelancer_id,
+        current_admin.id
+    )
 
-def get_current_admin(token: str):
-    payload = verify_token(token)
-    if payload.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return payload
 
 @router.get("/pending")
 def get_pending_freelancers(
