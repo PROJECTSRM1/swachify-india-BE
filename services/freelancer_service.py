@@ -225,3 +225,66 @@ def freelancer_status_service(db: Session, freelancer_id: int):
         "status": status_map.get(user.status_id),
         "message": message_map.get(user.status_id)
     }
+
+# from sqlalchemy import text
+# from sqlalchemy.orm import Session
+
+# def fetch_customers_by_payment_status(db: Session, payment_done: bool):
+#     """
+#     Fetch customer data from home_service ONLY
+#     (no user_registration join)
+#     """
+
+#     query = text("""
+#         SELECT
+#             id AS service_id,
+#             service_price,
+#             full_name,
+#             email,
+#             mobile,
+#             address,
+#             COALESCE(payment_done, FALSE) AS payment_done
+#         FROM home_service
+#         WHERE COALESCE(payment_done, FALSE) = :payment_done
+#     """)
+
+#     rows = db.execute(
+#         query,
+#         {"payment_done": payment_done}
+#     ).fetchall()
+
+#     return {
+#         "message": f"Customers fetched where payment_done = {payment_done}",
+#         "count": len(rows),
+#         "data": [dict(r._mapping) for r in rows]
+#     }
+
+
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+def fetch_customers_by_payment_status(db: Session):
+    """
+    Fetch ONLY customers where payment_done = TRUE
+    """
+
+    query = text("""
+        SELECT
+            id AS service_id,
+            service_price,
+            full_name,
+            email,
+            mobile,
+            address,
+            COALESCE(payment_done, FALSE) AS payment_done
+        FROM home_service
+        WHERE COALESCE(payment_done, FALSE) = TRUE
+    """)
+
+    rows = db.execute(query).fetchall()
+
+    return {
+        "message": "Paid customers fetched successfully",
+        "count": len(rows),
+        "data": [dict(r._mapping) for r in rows]
+    }
