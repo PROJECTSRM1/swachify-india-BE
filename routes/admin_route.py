@@ -47,30 +47,19 @@ def get_current_admin(token: str):
     return payload
 
 @router.get("/pending")
-def get_pending_freelancers(
-    token: str,
-    db: Session = Depends(get_db)
-):
+def get_pending_freelancers(token: str,db: Session = Depends(get_db)):
     get_current_admin(token)
     return get_pending_freelancers_service(db)
 
 
 @router.put("/{freelancer_id}/approve")
-def approve_freelancer(
-    freelancer_id: int,
-    token: str,
-    db: Session = Depends(get_db)
-):
+def approve_freelancer(freelancer_id: int,token: str,db: Session = Depends(get_db)):
     admin = get_current_admin(token)
     return approve_freelancer_service(db, freelancer_id, int(admin["sub"]))
 
 
 @router.put("/{freelancer_id}/reject")
-def reject_freelancer(
-    freelancer_id: int,
-    token: str,
-    db: Session = Depends(get_db)
-):
+def reject_freelancer(freelancer_id: int,token: str,db: Session = Depends(get_db)):
     admin = get_current_admin(token)
     return reject_freelancer_service(db, freelancer_id, int(admin["sub"]))
 
@@ -79,19 +68,17 @@ def reject_freelancer(
 def get_freelancer_full_details(freelancer_id: int, db: Session = Depends(get_db)):
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
-        UserRegistration.role_id == 4  # Freelancer
+        UserRegistration.role_id == 4 
     ).first()
 
     if not freelancer:
         raise HTTPException(status_code=404, detail="Freelancer not found")
 
-    # Fetch Master Data
     state_name = db.query(MasterState.state_name).filter(MasterState.id == freelancer.state_id).scalar() if freelancer.state_id else None
     district_name = db.query(MasterDistrict.district_name).filter(MasterDistrict.id == freelancer.district_id).scalar() if freelancer.district_id else None
     skill_name = db.query(MasterSkill.skill).filter(MasterSkill.id == freelancer.skill_id).scalar() if freelancer.skill_id else None
     gender_value = db.query(MasterGender.gender_name).filter(MasterGender.id == freelancer.gender_id).scalar() if freelancer.gender_id else None
 
-    # Parse and Mask Government ID JSON
     government_type = None
     government_number = None
 
@@ -122,8 +109,8 @@ def get_freelancer_full_details(freelancer_id: int, db: Session = Depends(get_db
         "government_id_type": government_type,
         "government_id_number": government_number,
         "address": freelancer.address,
-        "rating": None,            # can be updated later if rating table exists
-        "completed_jobs": None,    # can be updated later if jobs table exists
+        "rating": None,          
+        "completed_jobs": None,    
         "status": "active" if freelancer.is_active else "inactive"
     }
 
