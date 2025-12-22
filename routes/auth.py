@@ -1,59 +1,82 @@
-import time
-from datetime import datetime
-
+import os
 import anyio
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
+from datetime import datetime
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 from fastapi.security import HTTPBearer
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from passlib.context import CryptContext
+
 from core.database import get_db
 from controllers.user_controller import register_user_controller
 from utils.mail_agent import send_welcome_email
 from utils.sms_agent import send_welcome_sms
 from utils.db_function import execute_function_raw
-from utils.jwt_utils import create_access_token, create_refresh_token, verify_token
-from schemas.user_schema import RegisterUser, LoginRequest, LoginResponse, UpdateUser, VerifyTokenResponse
-from passlib.context import CryptContext
-import os
-
-from fastapi import HTTPException, status
-from pydantic import ValidationError
-
-from schemas.user_schema import (ForgotPasswordRequest,VerifyOtpRequest,ResetPasswordRequest,)
+from utils.jwt_utils import (
+    create_access_token,
+    create_refresh_token,
+)
+from schemas.user_schema import (
+    RegisterUser,
+    LoginRequest,
+    LoginResponse,
+    UpdateUser,
+    ForgotPasswordRequest,
+    VerifyOtpRequest,
+    ResetPasswordRequest,
+)
 from services import forgot_password_service as fp_service
-from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, status, Response, Request
-from core.database import get_db
+
 
 router = APIRouter(prefix="/api/auth", tags=["Customer"])
 security = HTTPBearer()
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
+
+# =============================
+# PASSWORD HELPERS
+# =============================
 async def hash_password(password: str) -> str:
     return await anyio.to_thread.run_sync(pwd_context.hash, password)
+
 
 async def verify_password(plain: str, hashed: str) -> bool:
     return await anyio.to_thread.run_sync(pwd_context.verify, plain, hashed)
 
+
+# =============================
+# REGISTER USER
+# =============================
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_user(
     payload: RegisterUser,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
+    # 1️⃣ Create user
     user = await register_user_controller(db, payload)
 
-    # background_tasks.add_task(
-    #     send_welcome_email,
-    #     payload.email,
-    #     payload.first_name
-    # )
+    # 2️⃣ Send Welcome Email (Background)
+    background_tasks.add_task(
+        send_welcome_email,
+        payload.email,
+        payload.first_name,
+    )
 
+    # 3️⃣ Send Welcome SMS (Background)
     background_tasks.add_task(
         send_welcome_sms,
         payload.mobile,
-        payload.first_name
+        payload.first_name,
     )
 
     return {
@@ -61,31 +84,33 @@ async def register_user(
         "user_id": user["user_id"] if isinstance(user, dict) else user,
     }
 
+
+# =============================
+# LOGIN
+# =============================
 @router.post("/login", response_model=LoginResponse)
-def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
+async def login(
+    payload: LoginRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+):
     identifier = payload.email_or_phone.strip()
 
-    query = """
-        SELECT * FROM fn_user_login_list(:p_identifier);
-    """
+    query = "SELECT * FROM fn_user_login_list(:p_identifier);"
     params = {"p_identifier": identifier}
 
     row = execute_function_raw(db, query, params)
-
     if not row:
         raise HTTPException(status_code=404, detail="User not found")
 
     user = dict(row._mapping) if hasattr(row, "_mapping") else dict(row)
 
-    print("DB RESULT (login):", user)
-
-    # ✅ password check
-    if not verify_password(payload.password, user.get("password", "")):
+    if not await verify_password(payload.password, user.get("password", "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     subject = {
         "user_id": user.get("user_id"),
-        "email": user.get("email")
+        "email": user.get("email"),
     }
 
     access_token = create_access_token(subject)
@@ -105,29 +130,32 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     expires_in = int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
 
     return LoginResponse(
-        id=user.get("user_id"),        # ✅ FIXED
+        id=user.get("user_id"),
         email_or_phone=payload.email_or_phone,
         access_token=access_token,
         refresh_token=refresh_token,
         token_type="bearer",
         expires_in=expires_in,
-        refresh_expires_in=refresh_max_age
+        refresh_expires_in=refresh_max_age,
     )
 
 
+# =============================
+# GET ALL USERS
+# =============================
 @router.get("/users")
 def get_all_users(db: Session = Depends(get_db)):
     query = text("SELECT * FROM user_registration ORDER BY id;")
     result = db.execute(query).fetchall()
-
-    users = [dict(row._mapping) for row in result]
-
     return {
-        "total_users": len(users),
-        "users": users
+        "total_users": len(result),
+        "users": [dict(row._mapping) for row in result],
     }
 
 
+# =============================
+# GET USER BY ID
+# =============================
 @router.get("/users/{user_id}")
 def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     query = text("SELECT * FROM user_registration WHERE id = :id LIMIT 1;")
@@ -139,25 +167,31 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     return {"user": dict(row._mapping)}
 
 
+# =============================
+# UPDATE USER
+# =============================
 @router.put("/update")
-def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
+async def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
+    user_row = db.execute(
+        text("SELECT * FROM user_registration WHERE id = :id"),
+        {"id": payload.user_id},
+    ).fetchone()
 
-    user_query = db.execute(text("SELECT * FROM user_registration WHERE id = :id"), {"id": payload.user_id})
-    user = user_query.fetchone()
-
-    if not user:
+    if not user_row:
         raise HTTPException(status_code=404, detail="User not found")
-    user = dict(user._mapping)
+
+    user = dict(user_row._mapping)
+
     updated_data = {
         "p_user_id": payload.user_id,
         "p_email": payload.email or user["email"],
         "p_first_name": payload.first_name or user["first_name"],
         "p_last_name": payload.last_name or user["last_name"],
         "p_mobile": payload.mobile or user["mobile"],
-        "p_password": hash_password(payload.password) if payload.password else user["password"],
+        "p_password": await hash_password(payload.password)
+        if payload.password
+        else user["password"],
         "p_gender_id": payload.gender_id or user["gender_id"],
-
-        # Optional fixed values
         "p_dob": user["dob"],
         "p_age": user["age"],
         "p_profile_image": user["profile_image"],
@@ -169,31 +203,16 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
         "p_district_id": user["district_id"],
         "p_skill_id": user["skill_id"],
         "p_created_by": user["created_by"],
-
-        "p_address": payload.address or user["address"]
+        "p_address": payload.address or user["address"],
     }
 
     query = """
     SELECT * FROM fn_user_update_list(
-        :p_user_id,
-        :p_email,
-        :p_first_name,
-        :p_last_name,
-        :p_mobile,
-        :p_password,
-        :p_gender_id,
-        :p_dob,
-        :p_age,
-        :p_profile_image,
-        :p_experience_summary,
-        :p_experience_doc,
-        :p_government_id,
-        :p_role_id,
-        :p_state_id,
-        :p_district_id,
-        :p_skill_id,
-        :p_created_by,
-        :p_address
+        :p_user_id, :p_email, :p_first_name, :p_last_name,
+        :p_mobile, :p_password, :p_gender_id, :p_dob, :p_age,
+        :p_profile_image, :p_experience_summary, :p_experience_doc,
+        :p_government_id, :p_role_id, :p_state_id, :p_district_id,
+        :p_skill_id, :p_created_by, :p_address
     );
     """
 
@@ -203,21 +222,24 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
     return {"message": "User updated successfully", "updated": dict(result._mapping)}
 
 
-
+# =============================
+# DELETE USER
+# =============================
 @router.delete("/delete/{user_id}")
-def delete_user_controller(user_id: int, db: Session = Depends(get_db)):
+def delete_user(user_id: int, db: Session = Depends(get_db)):
     query = "SELECT * FROM fn_user_delete_list(:p_user_id)"
     params = {"p_user_id": user_id}
 
     result = execute_function_raw(db, query, params)
-
     if not result:
         raise HTTPException(status_code=404, detail="Delete failed or user not found")
 
     return {"message": f"User {user_id} deleted successfully"}
 
 
-
+# =============================
+# FORGOT PASSWORD – REQUEST OTP
+# =============================
 @router.post("/forgot-password/request-otp")
 async def forgot_password_request(
     body: ForgotPasswordRequest,
@@ -226,15 +248,14 @@ async def forgot_password_request(
     try:
         await fp_service.request_password_reset(body.email, db)
     except fp_service.UserNotFound:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Email not registered",
-        )
+        raise HTTPException(status_code=404, detail="Email not registered")
 
     return {"message": "OTP sent to registered email"}
 
 
-# 2) Verify OTP  (user enters ONLY OTP)
+# =============================
+# FORGOT PASSWORD – VERIFY OTP
+# =============================
 @router.post("/forgot-password/verify-otp")
 def forgot_password_verify(
     body: VerifyOtpRequest,
@@ -244,34 +265,26 @@ def forgot_password_verify(
     try:
         reset_token = fp_service.verify_otp(body.otp, db)
     except fp_service.OtpExpired:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="OTP expired, please request again",
-        )
+        raise HTTPException(status_code=400, detail="OTP expired")
     except fp_service.InvalidOtp:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid OTP",
-        )
+        raise HTTPException(status_code=400, detail="Invalid OTP")
     except fp_service.UserNotFound:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+        raise HTTPException(status_code=404, detail="User not found")
 
-    max_age = 15 * 60  # 15 minutes in seconds
     response.set_cookie(
         key="reset_token",
         value=reset_token,
         httponly=True,
         samesite="lax",
-        max_age=max_age,
+        max_age=15 * 60,
     )
 
     return {"message": "OTP verified successfully"}
 
 
-# 3) Reset password  (user enters ONLY new password + confirm)
+# =============================
+# FORGOT PASSWORD – RESET
+# =============================
 @router.post("/forgot-password/reset")
 def forgot_password_reset(
     body: ResetPasswordRequest,
@@ -280,33 +293,18 @@ def forgot_password_reset(
     db: Session = Depends(get_db),
 ):
     if body.new_password != body.confirm_password:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Passwords do not match",
-        )
+        raise HTTPException(status_code=400, detail="Passwords do not match")
 
-    # read reset token from cookie; user doesn't need to provide it
     reset_token = request.cookies.get("reset_token")
     if not reset_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Reset token missing or expired. Please verify OTP again.",
-        )
+        raise HTTPException(status_code=401, detail="Reset token missing")
 
     try:
         fp_service.reset_password(reset_token, body.new_password, db)
     except fp_service.InvalidOtp:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired reset token. Please verify OTP again.",
-        )
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
     except fp_service.UserNotFound:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+        raise HTTPException(status_code=404, detail="User not found")
 
-    # clear the cookie after successful reset
     response.delete_cookie("reset_token")
-
     return {"message": "Password updated successfully"}
