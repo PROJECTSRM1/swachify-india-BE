@@ -11,13 +11,13 @@ from schemas.user_schema import RefreshRequest, VerifyTokenResponse
 from utils.jwt_utils import verify_token
 from schemas.freelancer_schema import FreelancerLogout, FreelancerRegister, FreelancerLogin
 from services.freelancer_service import (
-    fetch_customers_by_payment_status,
-    # freelancer_paid_customers_service,
+   
     freelancer_register_service,
     freelancer_login_service,
     freelancer_update_service,
     freelancer_delete_service,
-    freelancer_status_service
+    freelancer_status_service,
+    get_freelancer_by_id
 )
 
 
@@ -61,6 +61,13 @@ def get_freelancer_status(
 def login_freelancer(payload: FreelancerLogin, response: Response, db: Session = Depends(get_db)):
     return freelancer_login_service(db, payload, response)
 
+@router.get("/{freelancer_id}")
+def get_freelancer_details(
+    freelancer_id: int,
+    db: Session = Depends(get_db)
+):
+    return get_freelancer_by_id(db, freelancer_id)
+
 @router.put("/update/{freelancer_id}")
 def update_freelancer(
     freelancer_id: int,
@@ -92,6 +99,3 @@ def delete_freelancer(freelancer_id: int, db: Session = Depends(get_db)):
 #     return fetch_customers_by_payment_status(db, payment_done)
 
 
-@router.get("/paid-services")
-def get_paid_services(db: Session = Depends(get_db)):
-    return fetch_customers_by_payment_status(db)
