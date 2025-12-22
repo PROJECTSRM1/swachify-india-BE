@@ -21,9 +21,30 @@ def get_home_service(db: Session, home_service_id: int):
     return obj
 
 
+# def create_home_service(db: Session, data: HomeServiceCreate):
+#     obj = HomeService(**data.model_dump())
+#     db.add(obj)
+#     db.commit()
+#     db.refresh(obj)
+#     return obj
+
 def create_home_service(db: Session, data: HomeServiceCreate):
-    obj = HomeService(**data.model_dump())
+    obj = HomeService(
+        **data.model_dump()
+    )
     db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+
+def mark_payment_success(db: Session, home_service_id: int):
+    obj = db.get(HomeService, home_service_id)
+
+    if not obj:
+        raise HTTPException(status_code=404, detail="Home service not found")
+
+    obj.payment_done = True
     db.commit()
     db.refresh(obj)
     return obj

@@ -12,12 +12,18 @@ from utils.mail_agent import send_welcome_email
 from utils.sms_agent import send_welcome_sms
 from utils.db_function import execute_function_raw
 from utils.jwt_utils import create_access_token, create_refresh_token, verify_token
-from schemas.user_schema import LogoutRequest, RefreshRequest, RegisterUser, LoginRequest, LoginResponse, UpdateUser, VerifyTokenResponse
+from schemas.user_schema import RegisterUser, LoginRequest, LoginResponse, UpdateUser, VerifyTokenResponse
 from passlib.context import CryptContext
 import os
 
 from fastapi import HTTPException, status
 from pydantic import ValidationError
+
+from schemas.user_schema import (ForgotPasswordRequest,VerifyOtpRequest,ResetPasswordRequest,)
+from services import forgot_password_service as fp_service
+from sqlalchemy.orm import Session
+from fastapi import Depends, HTTPException, status, Response, Request
+from core.database import get_db
 
 router = APIRouter(prefix="/api/auth", tags=["Customer"])
 security = HTTPBearer()
@@ -62,26 +68,18 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     query = """
         SELECT * FROM fn_user_login_list(:p_identifier);
     """
-
-    params = {
-        "p_identifier": identifier
-    }
+    params = {"p_identifier": identifier}
 
     row = execute_function_raw(db, query, params)
 
     if not row:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if hasattr(row, "_mapping"):
-        user = dict(row._mapping)
-    else:
-        try:
-            user = dict(row)
-        except Exception:
-            raise HTTPException(status_code=500, detail="Unexpected DB result format")
+    user = dict(row._mapping) if hasattr(row, "_mapping") else dict(row)
 
     print("DB RESULT (login):", user)
 
+    # ✅ password check
     if not verify_password(payload.password, user.get("password", "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -107,6 +105,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     expires_in = int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
 
     return LoginResponse(
+        id=user.get("user_id"),        # ✅ FIXED
         email_or_phone=payload.email_or_phone,
         access_token=access_token,
         refresh_token=refresh_token,
@@ -114,72 +113,6 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         expires_in=expires_in,
         refresh_expires_in=refresh_max_age
     )
-
-@router.post("/logout")
-def logout(payload: LogoutRequest, response: Response, db: Session = Depends(get_db)):
-
-    user_id = payload.user_id
-
-    query = text("SELECT id FROM user_registration WHERE id = :id LIMIT 1;")
-    result = db.execute(query, {"id": user_id}).fetchone()
-
-    if not result:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    response.delete_cookie("refresh_token")
-
-    return {"message": f"User {user_id} logged out successfully"}
-
-
-@router.post("/refresh")
-def refresh_access_token(payload: RefreshRequest):
-    
-    refresh_token = payload.refresh_token
-
-    if not refresh_token:
-        raise HTTPException(status_code=401, detail="Refresh token missing")
-
-    decoded = verify_token(refresh_token)
-
-    if decoded.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-
-    new_access_token = create_access_token({
-        "user_id": decoded.get("sub"),
-        "email": decoded.get("email")
-    })
-
-    return {
-        "message": "New access token generated",
-        "user_id": payload.user_id,
-        "access_token": new_access_token,
-        "token_type": "bearer"
-    }
-
-
-
-@router.get("/verify-token", response_model=VerifyTokenResponse)
-def verify_token_endpoint(token: str):
-    payload = verify_token(token)
-
-    token_type = payload.get("type") 
-
-    return VerifyTokenResponse(
-        authenticated=True,
-        token_type=token_type,
-        user_id=payload.get("sub"),
-        email=payload.get("email"),
-        message=f"Valid {token_type} token"
-    )
-
-
-@router.get("/me")
-def get_current_user(token: str):
-    print("PYTHON UTC NOW:", datetime.utcnow())
-    print("PYTHON TIMESTAMP:", int(time.time()))
-
-    payload = verify_token(token)
-    return {"user": payload}
 
 
 @router.get("/users")
@@ -284,27 +217,7 @@ def delete_user_controller(user_id: int, db: Session = Depends(get_db)):
     return {"message": f"User {user_id} deleted successfully"}
 
 
-@router.delete("/delete-all-users")
-def delete_all_users(db: Session = Depends(get_db)):
-    query = text("DELETE FROM user_registration;")
-    db.execute(query)
-    db.commit()
-    return {"message": "All users deleted successfully"}
 
-from schemas.user_schema import (
-    ForgotPasswordRequest,
-    VerifyOtpRequest,
-    ResetPasswordRequest,
-)
-from services import forgot_password_service as fp_service
-from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, status, Response, Request
-from core.database import get_db
-
-# router = APIRouter(prefix="/api/auth", tags=["Customer"])  # already defined at top
-
-
-# 1) Request OTP  (user enters EMAIL once)
 @router.post("/forgot-password/request-otp")
 async def forgot_password_request(
     body: ForgotPasswordRequest,

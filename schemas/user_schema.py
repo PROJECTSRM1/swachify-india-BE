@@ -46,16 +46,13 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
+    id:int
     email_or_phone: str
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
     refresh_expires_in: int
-
-
-class LogoutRequest(BaseModel):
-    user_id: int
 
 
 class UpdateUser(BaseModel):
