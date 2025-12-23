@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from core.database import get_db
 
+from core.dependencies import get_current_user
 from models.master_module import MasterModule
 from models.master_sub_module import MasterSubModule
 from models.master_service import MasterService
@@ -87,8 +88,12 @@ def read_home_service(id: int, db: Session = Depends(get_db)):
 #     return mark_payment_success(db, home_service_id)
 
 @router.post("/home-service", response_model=HomeServiceResponse)
-def create_new_home_service(data: HomeServiceCreate,db: Session = Depends(get_db)):
+def create_new_home_service(
+    data: HomeServiceCreate,
+    db: Session = Depends(get_db)
+):
     return create_home_service(db, data)
+
 
 @router.put("/home-service/{id}", response_model=HomeServiceResponse)
 def update_existing_home_service(id: int,data: HomeServiceUpdate,db: Session = Depends(get_db)):

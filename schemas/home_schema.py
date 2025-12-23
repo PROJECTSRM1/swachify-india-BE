@@ -64,7 +64,8 @@ class HomeServiceBase(BaseModel):
 
 # 🔹 CREATE (frontend → backend)
 class HomeServiceCreate(HomeServiceBase):
-    payment_done: bool  # ✅ REQUIRED while creating service
+    payment_done: bool 
+    created_by: int  
 
 
 # 🔹 UPDATE (partial update allowed)
@@ -97,3 +98,5 @@ class HomeServiceResponse(HomeServiceBase):
     id: int
     payment_done: bool
     created_by: int
+
+

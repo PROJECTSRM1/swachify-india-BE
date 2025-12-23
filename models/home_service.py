@@ -30,5 +30,4 @@ class HomeService(Base):
     service_price = Column(Numeric(10, 2), nullable=True)
     payment_done = Column(Boolean, default=False)
 
-
     created_by = Column(Integer, nullable=False)
