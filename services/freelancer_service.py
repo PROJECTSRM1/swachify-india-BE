@@ -66,6 +66,8 @@ def freelancer_register_service(db: Session, payload):
         government_id=government_json,
         address = payload.address,
         unique_id = str(uuid.uuid4())
+        experience_summary = payload.experience_summary,
+        experience_doc = payload.experience_doc
     )
 
     db.add(user)
