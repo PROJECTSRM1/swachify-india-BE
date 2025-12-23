@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, Numeric, String, Date
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, Numeric, String, Date
 from core.database import Base
 
 class HomeService(Base):
@@ -29,3 +29,5 @@ class HomeService(Base):
 
     service_price = Column(Numeric(10, 2), nullable=True)
     payment_done = Column(Boolean, default=False)
+
+    created_by = Column(Integer, nullable=False)
