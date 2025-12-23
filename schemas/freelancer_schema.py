@@ -20,7 +20,8 @@ class FreelancerRegister(BaseModel):
     government_id_number: Optional[str] = None
 
     address: Optional[str] = None
-
+    experience_summary: Optional[str] = None
+    experience_doc: Optional[str] = None  # Assuming this is a URL or file path
    
     @field_validator("email")
     def check_gmail(cls, value):
