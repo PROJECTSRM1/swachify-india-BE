@@ -2,9 +2,8 @@ from fastapi import APIRouter, Depends,Request,Response,Header,HTTPException
 from sqlalchemy.orm import Session
 from core.database import get_db
 from schemas.admin_schema import RegisterAdmin, UserBase,AdminLogin,AdminLogout,AdminRegisterResponse,AdminUpdateResponse
-from services.admin_service import register_admin_service,admin_login_service,admin_update_service,admin_delete_service,admin_hard_delete_service,get_pending_freelancers_service,approve_freelancer_service,reject_freelancer_service
+from services.admin_service import get_inactive_freelancers_service, register_admin_service,admin_login_service,admin_update_service,admin_delete_service,admin_hard_delete_service,get_pending_freelancers_service,approve_freelancer_service,reject_freelancer_service,admin_activate_freelancer_service
 from utils.jwt_utils import verify_admin_token,verify_token
-from schemas.freelancer_details_schema import FreelancerDetailResponse,FreelancerSkill
 from models.user_registration import UserRegistration
 import json
 from models.master.master_gender import MasterGender
@@ -74,6 +73,26 @@ def reject_freelancer(
     admin = get_current_admin(token)
     return reject_freelancer_service(db, freelancer_id, int(admin["sub"]))
 
+@router.get("/freelancers/inactive")
+def get_inactive_freelancers(
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin)
+):
+    return {
+        "message": "Inactive freelancers fetched successfully",
+        "data": get_inactive_freelancers_service(db)
+    }
+
+@router.put("/freelancer/{freelancer_id}/activate")
+def activate_freelancer(
+    freelancer_id: int,
+    token: str,
+    db: Session = Depends(get_db)
+):
+    
+    admin = get_current_admin(token)
+    return admin_activate_freelancer_service(db, freelancer_id, int(admin["sub"]))
+
 
 @router.get("/freelancer/{freelancer_id}")
 def get_freelancer_full_details(freelancer_id: int, db: Session = Depends(get_db)):
@@ -136,7 +155,7 @@ def get_freelancer_full_details(freelancer_id: int, db: Session = Depends(get_db
 
 
 @router.get("/freelancers")
-def get_freelancer_list(db: Session = Depends(get_db)):
+def get_all_freelancer_list(db: Session = Depends(get_db)):
     freelancers = db.query(UserRegistration).filter(
         UserRegistration.role_id == 4,
         UserRegistration.is_active == True

@@ -51,7 +51,7 @@ def freelancer_register_service(db: Session, payload):
             "number": payload.government_id_number
         })
 
-    user = UserRegistration(
+    freelancer = UserRegistration(
         first_name = payload.first_name,
         last_name = payload.last_name,
         email = payload.email,
@@ -64,17 +64,19 @@ def freelancer_register_service(db: Session, payload):
         role_id=FREELANCER_ROLE_ID,
         status_id=STATUS_PENDING,   
         government_id=government_json,
+        experience_summary=payload.experience_summary,
+        experience_doc=payload.experience_doc,
         address = payload.address,
         unique_id = str(uuid.uuid4())
     )
 
-    db.add(user)
+    db.add(freelancer)
     db.commit()
-    db.refresh(user)
+    db.refresh(freelancer)
 
     return {
         "message": "Freelancer registered successfully. Waiting for admin approval.",
-        "user_id": user.id,
+        "user_id": freelancer.id,
         "status": "Pending"
     }
 
@@ -84,30 +86,33 @@ def freelancer_login_service(db: Session, payload, response):
     identifier = payload.email_or_phone.strip()
 
     if "@" in identifier:
-        user = db.query(UserRegistration).filter(
+        freelancer = db.query(UserRegistration).filter(
             UserRegistration.email == identifier,
-            UserRegistration.role_id == FREELANCER_ROLE_ID
+            UserRegistration.role_id == FREELANCER_ROLE_ID,
         ).first()
     else:
-        user = db.query(UserRegistration).filter(
+        freelancer = db.query(UserRegistration).filter(
             UserRegistration.mobile == identifier,
-            UserRegistration.role_id == FREELANCER_ROLE_ID
+            UserRegistration.role_id == FREELANCER_ROLE_ID, 
         ).first()
 
-    if not user:
+    if not freelancer:
         raise HTTPException(404, "Freelancer not found")
 
-    if not verify_password(payload.password, user.password):
+    if not verify_password(payload.password, freelancer.password):
         raise HTTPException(status_code=400, detail="Invalid password")
+
+    if not freelancer.is_active:
+        raise HTTPException(status_code=403, detail="Your account is deactivated,wait for admin actions")
     
     # ---- STATUS ENFORCEMENT ----
-    if user.status_id == STATUS_PENDING:
+    if freelancer.status_id == STATUS_PENDING:
         raise HTTPException(
             status_code=403,
             detail="Your account is pending, wait for admin actions"
         )
 
-    if user.status_id == STATUS_REJECTED:
+    if freelancer.status_id == STATUS_REJECTED:
         raise HTTPException(
             status_code=403,
             detail="Your account has been rejected by admin"
@@ -115,8 +120,8 @@ def freelancer_login_service(db: Session, payload, response):
 
 
     subject = {
-        "user_id": user.id,
-        "email": user.email,
+        "user_id": freelancer.id,
+        "email": freelancer.email,
         "role": "freelancer"
     }
 
@@ -136,7 +141,7 @@ def freelancer_login_service(db: Session, payload, response):
 
     return {
         "message": "Freelancer login successful",
-        "user_id": user.id,
+        "user_id": freelancer.id,
         "email_or_phone": identifier,
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -148,7 +153,7 @@ def get_freelancer_by_id(db: Session, freelancer_id: int):
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID,
-        UserRegistration.status_id == STATUS_APPROVED,
+        # UserRegistration.status_id == STATUS_APPROVED,
         UserRegistration.is_active == True
     ).first()
 
@@ -156,7 +161,7 @@ def get_freelancer_by_id(db: Session, freelancer_id: int):
         raise HTTPException(status_code=404, detail="Freelancer not found")
     
     return {
-        "message": "Freelancer fetched successfully",
+        "message": "Freelancer details fetched successfully",
         "freelancer_id": freelancer.id,
         "first_name": freelancer.first_name,
         "last_name": freelancer.last_name,
@@ -169,7 +174,8 @@ def get_freelancer_by_id(db: Session, freelancer_id: int):
         "address": freelancer.address,
         "status_id": freelancer.status_id,
         "is_active": freelancer.is_active,
-        "created_date": freelancer.created_date
+        "created_date": freelancer.created_date,
+        "modified_date": freelancer.modified_date
     }
 
 def freelancer_update_service(db: Session, freelancer_id: int, payload):
@@ -177,63 +183,80 @@ def freelancer_update_service(db: Session, freelancer_id: int, payload):
     freelancer= db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID,
+        # UserRegistration.status_id == STATUS_APPROVED,
         UserRegistration.is_active == True
     ).first()
 
     if not freelancer:
         raise HTTPException(status_code=404, detail="Freelancer not found")
-
-    if freelancer.status_id != STATUS_APPROVED:
-        raise HTTPException(
-            status_code=403,
-            detail="Profile update allowed only after admin approval"
-        )
-
-
-    freelancer.first_name = payload.first_name or freelancer.first_name
-    freelancer.last_name = payload.last_name or freelancer.last_name
-    freelancer.email = payload.email or freelancer.email
-    freelancer.mobile = payload.mobile or freelancer.mobile
-    freelancer.address = payload.address or freelancer.address
+    if not freelancer.is_active:
+        raise HTTPException(status_code=403, detail="Freelancer account is deactivated,wait for admin actions")
+    
+    #safefields allow update anytime
+    if payload.first_name:
+        freelancer.first_name = payload.first_name
+    if payload.last_name:
+        freelancer.last_name = payload.last_name
+    if payload.address:
+        freelancer.address = payload.address
     if payload.password:
         freelancer.password = hash_password(payload.password)
-
+    
     if freelancer.status_id != STATUS_APPROVED:
-        raise HTTPException(
-            status_code=403,
-            detail="Profile update allowed only after admin approval"
-        )
+        restricted_fields = [
+            payload.email,
+            payload.mobile,
+            payload.skill_id,
+            payload.state_id,
+            payload.district_id
+        ]
 
+        if any(restricted_fields):
+            raise HTTPException(
+                status_code=403,
+                detail="Some fields can be updated only after admin approval"
+            )
+    else:
+        # Allowed only after approval
+        freelancer.email = payload.email or freelancer.email
+        freelancer.mobile = payload.mobile or freelancer.mobile
+        freelancer.skill_id = payload.skill_id or freelancer.skill_id
+        freelancer.state_id = payload.state_id or freelancer.state_id
+        freelancer.district_id = payload.district_id or freelancer.district_id
+    
     db.commit()
     db.refresh(freelancer)
 
-    return {"message": "Freelancer updated successfully", "freelancer_id": user.id}
+    return {"message": "Freelancer updated successfully", "freelancer_id": freelancer.id,"status_id": freelancer.status_id}
 
 
 
 def freelancer_delete_service(db: Session, freelancer_id: int):
 
-    user = db.query(UserRegistration).filter(
+    freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
-        UserRegistration.role_id == FREELANCER_ROLE_ID
+        UserRegistration.role_id == FREELANCER_ROLE_ID,
+        UserRegistration.is_active == True
     ).first()
 
-    if not user:
+    if not freelancer:
         raise HTTPException(status_code=404, detail="Freelancer not found")
+    if not freelancer.is_active:
+        raise HTTPException(status_code=403, detail="Freelancer account is already deactivated")
 
-    db.delete(user)
+    freelancer.is_active = False
     db.commit()
 
-    return {"message": "Freelancer deleted successfully"}
+    return {"message": "Freelancer account deactivated successfully"}
 
 def freelancer_status_service(db: Session, freelancer_id: int):
 
-    user = db.query(UserRegistration).filter(
+    freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID
     ).first()
 
-    if not user:
+    if not freelancer:
         raise HTTPException(404, "Freelancer not found")
 
     status_map = {
@@ -249,8 +272,8 @@ def freelancer_status_service(db: Session, freelancer_id: int):
     }
 
     return {
-        "freelancer_id": user.id,
-        "status": status_map.get(user.status_id),
-        "message": message_map.get(user.status_id)
+        "freelancer_id": freelancer.id,
+        "status": status_map.get(freelancer.status_id),
+        "message": message_map.get(freelancer.status_id)
     }
 

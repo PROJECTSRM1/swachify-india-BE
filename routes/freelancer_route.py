@@ -9,7 +9,7 @@ from utils.sms_agent import send_welcome_sms
 from utils.jwt_utils import create_access_token
 from schemas.user_schema import RefreshRequest, VerifyTokenResponse
 from utils.jwt_utils import verify_token
-from schemas.freelancer_schema import FreelancerLogout, FreelancerRegister, FreelancerLogin
+from schemas.freelancer_schema import FreelancerLogout, FreelancerRegister, FreelancerLogin,FreelancerUpdate
 from services.freelancer_service import (
    
     freelancer_register_service,
@@ -19,6 +19,7 @@ from services.freelancer_service import (
     freelancer_status_service,
     get_freelancer_by_id
 )
+from dependencies.auth_freelancer import get_current_freelancer
 
 
 router = APIRouter(prefix="/api/freelancer", tags=["Freelancer"])
@@ -29,15 +30,8 @@ async def register_freelancer(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-
-    user = freelancer_register_service(db, payload)
-
-    # background_tasks.add_task(
-    #     send_welcome_email,
-    #     payload.email,
-    #     payload.first_name
-    # )
-
+    
+    response = freelancer_register_service(db, payload)
 
     background_tasks.add_task(
         send_welcome_sms,
@@ -45,10 +39,7 @@ async def register_freelancer(
         payload.first_name
     )
 
-    return {
-        "message": "Freelancer registered successfully",
-        "user_id": user["user_id"] if isinstance(user, dict) else user
-    }
+    return response
 
 @router.get("/status/{freelancer_id}")
 def get_freelancer_status(
@@ -61,41 +52,33 @@ def get_freelancer_status(
 def login_freelancer(payload: FreelancerLogin, response: Response, db: Session = Depends(get_db)):
     return freelancer_login_service(db, payload, response)
 
-@router.get("/{freelancer_id}")
-def get_freelancer_details(
-    freelancer_id: int,
-    db: Session = Depends(get_db)
+@router.get("/me")
+def get_freelancer_profile(
+    current_freelancer=Depends(get_current_freelancer),
+    db=Depends(get_db)
 ):
-    return get_freelancer_by_id(db, freelancer_id)
+   return get_freelancer_by_id(
+        db=db,
+        freelancer_id=current_freelancer.id
+    )
 
 @router.put("/update/{freelancer_id}")
 def update_freelancer(
-    freelancer_id: int,
-    payload: FreelancerRegister,
-    db: Session = Depends(get_db)
+    payload: FreelancerUpdate,
+    db: Session = Depends(get_db),
+    current_freelancer=Depends(get_current_freelancer)
 ):
-    return freelancer_update_service(db, freelancer_id, payload)
+  return freelancer_update_service(
+        db=db,
+        freelancer_id=current_freelancer.id,
+        payload=payload
+  )
 
-
-@router.delete("/delete/{freelancer_id}")
-def delete_freelancer(freelancer_id: int, db: Session = Depends(get_db)):
-    return freelancer_delete_service(db, freelancer_id)
-
-
-
-# @router.get("/{freelancer_id}/paid-services")
-# def get_paid_customers_for_freelancer(
-#     freelancer_id: int,
-#     db: Session = Depends(get_db)
-# ):
-#     return freelancer_paid_customers_service(db, freelancer_id)
-
-
-# @router.get("/services")
-# def get_services_by_payment_status(
-#     payment_done: bool = Query(..., description="true = paid, false = unpaid"),
-#     db: Session = Depends(get_db)
-# ):
-#     return fetch_customers_by_payment_status(db, payment_done)
+@router.delete("/deactivate/{freelancer_id}")
+def deactivate_freelancer(
+    db: Session = Depends(get_db),
+    current_freelancer=Depends(get_current_freelancer)
+):
+    return freelancer_delete_service(db, current_freelancer.id)
 
 

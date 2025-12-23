@@ -10,8 +10,10 @@ from sqlalchemy import or_
 from datetime import datetime
 
 ADMIN_ROLE_ID = 1
+
 FREELANCER_ROLE_ID = 4
 
+# Status constants (update these values as per your application's status_id mapping)
 STATUS_APPROVED = 1
 STATUS_PENDING = 2
 STATUS_REJECTED = 3
@@ -31,7 +33,7 @@ def register_admin_service(request: RegisterAdmin, db: Session):
         password=hash_password(request.password),
         gender_id=request.gender_id,
         address=request.address,
-        role_id=1,
+        role_id=ADMIN_ROLE_ID,
         is_active=True,
         unique_id = str(uuid.uuid4())
     )
@@ -98,10 +100,10 @@ def admin_login_service(credentials: AdminLogin, db: Session,http_request:Reques
 
 
 
-def admin_update_service(db: Session, admin_id: int, payload: dict):
+def admin_update_service(db: Session, admin_id: int, payload):
     admin = db.query(UserRegistration).filter(
         UserRegistration.id == admin_id,
-        UserRegistration.role_id == 1 
+        UserRegistration.role_id == ADMIN_ROLE_ID
     ).first()
 
     if not admin:
@@ -123,13 +125,14 @@ def admin_update_service(db: Session, admin_id: int, payload: dict):
         if existing_mobile:
             raise HTTPException(status_code=400, detail="Mobile number already exists")
 
-    for key, value in payload.items():
-        setattr(admin, key, value)
+    if payload.password:
+        admin.password = hash_password(payload.password)
 
     admin.modified_date = datetime.utcnow()
 
     db.commit()
     db.refresh(admin)
+
     return {
         "message": "Admin details updated successfully",
         "data": admin
@@ -214,3 +217,47 @@ def reject_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
         "freelancer_id": user.id,
         "status": "Rejected"
     }
+
+def admin_activate_freelancer_service(db: Session, freelancer_id: int,admin_id: int):
+    freelancer = db.query(UserRegistration).filter(
+        UserRegistration.id == freelancer_id,
+        UserRegistration.role_id == FREELANCER_ROLE_ID
+    ).first()
+
+    if not freelancer:
+        raise HTTPException(status_code=404, detail="Freelancer not found")
+
+    freelancer.is_active = True
+    freelancer.status_id = STATUS_APPROVED
+    freelancer.modified_by = admin_id
+
+    db.commit()
+    db.refresh(freelancer)
+
+    return {
+        "message": "Freelancer account re-activated successfully",
+        "freelancer_id": freelancer.id,
+        "is_active": freelancer.is_active,
+        "status_id": freelancer.status_id
+    }
+
+def get_inactive_freelancers_service(db: Session):
+    freelancers= db.query(UserRegistration).filter(
+        UserRegistration.role_id == FREELANCER_ROLE_ID,  # Freelancer role
+        UserRegistration.is_active == False
+    ).all()
+      
+    return [
+        {
+           "freelancer_id": f.id,
+            "first_name": f.first_name,
+            "last_name": f.last_name,
+            "email": f.email,
+            "mobile": f.mobile,
+            "status_id": f.status_id,
+            "is_active": f.is_active,
+            "created_date": f.created_date,
+            "modified_date": f.modified_date
+        }
+        for f in freelancers
+    ]

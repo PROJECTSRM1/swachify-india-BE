@@ -18,7 +18,8 @@ class FreelancerRegister(BaseModel):
     skill_id: Optional[int] = None
     government_id_type: Optional[str] = None
     government_id_number: Optional[str] = None
-
+    experience_summary: Optional[str] = None
+    experience_doc: Optional[str] = None
     address: Optional[str] = None
 
    
@@ -113,3 +114,15 @@ class FreelancerLogin(BaseModel):
     
 class FreelancerLogout(BaseModel):
     user_id: int
+
+class FreelancerUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
+    mobile: str | None = None
+    address: str | None = None
+    password: str | None = None
+    skill_id: int | None = None
+    state_id: int | None = None
+    district_id: int | None = None
+   
