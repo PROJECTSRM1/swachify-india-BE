@@ -93,7 +93,7 @@ class HomeServiceUpdate(BaseModel):
     payment_done: Optional[bool] = None
 
 
-# 🔹 RESPONSE (backend → frontend)
 class HomeServiceResponse(HomeServiceBase):
     id: int
     payment_done: bool
+    created_by: int
