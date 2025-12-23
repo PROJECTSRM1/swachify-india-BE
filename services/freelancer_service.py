@@ -144,40 +144,68 @@ def freelancer_login_service(db: Session, payload, response):
         "expires_in": int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
     }
 
-def freelancer_update_service(db: Session, freelancer_id: int, payload):
-
-    user = db.query(UserRegistration).filter(
+def get_freelancer_by_id(db: Session, freelancer_id: int):
+    freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
-        UserRegistration.role_id == FREELANCER_ROLE_ID
+        UserRegistration.role_id == FREELANCER_ROLE_ID,
+        UserRegistration.status_id == STATUS_APPROVED,
+        UserRegistration.is_active == True
     ).first()
 
-    if not user:
+    if not freelancer:
         raise HTTPException(status_code=404, detail="Freelancer not found")
     
-    if user.status_id != STATUS_APPROVED:
+    return {
+        "message": "Freelancer fetched successfully",
+        "freelancer_id": freelancer.id,
+        "first_name": freelancer.first_name,
+        "last_name": freelancer.last_name,
+        "email": freelancer.email,
+        "mobile": freelancer.mobile,
+        "gender_id": freelancer.gender_id,
+        "state_id": freelancer.state_id,
+        "district_id": freelancer.district_id,
+        "skill_id": freelancer.skill_id,
+        "address": freelancer.address,
+        "status_id": freelancer.status_id,
+        "is_active": freelancer.is_active,
+        "created_date": freelancer.created_date
+    }
+
+def freelancer_update_service(db: Session, freelancer_id: int, payload):
+
+    freelancer= db.query(UserRegistration).filter(
+        UserRegistration.id == freelancer_id,
+        UserRegistration.role_id == FREELANCER_ROLE_ID,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not freelancer:
+        raise HTTPException(status_code=404, detail="Freelancer not found")
+
+    if freelancer.status_id != STATUS_APPROVED:
         raise HTTPException(
             status_code=403,
             detail="Profile update allowed only after admin approval"
         )
 
 
-    user.first_name = payload.first_name or user.first_name
-    user.last_name = payload.last_name or user.last_name
-    user.email = payload.email or user.email
-    user.mobile = payload.mobile or user.mobile
-    user.address = payload.address or user.address
-
+    freelancer.first_name = payload.first_name or freelancer.first_name
+    freelancer.last_name = payload.last_name or freelancer.last_name
+    freelancer.email = payload.email or freelancer.email
+    freelancer.mobile = payload.mobile or freelancer.mobile
+    freelancer.address = payload.address or freelancer.address
     if payload.password:
-        user.password = hash_password(payload.password)
+        freelancer.password = hash_password(payload.password)
 
-    if user.status_id != STATUS_APPROVED:
-     raise HTTPException(
-        status_code=403,
-        detail="Profile update allowed only after admin approval"
-    )
+    if freelancer.status_id != STATUS_APPROVED:
+        raise HTTPException(
+            status_code=403,
+            detail="Profile update allowed only after admin approval"
+        )
 
     db.commit()
-    db.refresh(user)
+    db.refresh(freelancer)
 
     return {"message": "Freelancer updated successfully", "freelancer_id": user.id}
 
@@ -226,65 +254,3 @@ def freelancer_status_service(db: Session, freelancer_id: int):
         "message": message_map.get(user.status_id)
     }
 
-# from sqlalchemy import text
-# from sqlalchemy.orm import Session
-
-# def fetch_customers_by_payment_status(db: Session, payment_done: bool):
-#     """
-#     Fetch customer data from home_service ONLY
-#     (no user_registration join)
-#     """
-
-#     query = text("""
-#         SELECT
-#             id AS service_id,
-#             service_price,
-#             full_name,
-#             email,
-#             mobile,
-#             address,
-#             COALESCE(payment_done, FALSE) AS payment_done
-#         FROM home_service
-#         WHERE COALESCE(payment_done, FALSE) = :payment_done
-#     """)
-
-#     rows = db.execute(
-#         query,
-#         {"payment_done": payment_done}
-#     ).fetchall()
-
-#     return {
-#         "message": f"Customers fetched where payment_done = {payment_done}",
-#         "count": len(rows),
-#         "data": [dict(r._mapping) for r in rows]
-#     }
-
-
-from sqlalchemy import text
-from sqlalchemy.orm import Session
-
-def fetch_customers_by_payment_status(db: Session):
-    """
-    Fetch ONLY customers where payment_done = TRUE
-    """
-
-    query = text("""
-        SELECT
-            id AS service_id,
-            service_price,
-            full_name,
-            email,
-            mobile,
-            address,
-            COALESCE(payment_done, FALSE) AS payment_done
-        FROM home_service
-        WHERE COALESCE(payment_done, FALSE) = TRUE
-    """)
-
-    rows = db.execute(query).fetchall()
-
-    return {
-        "message": "Paid customers fetched successfully",
-        "count": len(rows),
-        "data": [dict(r._mapping) for r in rows]
-    }
