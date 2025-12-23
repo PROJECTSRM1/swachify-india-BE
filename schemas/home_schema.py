@@ -55,7 +55,7 @@ class HomeServiceBase(BaseModel):
     special_instructions: Optional[str] = None
 
     payment_type_id: int
-    service_price: float
+    service_price: Optional[float] = None
 
     model_config = {
         "from_attributes": True
@@ -94,9 +94,14 @@ class HomeServiceUpdate(BaseModel):
     payment_done: Optional[bool] = None
 
 
+# class HomeServiceResponse(HomeServiceBase):
+#     id: int
+#     payment_done: bool
+#     created_by: int
+
+
 class HomeServiceResponse(HomeServiceBase):
     id: int
-    payment_done: bool
-    created_by: int
-
+    payment_done: Optional[bool] = None
+    created_by: Optional[int] = None
 
