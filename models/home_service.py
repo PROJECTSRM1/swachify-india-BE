@@ -31,3 +31,7 @@ class HomeService(Base):
     payment_done = Column(Boolean, default=False)
 
     created_by = Column(Integer, nullable=False)
+
+    assigned_to = Column(Integer, nullable=True)
+    status_id = Column(Integer,ForeignKey("master_status.id"),nullable=True)
+
