@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
-from datetime import date
 import re
+from datetime import datetime
 
 VALID_GOV_ID_TYPES=["aadhar","pan","voter","driving_license"]
 
@@ -21,7 +21,7 @@ class FreelancerRegister(BaseModel):
     experience_summary: Optional[str] = None
     experience_doc: Optional[str] = None
     address: Optional[str] = None
-
+   
    
     @field_validator("email")
     def check_gmail(cls, value):
@@ -87,7 +87,34 @@ class FreelancerRegister(BaseModel):
 
         return value
     
+class FreelancerResponse(BaseModel):
+    id: int
+    unique_id: str
 
+    first_name: str
+    last_name: Optional[str] = None
+
+    email: EmailStr
+    mobile: str
+
+    gender_id: int
+    state_id: Optional[int] = None
+    district_id: Optional[int] = None
+    skill_id: Optional[int] = None
+
+    experience_summary: Optional[str] = None
+    experience_doc_url: Optional[str] = None
+
+    address: Optional[str] = None
+
+    status_id: int
+    is_active: bool
+
+    created_date: datetime
+    modified_date: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
 
 
 class FreelancerLogin(BaseModel):
@@ -112,9 +139,6 @@ class FreelancerLogin(BaseModel):
             raise ValueError("Password cannot exceed bcrypt limit (72 characters).")
         return value
     
-class FreelancerLogout(BaseModel):
-    user_id: int
-
 class FreelancerUpdate(BaseModel):
     first_name: str | None = None
     last_name: str | None = None

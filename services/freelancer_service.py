@@ -67,7 +67,7 @@ def freelancer_register_service(db: Session, payload):
         experience_summary=payload.experience_summary,
         experience_doc=payload.experience_doc,
         address = payload.address,
-        unique_id = str(uuid.uuid4())
+        unique_id = str(uuid.uuid4()),
     )
 
     db.add(freelancer)
@@ -105,7 +105,7 @@ def freelancer_login_service(db: Session, payload, response):
     if not freelancer.is_active:
         raise HTTPException(status_code=403, detail="Your account is deactivated,wait for admin actions")
     
-    # ---- STATUS ENFORCEMENT ----
+    
     if freelancer.status_id == STATUS_PENDING:
         raise HTTPException(
             status_code=403,
@@ -153,7 +153,6 @@ def get_freelancer_by_id(db: Session, freelancer_id: int):
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID,
-        # UserRegistration.status_id == STATUS_APPROVED,
         UserRegistration.is_active == True
     ).first()
 
@@ -183,7 +182,6 @@ def freelancer_update_service(db: Session, freelancer_id: int, payload):
     freelancer= db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID,
-        # UserRegistration.status_id == STATUS_APPROVED,
         UserRegistration.is_active == True
     ).first()
 
@@ -192,7 +190,6 @@ def freelancer_update_service(db: Session, freelancer_id: int, payload):
     if not freelancer.is_active:
         raise HTTPException(status_code=403, detail="Freelancer account is deactivated,wait for admin actions")
     
-    #safefields allow update anytime
     if payload.first_name:
         freelancer.first_name = payload.first_name
     if payload.last_name:
@@ -217,7 +214,6 @@ def freelancer_update_service(db: Session, freelancer_id: int, payload):
                 detail="Some fields can be updated only after admin approval"
             )
     else:
-        # Allowed only after approval
         freelancer.email = payload.email or freelancer.email
         freelancer.mobile = payload.mobile or freelancer.mobile
         freelancer.skill_id = payload.skill_id or freelancer.skill_id
@@ -231,7 +227,7 @@ def freelancer_update_service(db: Session, freelancer_id: int, payload):
 
 
 
-def freelancer_delete_service(db: Session, freelancer_id: int):
+def freelancer_deactivate_service(db: Session, freelancer_id: int):
 
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,

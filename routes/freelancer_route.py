@@ -1,21 +1,17 @@
-from datetime import datetime
-import time
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, HTTPException,status
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, BackgroundTasks, Depends, Response,status
 from sqlalchemy.orm import Session
 from core.database import get_db
-# from utils.mail_agent import send_welcome_email
 from utils.sms_agent import send_welcome_sms
 from utils.jwt_utils import create_access_token
 from schemas.user_schema import RefreshRequest, VerifyTokenResponse
 from utils.jwt_utils import verify_token
-from schemas.freelancer_schema import FreelancerLogout, FreelancerRegister, FreelancerLogin,FreelancerUpdate
+from schemas.freelancer_schema import FreelancerRegister, FreelancerLogin,FreelancerUpdate,FreelancerResponse
 from services.freelancer_service import (
    
     freelancer_register_service,
     freelancer_login_service,
     freelancer_update_service,
-    freelancer_delete_service,
+    freelancer_deactivate_service,
     freelancer_status_service,
     get_freelancer_by_id
 )
@@ -79,6 +75,6 @@ def deactivate_freelancer(
     db: Session = Depends(get_db),
     current_freelancer=Depends(get_current_freelancer)
 ):
-    return freelancer_delete_service(db, current_freelancer.id)
+    return freelancer_deactivate_service(db, current_freelancer.id)
 
 
