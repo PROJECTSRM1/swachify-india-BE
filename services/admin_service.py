@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status,Request
 from models.user_registration import UserRegistration
+from models.home_service import HomeService
+
 from schemas.admin_schema import RegisterAdmin,AdminLogin,AdminLogout,UserBase,AdminRegisterResponse
 from utils.hash_utils import hash_password,verify_password
 from utils.jwt_utils import create_access_token,create_refresh_token,is_admin_already_logged_in
@@ -213,4 +215,44 @@ def reject_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
         "message": "Freelancer rejected",
         "freelancer_id": user.id,
         "status": "Rejected"
+    }
+    
+def assign_freelancer_to_home_service_service(
+    db: Session,
+    home_service_id: int,
+    freelancer_id: int
+):
+   
+    home_service = db.query(HomeService).filter(
+        HomeService.id == home_service_id
+    ).first()
+
+    if not home_service:
+        raise HTTPException(status_code=404, detail="Home service not found")
+
+   
+    freelancer = db.query(UserRegistration).filter(
+        UserRegistration.id == freelancer_id,
+        UserRegistration.role_id == FREELANCER_ROLE_ID,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not freelancer:
+        raise HTTPException(status_code=404, detail="Freelancer not found")
+
+    
+    home_service.status_id = STATUS_PENDING
+    home_service.assigned_to = freelancer_id
+
+   
+    freelancer.status_id = STATUS_PENDING
+
+    db.commit()
+    db.refresh(home_service)
+    db.refresh(freelancer)
+
+    return {
+        "message": "Freelancer assigned to home service successfully",
+        "home_service_id": home_service.id,
+        "freelancer_id": freelancer.id
     }

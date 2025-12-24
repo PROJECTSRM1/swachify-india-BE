@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends,Request,Response,Header,HTTPException
 from sqlalchemy.orm import Session
 from core.database import get_db
 from schemas.admin_schema import RegisterAdmin, UserBase,AdminLogin,AdminLogout,AdminRegisterResponse,AdminUpdateResponse
-from services.admin_service import register_admin_service,admin_login_service,admin_update_service,admin_delete_service,admin_hard_delete_service,get_pending_freelancers_service,approve_freelancer_service,reject_freelancer_service
+from services.admin_service import register_admin_service,admin_login_service,admin_update_service,admin_delete_service,admin_hard_delete_service,get_pending_freelancers_service,approve_freelancer_service,reject_freelancer_service,assign_freelancer_to_home_service_service 
 from utils.jwt_utils import verify_admin_token,verify_token
 from schemas.freelancer_details_schema import FreelancerDetailResponse,FreelancerSkill
 from models.user_registration import UserRegistration
@@ -130,3 +130,15 @@ def get_freelancer_list(db: Session = Depends(get_db)):
     ).all()
 
     return freelancers
+
+@router.post("/assign-freelancer")
+def assign_freelancer_to_home_service(
+    home_service_id: int,
+    freelancer_id: int,
+    db: Session = Depends(get_db)
+):
+    return assign_freelancer_to_home_service_service(
+        db=db,
+        home_service_id=home_service_id,
+        freelancer_id=freelancer_id
+    )
