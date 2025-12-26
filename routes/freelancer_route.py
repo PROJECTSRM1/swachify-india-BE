@@ -1,15 +1,15 @@
 from datetime import datetime
 import time
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, HTTPException,status
+from fastapi import APIRouter, BackgroundTasks, Depends, Response, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from core.database import get_db
 # from utils.mail_agent import send_welcome_email
 from utils.sms_agent import send_welcome_sms
-from utils.jwt_utils import create_access_token
+# from utils.jwt_utils import create_access_token
 from schemas.user_schema import RefreshRequest, VerifyTokenResponse
 from utils.jwt_utils import verify_token
-from schemas.freelancer_schema import FreelancerLogout, FreelancerRegister, FreelancerLogin
+from schemas.freelancer_schema import FreelancerRegister, FreelancerLogin
 from services.freelancer_service import (
    
     freelancer_register_service,
@@ -19,7 +19,6 @@ from services.freelancer_service import (
     freelancer_status_service,
     get_freelancer_by_id
 )
-
 
 router = APIRouter(prefix="/api/freelancer", tags=["Freelancer"])
 
@@ -45,10 +44,7 @@ async def register_freelancer(
         payload.first_name
     )
 
-    return {
-        "message": "Freelancer registered successfully",
-        "user_id": user["user_id"] if isinstance(user, dict) else user
-    }
+    return user
 
 @router.get("/status/{freelancer_id}")
 def get_freelancer_status(
@@ -81,21 +77,5 @@ def update_freelancer(
 def delete_freelancer(freelancer_id: int, db: Session = Depends(get_db)):
     return freelancer_delete_service(db, freelancer_id)
 
-
-
-# @router.get("/{freelancer_id}/paid-services")
-# def get_paid_customers_for_freelancer(
-#     freelancer_id: int,
-#     db: Session = Depends(get_db)
-# ):
-#     return freelancer_paid_customers_service(db, freelancer_id)
-
-
-# @router.get("/services")
-# def get_services_by_payment_status(
-#     payment_done: bool = Query(..., description="true = paid, false = unpaid"),
-#     db: Session = Depends(get_db)
-# ):
-#     return fetch_customers_by_payment_status(db, payment_done)
 
 

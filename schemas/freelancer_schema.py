@@ -114,3 +114,4 @@ class FreelancerLogin(BaseModel):
     
 class FreelancerLogout(BaseModel):
     user_id: int
+
