@@ -12,7 +12,8 @@ from models.master.master_gender import MasterGender
 from models.master.master_skill import MasterSkill
 from models.master.master_state import MasterState
 from models.master.master_district import MasterDistrict
-
+from schemas.home_schema import HomeServiceFilter
+from schemas.home_schema import AssignFreelancerRequest
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Authentication"])
 
@@ -135,24 +136,22 @@ def get_freelancer_list(db: Session = Depends(get_db)):
 
 @router.post("/assign-freelancer")
 def assign_freelancer_to_home_service(
-    home_service_id: int,
-    freelancer_id: int,
+    request: AssignFreelancerRequest,
     db: Session = Depends(get_db)
 ):
     return assign_freelancer_to_home_service_service(
         db=db,
-        home_service_id=home_service_id,
-        freelancer_id=freelancer_id
+        home_service_id=request.home_service_id,
+        freelancer_id=request.freelancer_id
     )
 
-@router.get("/by-user")
+@router.post("/by-user")
 def get_home_services_by_user(
-    created_by: int,
-    payment_done: bool | None = None,
+    filters: HomeServiceFilter,
     db: Session = Depends(get_db)
 ):
     return get_home_services_by_creator_and_payment(
         db=db,
-        created_by=created_by,
-        payment_done=payment_done
+        created_by=filters.created_by,
+        payment_done=filters.payment_done
     )
