@@ -1,5 +1,8 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from pydantic import BaseModel
+from typing import Optional
+
 
 from models.home_service import HomeService
 from schemas.home_schema import (
@@ -81,3 +84,17 @@ def delete_home_service(db: Session, home_service_id: int):
     db.commit()
 
     return {"message": "Home service deleted successfully"}
+
+def get_home_services_by_creator_and_payment(
+    db: Session,
+    created_by: int,
+    payment_done: Optional[bool] = None
+):
+    query = db.query(HomeService).filter(
+        HomeService.created_by == created_by
+    )
+
+    if payment_done is not None:
+        query = query.filter(HomeService.payment_done == payment_done)
+
+    return query.all()
