@@ -163,3 +163,11 @@ class HomeServiceResponse(HomeServiceBase):
     created_by: int
     assigned_to: Optional[int] = None
     status_id: int
+
+class HomeServiceFilter(BaseModel):
+    created_by: int
+    payment_done: Optional[bool] = None
+
+class AssignFreelancerRequest(BaseModel):
+    home_service_id: int
+    freelancer_id: int
