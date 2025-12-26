@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from schemas.admin_schema import RegisterAdmin, UserBase,AdminLogin,AdminLogout,AdminRegisterResponse,AdminUpdateResponse
 from services.admin_service import register_admin_service,admin_login_service,admin_update_service,admin_delete_service,admin_hard_delete_service,get_pending_freelancers_service,approve_freelancer_service,reject_freelancer_service,assign_freelancer_to_home_service_service 
+from services.home_service import get_home_services_by_creator_and_payment
 from utils.jwt_utils import verify_admin_token,verify_token
 from schemas.freelancer_details_schema import FreelancerDetailResponse,FreelancerSkill
 from models.user_registration import UserRegistration
@@ -11,6 +12,7 @@ from models.master.master_gender import MasterGender
 from models.master.master_skill import MasterSkill
 from models.master.master_state import MasterState
 from models.master.master_district import MasterDistrict
+
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Authentication"])
 
@@ -141,4 +143,16 @@ def assign_freelancer_to_home_service(
         db=db,
         home_service_id=home_service_id,
         freelancer_id=freelancer_id
+    )
+
+@router.get("/by-user")
+def get_home_services_by_user(
+    created_by: int,
+    payment_done: bool | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_home_services_by_creator_and_payment(
+        db=db,
+        created_by=created_by,
+        payment_done=payment_done
     )
