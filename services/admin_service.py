@@ -245,7 +245,7 @@ def assign_freelancer_to_home_service_service(
     home_service.assigned_to = freelancer_id
 
    
-    freelancer.status_id = STATUS_PENDING
+    freelancer.status_id = 4
 
     db.commit()
     db.refresh(home_service)
