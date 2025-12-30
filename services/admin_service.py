@@ -1,14 +1,12 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status,Request
+from sqlalchemy import or_
 from models.user_registration import UserRegistration
 from models.home_service import HomeService
-
-from schemas.admin_schema import RegisterAdmin,AdminLogin,AdminLogout,UserBase,AdminRegisterResponse
+from schemas.admin_schema import RegisterAdmin,AdminLogin,UserBase
 from utils.hash_utils import hash_password,verify_password
 from utils.jwt_utils import create_access_token,create_refresh_token,is_admin_already_logged_in
 import uuid
-import os
-from sqlalchemy import or_
 from datetime import datetime
 
 ADMIN_ROLE_ID = 1
@@ -33,7 +31,9 @@ def register_admin_service(request: RegisterAdmin, db: Session):
         password=hash_password(request.password),
         gender_id=request.gender_id,
         address=request.address,
-        role_id=1,
+        role_id=ADMIN_ROLE_ID,
+        status_id=STATUS_APPROVED,
+        created_date=datetime.utcnow(),
         is_active=True,
         unique_id = str(uuid.uuid4())
     )
@@ -44,7 +44,7 @@ def register_admin_service(request: RegisterAdmin, db: Session):
 
     return {
         "message": "Admin registered successfully",
-        "data": admin
+        "data": admin.id
     }
 
 def admin_login_service(credentials: AdminLogin, db: Session,http_request:Request):
@@ -57,9 +57,9 @@ def admin_login_service(credentials: AdminLogin, db: Session,http_request:Reques
 
     identifier = credentials.username_or_email.strip()
 
-    query = db.query(UserRegistration).filter(UserRegistration.role_id == 1)
-
-    admin = query.filter(
+    admin = db.query(UserRegistration).filter(
+        UserRegistration.role_id == ADMIN_ROLE_ID,
+        UserRegistration.is_active == True,
         or_(
             UserRegistration.email == identifier,
             UserRegistration.mobile == identifier,
@@ -67,34 +67,24 @@ def admin_login_service(credentials: AdminLogin, db: Session,http_request:Reques
         )
     ).first()
 
-    if not admin:
+    if not admin or not verify_password(credentials.password, admin.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
+            detail="Invalid credentials"
         )
-
-    if not verify_password(credentials.password, admin.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-        )
-
+    
     payload = {
     "sub": str(admin.id),
     "email": admin.email,
     "role": "admin"
     }
 
-    access_token = create_access_token(payload)
-    refresh_token = create_refresh_token(payload)
-
-    user_data = UserBase.model_validate(admin)
-
+    
     return {
         "message": "Login successful",
-        "user": user_data,
-        "access_token": access_token,
-        "refresh_token": refresh_token,
+        "user": UserBase.model_validate(admin),
+        "access_token": create_access_token(payload),
+        "refresh_token": create_refresh_token(payload),
         "token_type": "bearer",
     }
 
@@ -141,7 +131,8 @@ def admin_update_service(db: Session, admin_id: int, payload: dict):
 def admin_delete_service(db: Session, admin_id: int):
     admin = db.query(UserRegistration).filter(
         UserRegistration.id == admin_id,
-        UserRegistration.role_id == 1 
+        UserRegistration.role_id == ADMIN_ROLE_ID,
+        UserRegistration.is_active == True
     ).first()
 
     if not admin:
@@ -175,46 +166,61 @@ def get_pending_freelancers_service(db: Session):
 
 
 def approve_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
-    user = db.query(UserRegistration).filter(
+    freelancer =( 
+    db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
-        UserRegistration.role_id == FREELANCER_ROLE_ID
-    ).first()
+        UserRegistration.role_id == FREELANCER_ROLE_ID,
+        UserRegistration.status_id == STATUS_PENDING,
+        UserRegistration.is_active == True
+      )
+      .with_for_update()
+      .first()
+    )
 
-    if not user:
-        raise HTTPException(404, "Freelancer not found")
+    if not freelancer:
+        raise HTTPException(status_code=409, detail="Freelancer already processed or not found")
 
-    user.status_id = STATUS_APPROVED
-    user.modified_by = admin_id
+    freelancer.status_id = STATUS_APPROVED
+    freelancer.modified_by = admin_id
+    freelancer.modified_date = datetime.utcnow()
 
     db.commit()
-    db.refresh(user)
+    db.refresh(freelancer)
 
     return {
         "message": "Freelancer approved successfully",
-        "freelancer_id": user.id,
-        "status": "Approved"
+        "freelancer_id": freelancer.id,
+        "approved_by": admin_id
     }
 
 
 def reject_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
-    user = db.query(UserRegistration).filter(
+    freelancer = (
+    db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
-        UserRegistration.role_id == FREELANCER_ROLE_ID
-    ).first()
+        UserRegistration.role_id == FREELANCER_ROLE_ID,
+        UserRegistration.status_id == STATUS_PENDING,
+        UserRegistration.is_active == True
+       )
+       .with_for_update()
+       .first()
+    )
 
-    if not user:
-        raise HTTPException(404, "Freelancer not found")
+    if not freelancer:
+        raise HTTPException(status_code=409,detail="freelancer already processed or not found")
 
-    user.status_id = STATUS_REJECTED
-    user.modified_by = admin_id
+
+    freelancer.status_id = STATUS_REJECTED
+    freelancer.modified_by = admin_id
+    freelancer.modified_date = datetime.utcnow()
 
     db.commit()
-    db.refresh(user)
+    db.refresh(freelancer)
 
     return {
-        "message": "Freelancer rejected",
-        "freelancer_id": user.id,
-        "status": "Rejected"
+        "message": "Freelancer rejected successfully",
+        "freelancer_id": freelancer.id,
+        "rejected_by": admin_id
     }
     
 def assign_freelancer_to_home_service_service(
@@ -234,22 +240,22 @@ def assign_freelancer_to_home_service_service(
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID,
+        UserRegistration.status_id == STATUS_APPROVED,
         UserRegistration.is_active == True
     ).first()
 
     if not freelancer:
-        raise HTTPException(status_code=404, detail="Freelancer not found")
+        raise HTTPException(status_code=404, detail="Approved Freelancer not found")
 
     
     home_service.status_id = STATUS_PENDING
     home_service.assigned_to = freelancer_id
+    home_service.modified_date = datetime.utcnow()
 
    
-    freelancer.status_id = 4
 
     db.commit()
     db.refresh(home_service)
-    db.refresh(freelancer)
 
     return {
         "message": "Freelancer assigned to home service successfully",
