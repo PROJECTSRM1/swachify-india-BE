@@ -10,6 +10,7 @@ from schemas.home_schema import (
     HomeServiceUpdate
 )
 
+STATUS_PENDING = 2
 
 def get_home_services(db: Session):
     return db.query(HomeService).all()
@@ -33,12 +34,19 @@ def get_home_service(db: Session, home_service_id: int):
 
 def create_home_service(db: Session, data: HomeServiceCreate):
     obj = HomeService(
-        **data.model_dump()
+        **data.dict(),
+        status_id=STATUS_PENDING,
+        assigned_to=None
     )
     db.add(obj)
     db.commit()
     db.refresh(obj)
-    return obj
+    return {
+         "message": "Home service created successfully",
+         "service_id": obj.id,
+         "status_id": obj.status_id,
+         "status_name": "Pending"
+    }
 
 
 
