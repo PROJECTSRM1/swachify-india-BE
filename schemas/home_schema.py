@@ -122,9 +122,7 @@ class HomeServiceCreate(HomeServiceBase):
 
     # ✅ System fields (explicitly included as requested)
     created_by: int                  # user_id
-    assigned_to: Optional[int] = None  # freelancer_id
-    status_id: int                   # FK → master_status.id
-
+   
 
 # 🔹 UPDATE SCHEMA
 class HomeServiceUpdate(BaseModel):
@@ -171,3 +169,9 @@ class HomeServiceFilter(BaseModel):
 class AssignFreelancerRequest(BaseModel):
     home_service_id: int
     freelancer_id: int
+
+class HomeServiceCreateResponse(BaseModel):
+    message: str
+    service_id: int
+    status_id: int
+    status_name: str

@@ -11,7 +11,7 @@ from models.master_sub_service import MasterSubService
 from models.master_sub_group import MasterSubGroup
 from models.master_service_type import MasterServiceType
 
-from schemas.home_schema import (HomeServiceCreate,HomeServiceResponse,HomeServiceUpdate)
+from schemas.home_schema import (HomeServiceCreate,HomeServiceResponse,HomeServiceUpdate,HomeServiceCreateResponse)
 from schemas.master_data_schema import MasterDataResponse
 from services.home_service import (create_home_service,delete_home_service,get_home_service,get_home_services, mark_payment_success,update_home_service)
 from services.master_data_service import get_master_data
@@ -87,7 +87,7 @@ def read_home_service(id: int, db: Session = Depends(get_db)):
 # ):
 #     return mark_payment_success(db, home_service_id)
 
-@router.post("/home-service", response_model=HomeServiceResponse)
+@router.post("/home-service", response_model=HomeServiceCreateResponse)
 def create_new_home_service(
     data: HomeServiceCreate,
     db: Session = Depends(get_db)

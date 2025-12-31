@@ -32,6 +32,10 @@ class HomeService(Base):
 
     created_by = Column(Integer, nullable=False)
 
-    assigned_to = Column(Integer, nullable=True)
+    assigned_to = Column(
+        Integer,
+        ForeignKey("user_registration.id"),
+        nullable=True
+    )
+    
     status_id = Column(Integer,ForeignKey("master_status.id"),nullable=True)
-

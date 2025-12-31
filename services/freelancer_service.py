@@ -3,9 +3,10 @@ import uuid
 import json
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-
+from datetime import datetime
 from utils.jwt_utils import create_access_token,create_refresh_token
 from models.user_registration import UserRegistration
+from models.home_service import HomeService
 from utils.hash_utils import hash_password,verify_password
 from services.master_default_service import (
     fetch_default_skill,
@@ -17,10 +18,15 @@ from services.master_default_service import (
 
 FREELANCER_ROLE_ID = 4
 
+#freelancer status IDs
 STATUS_APPROVED = 1
 STATUS_PENDING = 2
 STATUS_REJECTED = 3
 
+#🔹 FREELANCER SERVICES🔹#
+STATUS_ASSIGNED = 4
+STATUS_NOT_ASSIGNED = 5
+STATUS_COMPLETED = 6
 
 
 def freelancer_register_service(db: Session, payload)-> dict:
@@ -123,7 +129,7 @@ def freelancer_login_service(db: Session, payload, response) -> dict:
 
 
     subject = {
-        "user_id": freelancer.id,
+        "user_id": str(freelancer.id),
         "email": freelancer.email,
         "role": "freelancer"
     }
@@ -272,3 +278,70 @@ def freelancer_status_service(db: Session, freelancer_id: int)-> dict:
         "message": message_map.get(freelancer.status_id)
     }
 
+def freelancer_complete_job_service(
+    db: Session,
+    freelancer_id: int,
+    service_id: int
+) -> dict:
+    """
+    Freelancer marks assigned home service as completed
+    """
+
+    service = (
+        db.query(HomeService)
+        .filter(HomeService.id == service_id)
+        .with_for_update()
+        .first()
+    )
+
+    # 1️⃣ Service does not exist
+    if not service:
+        raise HTTPException(
+            status_code=404,
+            detail="Service not found"
+        )
+
+    # 2️⃣ Service exists but not assigned
+    if not service.assigned_to:
+        raise HTTPException(
+            status_code=400,
+            detail="Service is not yet assigned to any freelancer"
+        )
+
+    # 3️⃣ Assigned to another freelancer
+    if service.assigned_to != freelancer_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Service is assigned to another freelancer"
+        )
+
+    # 4️⃣ Already completed
+    if service.status_id == STATUS_COMPLETED:
+        raise HTTPException(
+            status_code=409,
+            detail="Service is already marked as completed"
+        )
+
+    # 5️⃣ Not in assigned state
+    if service.status_id != STATUS_ASSIGNED:
+        raise HTTPException(
+            status_code=400,
+            detail="Service cannot be completed in its current state"
+        )
+
+    # ✅ Valid completion
+    service.status_id = STATUS_COMPLETED
+    service.modified_date = datetime.utcnow()
+
+    db.commit()
+    db.refresh(service)
+
+    return {
+        "message": "Service marked as completed successfully",
+        "service_id": service.id,
+        "previous_status": STATUS_ASSIGNED,
+        "current_status": STATUS_COMPLETED,
+        "status_name": "Completed",
+        "completed_by": freelancer_id,
+        "completed_at": service.modified_date
+    }
