@@ -233,12 +233,17 @@ def assign_freelancer_to_home_service_service(
     freelancer_id: int
 ):
    
-    home_service = db.query(HomeService).filter(
-        HomeService.id == home_service_id
-    ).first()
+    home_service = (
+    db.query(HomeService).filter(
+        HomeService.id == home_service_id,
+        HomeService.status_id.in_([STATUS_PENDING, STATUS_NOT_ASSIGNED])
+    )
+    .with_for_update()
+    .first()
+    )
 
     if not home_service:
-        raise HTTPException(status_code=404, detail="Home service not found")
+        raise HTTPException(status_code=409, detail="Home service already assigned or completed")
 
    
     freelancer = db.query(UserRegistration).filter(
@@ -252,8 +257,11 @@ def assign_freelancer_to_home_service_service(
         raise HTTPException(status_code=404, detail="Approved Freelancer not found")
 
     
-    home_service.status_id = STATUS_ASSIGNED
+    if home_service.assigned_to == freelancer_id:
+        raise HTTPException(status_code=409, detail="Freelancer is already assigned to this home service")
+
     home_service.assigned_to = freelancer_id
+    home_service.status_id = STATUS_ASSIGNED
     home_service.modified_date = datetime.utcnow()
 
    
@@ -264,5 +272,6 @@ def assign_freelancer_to_home_service_service(
     return {
         "message": "Freelancer assigned to home service successfully",
         "home_service_id": home_service.id,
-        "freelancer_id": freelancer.id
+        "freelancer_id": freelancer.id,
+        "status": "Assigned"
     }

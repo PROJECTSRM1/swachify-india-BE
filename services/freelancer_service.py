@@ -287,18 +287,49 @@ def freelancer_complete_job_service(
     Freelancer marks assigned home service as completed
     """
 
-    service = db.query(HomeService).filter(
-        HomeService.id == service_id,
-        HomeService.assigned_to == freelancer_id,
-        HomeService.status_id == STATUS_ASSIGNED
-    ).first()
+    service = (
+        db.query(HomeService)
+        .filter(HomeService.id == service_id)
+        .with_for_update()
+        .first()
+    )
 
+    # 1️⃣ Service does not exist
     if not service:
         raise HTTPException(
             status_code=404,
-            detail="Service not found or not assigned to this freelancer"
+            detail="Service not found"
         )
 
+    # 2️⃣ Service exists but not assigned
+    if not service.assigned_to:
+        raise HTTPException(
+            status_code=400,
+            detail="Service is not yet assigned to any freelancer"
+        )
+
+    # 3️⃣ Assigned to another freelancer
+    if service.assigned_to != freelancer_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Service is assigned to another freelancer"
+        )
+
+    # 4️⃣ Already completed
+    if service.status_id == STATUS_COMPLETED:
+        raise HTTPException(
+            status_code=409,
+            detail="Service is already marked as completed"
+        )
+
+    # 5️⃣ Not in assigned state
+    if service.status_id != STATUS_ASSIGNED:
+        raise HTTPException(
+            status_code=400,
+            detail="Service cannot be completed in its current state"
+        )
+
+    # ✅ Valid completion
     service.status_id = STATUS_COMPLETED
     service.modified_date = datetime.utcnow()
 
@@ -308,7 +339,9 @@ def freelancer_complete_job_service(
     return {
         "message": "Service marked as completed successfully",
         "service_id": service.id,
-        "status_id": STATUS_COMPLETED,
+        "previous_status": STATUS_ASSIGNED,
+        "current_status": STATUS_COMPLETED,
         "status_name": "Completed",
-        "freelancer_id": freelancer_id
+        "completed_by": freelancer_id,
+        "completed_at": service.modified_date
     }
