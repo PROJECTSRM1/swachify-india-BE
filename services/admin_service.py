@@ -232,20 +232,35 @@ def assign_freelancer_to_home_service_service(
     home_service_id: int,
     freelancer_id: int
 ):
-   
+    # 1️⃣ Fetch home service ONLY by ID
     home_service = (
-    db.query(HomeService).filter(
-        HomeService.id == home_service_id,
-        HomeService.status_id.in_([STATUS_PENDING, STATUS_NOT_ASSIGNED])
-    )
-    .with_for_update()
-    .first()
+        db.query(HomeService)
+        .filter(HomeService.id == home_service_id)
+        .with_for_update()
+        .first()
     )
 
     if not home_service:
-        raise HTTPException(status_code=409, detail="Home service already assigned or completed")
+        raise HTTPException(
+            status_code=404,
+            detail="Home service not found"
+        )
 
-   
+    # 2️⃣ If already completed → STOP
+    if home_service.status_id == STATUS_COMPLETED:
+        raise HTTPException(
+            status_code=409,
+            detail="Home service is already completed and cannot be assigned"
+        )
+
+    # 3️⃣ If already assigned → STOP
+    if home_service.assigned_to is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="Home service is already assigned to a freelancer"
+        )
+
+    # 4️⃣ Validate freelancer
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID,
@@ -254,17 +269,15 @@ def assign_freelancer_to_home_service_service(
     ).first()
 
     if not freelancer:
-        raise HTTPException(status_code=404, detail="Approved Freelancer not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Approved freelancer not found"
+        )
 
-    
-    if home_service.assigned_to == freelancer_id:
-        raise HTTPException(status_code=409, detail="Freelancer is already assigned to this home service")
-
+    # 5️⃣ Assign freelancer
     home_service.assigned_to = freelancer_id
     home_service.status_id = STATUS_ASSIGNED
     home_service.modified_date = datetime.utcnow()
-
-   
 
     db.commit()
     db.refresh(home_service)
@@ -273,5 +286,6 @@ def assign_freelancer_to_home_service_service(
         "message": "Freelancer assigned to home service successfully",
         "home_service_id": home_service.id,
         "freelancer_id": freelancer.id,
-        "status": "Assigned"
+        "status_id": STATUS_ASSIGNED,
+        "status_name": "Assigned"
     }
