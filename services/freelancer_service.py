@@ -3,9 +3,10 @@ import uuid
 import json
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-
+from datetime import datetime
 from utils.jwt_utils import create_access_token,create_refresh_token
 from models.user_registration import UserRegistration
+from models.home_service import HomeService
 from utils.hash_utils import hash_password,verify_password
 from services.master_default_service import (
     fetch_default_skill,
@@ -17,10 +18,15 @@ from services.master_default_service import (
 
 FREELANCER_ROLE_ID = 4
 
+#freelancer status IDs
 STATUS_APPROVED = 1
 STATUS_PENDING = 2
 STATUS_REJECTED = 3
 
+#🔹 FREELANCER SERVICES🔹#
+STATUS_ASSIGNED = 4
+STATUS_NOT_ASSIGNED = 5
+STATUS_COMPLETED = 6
 
 
 def freelancer_register_service(db: Session, payload)-> dict:
@@ -123,7 +129,7 @@ def freelancer_login_service(db: Session, payload, response) -> dict:
 
 
     subject = {
-        "user_id": freelancer.id,
+        "user_id": str(freelancer.id),
         "email": freelancer.email,
         "role": "freelancer"
     }
@@ -272,3 +278,37 @@ def freelancer_status_service(db: Session, freelancer_id: int)-> dict:
         "message": message_map.get(freelancer.status_id)
     }
 
+def freelancer_complete_job_service(
+    db: Session,
+    freelancer_id: int,
+    service_id: int
+) -> dict:
+    """
+    Freelancer marks assigned home service as completed
+    """
+
+    service = db.query(HomeService).filter(
+        HomeService.id == service_id,
+        HomeService.assigned_to == freelancer_id,
+        HomeService.status_id == STATUS_ASSIGNED
+    ).first()
+
+    if not service:
+        raise HTTPException(
+            status_code=404,
+            detail="Service not found or not assigned to this freelancer"
+        )
+
+    service.status_id = STATUS_COMPLETED
+    service.modified_date = datetime.utcnow()
+
+    db.commit()
+    db.refresh(service)
+
+    return {
+        "message": "Service marked as completed successfully",
+        "service_id": service.id,
+        "status_id": STATUS_COMPLETED,
+        "status_name": "Completed",
+        "freelancer_id": freelancer_id
+    }

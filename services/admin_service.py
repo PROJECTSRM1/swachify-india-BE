@@ -16,6 +16,10 @@ STATUS_APPROVED = 1
 STATUS_PENDING = 2
 STATUS_REJECTED = 3
 
+STATUS_ASSIGNED = 4
+STATUS_NOT_ASSIGNED = 5
+STATUS_COMPLETED = 6
+
 def register_admin_service(request: RegisterAdmin, db: Session):
     if db.query(UserRegistration).filter(UserRegistration.email == request.email).first():
         raise HTTPException(status_code=400, detail="Email already exists")
@@ -248,7 +252,7 @@ def assign_freelancer_to_home_service_service(
         raise HTTPException(status_code=404, detail="Approved Freelancer not found")
 
     
-    home_service.status_id = STATUS_PENDING
+    home_service.status_id = STATUS_ASSIGNED
     home_service.assigned_to = freelancer_id
     home_service.modified_date = datetime.utcnow()
 
