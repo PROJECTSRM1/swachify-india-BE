@@ -10,7 +10,7 @@ from schemas.home_schema import (
     HomeServiceUpdate
 )
 
-STATUS_PENDING = 2
+Status_id=1
 
 def get_home_services(db: Session):
     return db.query(HomeService).all()
@@ -35,7 +35,7 @@ def get_home_service(db: Session, home_service_id: int):
 def create_home_service(db: Session, data: HomeServiceCreate):
     obj = HomeService(
         **data.dict(),
-        status_id=STATUS_PENDING,
+        status_id=Status_id,
         assigned_to=None
     )
     db.add(obj)
