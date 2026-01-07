@@ -2,8 +2,10 @@ import os
 import uuid
 import json
 from fastapi import HTTPException
+from pydantic import validate_call
 from sqlalchemy.orm import Session
 from datetime import datetime
+from services.role_service import validate_role
 from utils.jwt_utils import create_access_token,create_refresh_token
 from models.user_registration import UserRegistration
 from models.home_service import HomeService
@@ -29,67 +31,69 @@ STATUS_NOT_ASSIGNED = 5
 STATUS_COMPLETED = 6
 
 
-def freelancer_register_service(db: Session, payload)-> dict:
-    """
-    Register a freelancer with full auto-default master lookup
-    and JSON-packed government ID storage.
-    """
+def freelancer_register_service(db: Session, payload) -> dict:
+
     if db.query(UserRegistration).filter(UserRegistration.email == payload.email).first():
-        raise HTTPException(status_code=400, detail="Email already exists")
+        raise HTTPException(400, "Email already exists")
 
     if db.query(UserRegistration).filter(UserRegistration.mobile == payload.mobile).first():
-        raise HTTPException(status_code=400, detail="Mobile already exists")
+        raise HTTPException(400, "Mobile already exists")
 
-    state = fetch_default_state(db) if not payload.state_id else None
-    district = fetch_default_district(db,state.id) if state and not payload.district_id else None
-    skill = fetch_default_skill(db) if not payload.skill_id else None
-    gender_id = payload.gender_id if payload.gender_id not in (None, 0) else None
-    if not gender_id:
-        default_gender = fetch_default_gender(db)
-        if not default_gender:
-            raise HTTPException(status_code=500, detail="No default gender found in master table")
-        gender_id = default_gender.id
+    # ✅ Validate role
+    role = validate_role(db, payload.role_id)
 
- 
-    government_json = None
+    # ✅ Government ID JSON
+    government_id = None
     if payload.government_id_type and payload.government_id_number:
-        government_json = json.dumps({
+        government_id = {
             "type": payload.government_id_type,
-            "number": payload.government_id_number
-        })
+            "number": payload.government_id_number,
+            "verified": False
+        }
 
-    freelancer = UserRegistration(
-        first_name = payload.first_name,
-        last_name = payload.last_name,
-        email = payload.email,
-        mobile = payload.mobile,
-        password = hash_password(payload.password),
-        gender_id = gender_id,
-        state_id = payload.state_id or (state.id if state else None),
-        district_id = payload.district_id or (district.id if district else None),
-        skill_id = payload.skill_id or (skill.id if skill else None),
-        role_id=FREELANCER_ROLE_ID,
-        status_id=STATUS_PENDING,  
-        is_active=True, 
-        government_id=government_json,
-        address = payload.address,
-        unique_id = str(uuid.uuid4()),
-        experience_summary = payload.experience_summary,
-        experience_doc = payload.experience_doc
+    user = UserRegistration(
+        unique_id=str(uuid.uuid4()),
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        email=payload.email,
+        mobile=payload.mobile,
+        password=hash_password(payload.password),
+
+        role_id=role.id,
+        status_id=STATUS_PENDING,
+        is_active=True,
+
+        gender_id=payload.gender_id,
+        state_id=payload.state_id,
+        district_id=payload.district_id,
+        skill_id=payload.skill_id,
+
+        address=payload.address,
+        government_id=government_id,
+
+        experience_summary=payload.experience_summary,
+        experience_doc=payload.experience_doc
     )
 
-    try:
-        db.add(freelancer)
-        db.commit()
-        db.refresh(freelancer)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Error registering freelancer") from e
-    
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    token_payload = {
+        "user_id": str(user.id),
+        "role_id": role.id,
+        "role": role.role_name,
+        "status": "pending"
+    }
+
     return {
-        "message": "Freelancer registered successfully. Waiting for admin approval.",
-        "user_id": freelancer.id,
-        "status": "Pending"
+        "message": "User registered successfully. Awaiting admin approval.",
+        "user_id": user.id,
+        "role": role.role_name,
+        "access_token": create_access_token(token_payload),
+        "refresh_token": create_refresh_token(token_payload),
+        "token_type": "bearer",
+        "expires_in": int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
     }
 
 
