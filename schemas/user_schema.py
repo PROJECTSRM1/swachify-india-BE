@@ -1,14 +1,22 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Optional
+from typing import Optional, List
+from datetime import date
 import re
 
 
-# ==================================================
-# 🔹 REGISTER USER (ROLE-BASED)
-# ==================================================
+class GovernmentID(BaseModel):
+    id_type: str
+    id_number: str
+
+
+class ProfessionalDetails(BaseModel):
+    experience_years: Optional[int] = Field(None, ge=0, le=50)
+    expertise_in: Optional[List[int]] = None  # ✅ SKILL IDs ONLY
+
+
 class RegisterUser(BaseModel):
     first_name: str = Field(..., min_length=2, max_length=50)
-    last_name: Optional[str] = Field(None, min_length=2, max_length=50)
+    last_name: Optional[str] = None
 
     email: EmailStr
     mobile: str = Field(..., pattern=r"^[6-9]\d{9}$")
@@ -16,34 +24,49 @@ class RegisterUser(BaseModel):
     password: str
     confirm_password: str
 
-    role_id: int
-    gender_id: int
+    gender_id: Optional[int]
+    dob: Optional[date]
 
-    address: Optional[str] = None
+    work_type: int = Field(..., description="1=Customer, 2=Freelancer, 3=Both")
 
-    # -------------------------
-    # Validators
-    # -------------------------
+    service_ids: List[int] = Field(..., min_items=1)
+
+    government_id: Optional[List[GovernmentID]] = None
+    professional_details: Optional[ProfessionalDetails] = None
+
+    state_id: Optional[int]
+    district_id: Optional[int]
+    address: Optional[str]
+
+    # ---------------- Validators ----------------
     @field_validator("email")
-    def email_must_be_gmail(cls, v):
+    def gmail_only(cls, v):
         if not v.endswith("@gmail.com"):
-            raise ValueError("Email must end with @gmail.com")
+            raise ValueError("Only Gmail allowed")
         return v
 
     @field_validator("password")
     def strong_password(cls, v):
         pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$"
         if not re.match(pattern, v):
-            raise ValueError(
-                "Password must contain uppercase, lowercase, number & special character"
-            )
+            raise ValueError("Weak password")
         return v
 
     @field_validator("confirm_password")
-    def confirm_password_match(cls, v, info):
+    def passwords_match(cls, v, info):
         if v != info.data.get("password"):
-            raise ValueError("Password and Confirm Password must match")
+            raise ValueError("Passwords do not match")
         return v
+
+
+class RegisterResponse(BaseModel):
+    message: str
+    user_id: int
+    unique_id: str
+    email: EmailStr
+    mobile: str
+    role_id: int
+    status_id: int
 
 
 # ==================================================
@@ -126,6 +149,7 @@ class VerifyTokenResponse(BaseModel):
     token_type: Optional[str] = None
     user_id: Optional[int] = None
     email: Optional[str] = None
+    role_id: Optional[int] = None
     message: Optional[str] = None
 
 
