@@ -118,8 +118,10 @@ from models.master_sub_service import MasterSubService
 from models.master_sub_group import MasterSubGroup
 from models.master_service_type import MasterServiceType
 
+from models.user_registration import UserRegistration
 from schemas.home_schema import (
     HomeServiceBase,
+    HomeServiceCreate,
     HomeServiceUpdate,
     HomeServiceResponse,
     HomeServiceCreateResponse
@@ -211,17 +213,27 @@ def read_home_services(db: Session = Depends(get_db)):
 def read_home_service_by_id(id: int, db: Session = Depends(get_db)):
     return get_home_service(db, id)
 
+# @router.post(
+#     "/home-service",
+#     response_model=HomeServiceCreateResponse
+# )
+# def create_new_home_service(
+#     data: HomeServiceBase,
+#     db: Session = Depends(get_db)
+# ):
+#     return create_home_service(db, data)
 
 @router.post(
     "/home-service",
-    response_model=HomeServiceCreateResponse
+    response_model=HomeServiceResponse
 )
 def create_new_home_service(
-    data: HomeServiceBase,
+    data: HomeServiceCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user: UserRegistration = Depends(get_current_user)
 ):
     return create_home_service(db, data, current_user.id)
+
 
 
 @router.put("/home-service/{id}", response_model=HomeServiceResponse)
