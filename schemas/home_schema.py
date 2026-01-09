@@ -109,6 +109,9 @@ from datetime import date, datetime
 from typing import Optional
 
 
+# ==================================================
+# 🔹 BASE SCHEMA (Shared Fields)
+# ==================================================
 class HomeServiceBase(BaseModel):
     module_id: int
     sub_module_id: int
@@ -134,13 +137,26 @@ class HomeServiceBase(BaseModel):
     service_price: Optional[float] = None
     payment_done: bool = False
 
+    # ✅ INTERNAL FIELD (SET BY BACKEND, NOT CLIENT)
+    created_by: Optional[int] = None
+
     model_config = {"from_attributes": True}
 
 
+# ==================================================
+# 🔹 CREATE SCHEMA (POST)
+# ==================================================
 class HomeServiceCreate(HomeServiceBase):
+    """
+    Used for POST /home-service
+    created_by is NOT required from client
+    """
     pass
 
 
+# ==================================================
+# 🔹 UPDATE SCHEMA (PUT / PATCH)
+# ==================================================
 class HomeServiceUpdate(BaseModel):
     full_name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -164,8 +180,9 @@ class HomeServiceUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
-
-
+# ==================================================
+# 🔹 RESPONSE SCHEMA (GET / POST RESPONSE)
+# ==================================================
 class HomeServiceResponse(BaseModel):
     id: int
 
@@ -177,7 +194,7 @@ class HomeServiceResponse(BaseModel):
 
     full_name: Optional[str] = None
     email: Optional[str] = None
-    mobile: Optional[str] = None     # ✅ NO REGEX
+    mobile: Optional[str] = None      # ✅ NO REGEX IN RESPONSE
     address: Optional[str] = None
 
     service_type_id: Optional[int] = None
@@ -185,17 +202,16 @@ class HomeServiceResponse(BaseModel):
     problem_description: Optional[str] = None
     property_size_sqft: Optional[str] = None
 
-    duration_id: Optional[int] = None   # ✅ THIS FIXES THE ERROR
+    duration_id: Optional[int] = None  # ✅ FIXED VALIDATION ERROR
 
     preferred_date: Optional[date] = None
     time_slot_id: Optional[int] = None
 
-    special_instructions: Optional[str] = None
     payment_type_id: Optional[int] = None
     service_price: Optional[float] = None
     payment_done: bool
 
-    created_by: int
+    created_by: int                    # ✅ VISIBLE
     assigned_to: Optional[int] = None
     status_id: int
     is_active: bool
@@ -206,7 +222,13 @@ class HomeServiceResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+# ==================================================
+# 🔹 SIMPLE CREATE RESPONSE (OPTIONAL)
+# ==================================================
 class HomeServiceCreateResponse(BaseModel):
     message: str
     service_id: int
     status_id: int
+    created_by: int
+

@@ -112,24 +112,42 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from models.home_service import HomeService
-from schemas.home_schema import HomeServiceCreate, HomeServiceUpdate
+from schemas.home_schema import HomeServiceBase, HomeServiceCreate, HomeServiceUpdate
+
+
+# def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
+#     obj = HomeService(
+#         **data.model_dump(),
+#         created_by=user_id,
+#         status_id=1
+#     )
+#     db.add(obj)
+#     db.commit()
+#     db.refresh(obj)
+
+#     return {
+#         "message": "Service created successfully",
+#         "service_id": obj.id,
+#         "status_id": obj.status_id
+#     }
+
+
+
 
 
 def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
-    obj = HomeService(
-        **data.model_dump(),
+    service = HomeService(
+        **data.model_dump(exclude={"created_by"}),
         created_by=user_id,
-        status_id=1
+        status_id=1,
+        is_active=True
     )
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
 
-    return {
-        "message": "Service created successfully",
-        "service_id": obj.id,
-        "status_id": obj.status_id
-    }
+    db.add(service)
+    db.commit()
+    db.refresh(service)
+    return service
+
 
 
 def get_home_services(db: Session):
