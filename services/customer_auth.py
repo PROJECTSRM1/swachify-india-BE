@@ -2,7 +2,7 @@ import os
 from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
 
-from controllers.user_controller import register_user_controller
+from services.user_controller import register_user_controller
 from utils.sms_agent import send_welcome_sms
 from utils.jwt_utils import create_access_token, create_refresh_token
 
