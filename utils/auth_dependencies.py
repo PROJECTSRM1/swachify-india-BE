@@ -7,8 +7,7 @@ from utils.jwt_utils import verify_token
 from models.user_registration import UserRegistration
 
 security = HTTPBearer()
-FREELANCER_ROLE_ID = 4  # Define the freelancer role ID constant
-
+FREELANCER_ROLE_ID = 4 
 
 def get_current_freelancer(
     credentials: HTTPAuthorizationCredentials = Depends(security),

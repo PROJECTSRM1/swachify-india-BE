@@ -76,7 +76,6 @@ def verify_payment(
     db: Session = Depends(get_db)
 ):
     try:
-        # 1️⃣ Verify Razorpay signature
         client.utility.verify_payment_signature({
             "razorpay_order_id": req.order_id,
             "razorpay_payment_id": req.payment_id,
