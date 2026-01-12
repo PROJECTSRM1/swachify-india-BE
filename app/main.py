@@ -60,9 +60,11 @@ from core.database import Base, engine
 # 🔹 ROUTES
 # from routes.auth import router as auth_router
 from routes.user_registration_route import router as user_registration_router
+from routes.dashboard_route import router as dashboard_router
+from routes.allocation_route import router as allocation_router
 from routes.admin_route import router as admin_router
 from routes.freelancer_route import router as freelancer_router
-from routes.auth import router as auth_router
+# from routes.auth import router as auth_router
 from routes.master_module_route import router as master_module_router
 from controllers.payment_routes import router as payment_router
 
@@ -96,11 +98,13 @@ def startup_event():
 # 🔹 ROUTER REGISTRATION (ORDER MATTERS FOR READABILITY)
 # app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(user_registration_router)
+app.include_router(dashboard_router)
+app.include_router(allocation_router)
 app.include_router(admin_router)
-app.include_router(freelancer_router, prefix="/api/v1/freelancer", tags=["Freelancer"])
+app.include_router(freelancer_router)
 # app.include_router(auth_router)
-app.include_router(master_module_router, prefix="/api/v1/master", tags=["Master"])
-app.include_router(payment_router, prefix="/api/v1/payments", tags=["Payments"])
+app.include_router(master_module_router)
+app.include_router(payment_router) 
 
 # 🔹 Health Check
 @app.get("/", tags=["Health"])

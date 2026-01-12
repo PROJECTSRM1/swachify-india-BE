@@ -36,12 +36,38 @@ class VerifyPaymentRequest(BaseModel):
 
 @router.post("/create-order")
 def create_order(req: CreateOrderRequest):
-    order = client.order.create({
-        "amount": req.amount,
+    """
+    Create a Razorpay order.
+    
+    REQUEST BODY:
+    {
+        "amount": 50000,  // Amount in paisa (50000 = ₹500)
+        "bookingId": 129
+    }
+    
+    RESPONSE:
+    {
+        "id": "order_xxxxx",
+        "entity": "order",
+        "amount": 50000,
+        "amount_paid": 0,
         "currency": "INR",
-        "receipt": f"receipt_{req.bookingId}",
-    })
-    return order
+        "receipt": "receipt_129",
+        ...
+    }
+    """
+    try:
+        order = client.order.create({
+            "amount": req.amount,
+            "currency": "INR",
+            "receipt": f"receipt_{req.bookingId}",
+        })
+        return order
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to create order: {str(e)}"
+        )
 
 
 @router.post("/verify-payment")
