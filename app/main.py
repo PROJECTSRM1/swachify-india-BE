@@ -13,7 +13,7 @@ from routes.allocation_route import router as allocation_router
 from routes.admin_route import router as admin_router
 from routes.freelancer_route import router as freelancer_router
 from routes.master_module_route import router as master_module_router
-from controllers.payment_routes import router as payment_router
+from routes.payment_routes import router as payment_router
 
 
 load_dotenv()

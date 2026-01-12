@@ -7,7 +7,7 @@ from fastapi.security import HTTPBearer
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from core.database import get_db
-from controllers.user_controller import register_user_controller
+from services.user_controller import register_user_controller
 from utils.mail_agent import send_welcome_email
 from utils.sms_agent import send_welcome_sms
 from utils.db_function import execute_function_raw
