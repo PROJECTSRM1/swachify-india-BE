@@ -32,13 +32,6 @@ async def register_freelancer(
 
     user = freelancer_register_service(db, payload)
 
-    # background_tasks.add_task(
-    #     send_welcome_email,
-    #     payload.email,
-    #     payload.first_name
-    # )
-
-
     background_tasks.add_task(
         send_welcome_sms,
         payload.mobile,

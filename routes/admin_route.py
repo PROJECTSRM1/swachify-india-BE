@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/admin", tags=["Admin Authentication"])
 def register_admin(request: RegisterAdmin, db: Session = Depends(get_db)):
     return register_admin_service(request, db)
 
-@router.post("/login")   # no response_model to avoid strict validation issues
+@router.post("/login") 
 def admin_login(request: AdminLogin, db: Session = Depends(get_db),req: Request = None):
     return admin_login_service(request, db,req)
 
@@ -132,27 +132,5 @@ def get_freelancer_list(db: Session = Depends(get_db)):
     ).all()
 
     return freelancers
-
-# @router.post("/assign-freelancer")
-# def assign_freelancer_to_home_service(
-#     request: AssignFreelancerRequest,
-#     db: Session = Depends(get_db)
-# ):
-#     return assign_freelancer_to_home_service_service(
-#         db=db,
-#         home_service_id=request.home_service_id,
-#         freelancer_id=request.freelancer_id
-#     )
-
-# @router.post("/by-user")
-# def get_home_services_by_user(
-#     filters: HomeServiceFilter,
-#     db: Session = Depends(get_db)
-# ):
-#     return get_home_services_by_creator_and_payment(
-#         db=db,
-#         created_by=filters.created_by,
-#         payment_done=filters.payment_done
-#     )
 
     

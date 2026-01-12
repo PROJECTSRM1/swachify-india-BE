@@ -44,11 +44,6 @@ async def register_user(
 ):
     user = await register_user_controller(db, payload)
 
-    # background_tasks.add_task(
-    #     send_welcome_email,
-    #     payload.email,
-    #     payload.first_name
-    # )
 
     background_tasks.add_task(
         send_welcome_sms,
@@ -79,7 +74,6 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 
     print("DB RESULT (login):", user)
 
-    # ✅ password check
     if not verify_password(payload.password, user.get("password", "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -105,7 +99,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     expires_in = int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
 
     return LoginResponse(
-        id=user.get("user_id"),        # ✅ FIXED
+        id=user.get("user_id"),       
         email_or_phone=payload.email_or_phone,
         access_token=access_token,
         refresh_token=refresh_token,
@@ -156,8 +150,6 @@ def update_user(payload: UpdateUser, db: Session = Depends(get_db)):
         "p_mobile": payload.mobile or user["mobile"],
         "p_password": hash_password(payload.password) if payload.password else user["password"],
         "p_gender_id": payload.gender_id or user["gender_id"],
-
-        # Optional fixed values
         "p_dob": user["dob"],
         "p_age": user["age"],
         "p_profile_image": user["profile_image"],
@@ -234,7 +226,6 @@ async def forgot_password_request(
     return {"message": "OTP sent to registered email"}
 
 
-# 2) Verify OTP  (user enters ONLY OTP)
 @router.post("/forgot-password/verify-otp")
 def forgot_password_verify(
     body: VerifyOtpRequest,
@@ -259,7 +250,7 @@ def forgot_password_verify(
             detail="User not found",
         )
 
-    max_age = 15 * 60  # 15 minutes in seconds
+    max_age = 15 * 60 
     response.set_cookie(
         key="reset_token",
         value=reset_token,
@@ -271,7 +262,6 @@ def forgot_password_verify(
     return {"message": "OTP verified successfully"}
 
 
-# 3) Reset password  (user enters ONLY new password + confirm)
 @router.post("/forgot-password/reset")
 def forgot_password_reset(
     body: ResetPasswordRequest,
@@ -285,7 +275,6 @@ def forgot_password_reset(
             detail="Passwords do not match",
         )
 
-    # read reset token from cookie; user doesn't need to provide it
     reset_token = request.cookies.get("reset_token")
     if not reset_token:
         raise HTTPException(
@@ -306,7 +295,6 @@ def forgot_password_reset(
             detail="User not found",
         )
 
-    # clear the cookie after successful reset
     response.delete_cookie("reset_token")
 
     return {"message": "Password updated successfully"}
