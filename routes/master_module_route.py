@@ -139,13 +139,13 @@ from services.home_service import (
 
 from services.master_data_service import get_master_data
 
-router = APIRouter(prefix="/api", tags=["Master"])
-
-
-
+router = APIRouter(prefix="/api/master", tags=["Master Data & Booking"])
 
 @router.get("/master-data", response_model=MasterDataResponse)
 def get_all_master_data(db: Session = Depends(get_db)):
+  
+    """Get all master data (modules, services, etc.)"""
+
     return get_master_data(db)
 
 
@@ -204,6 +204,7 @@ def delete_master_data(id: int, type: str, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Deleted successfully"}
 
+# ==================== HOME SERVICE BOOKING ====================
 
 @router.get("/home-service", response_model=list[HomeServiceResponse])
 def read_home_services(db: Session = Depends(get_db)):
@@ -232,6 +233,25 @@ def create_new_home_service(
     db: Session = Depends(get_db),
     current_user: UserRegistration = Depends(get_current_user)
 ):
+    """
+    Create a new home service booking.
+    
+    🔹 REQUIRED FIELDS:
+    - module_id, sub_module_id, service_id, sub_service_id, sub_group_id
+    - full_name, email, mobile (10 digits, starts with 6-9), address
+    - service_type_id, duration_id
+    - preferred_date, time_slot_id
+    - payment_type_id, service_price
+    
+    🔹 OPTIONAL FIELDS:
+    - issue_id, problem_description, property_size_sqft
+    
+    🔹 NOTES:
+    - created_by is automatically set from authenticated user
+    - status_id is automatically set to 1 (pending)
+    - payment_done defaults to false
+    """
+
     return create_home_service(db, data, current_user.id)
 
 
