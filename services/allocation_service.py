@@ -8,6 +8,7 @@ from models.user_services import UserServices
 from core.constants import (
     CUSTOMER_ROLE_ID,
     FREELANCER_ROLE_ID,
+    STATUS_APPROVED,
     BOOKING_STATUS_ASSIGNED
 )
 from fastapi import HTTPException
@@ -25,8 +26,14 @@ def get_allocation_options(db, booking_id: int, user_id: int):
             status_code=403,
             detail="You are not authorized to access this booking"
         )
+    
+    # Check if already allocated
+    if booking.assigned_to:
+        raise HTTPException(
+            status_code=400,
+            detail="Booking is already allocated to a freelancer"
+        )
 
-    # 2. Get employees matching service
     employees = (
         db.query(
             UserRegistration.id,
@@ -42,7 +49,9 @@ def get_allocation_options(db, booking_id: int, user_id: int):
         )
         .filter(
             UserServices.module_id == booking.module_id,
-            UserRegistration.is_active == True
+            UserRegistration.is_active == True,
+            UserRegistration.role_id == FREELANCER_ROLE_ID,
+            UserRegistration.status_id == STATUS_APPROVED
         )
         .group_by(UserRegistration.id)
         .order_by(desc("avg_rating"))
@@ -84,6 +93,7 @@ def auto_allocate_employee(
         )
 
     # 🔹 Find employees who provide this module/service
+    from core.constants import FREELANCER_ROLE_ID, STATUS_APPROVED, BOOKING_STATUS_ASSIGNED
     employee = (
         db.query(UserRegistration)
         .join(UserServices, UserServices.user_id == UserRegistration.id)
@@ -92,9 +102,10 @@ def auto_allocate_employee(
             HomeService.assigned_to == UserRegistration.id
         )
         .filter(
-            UserRegistration.role_id==FREELANCER_ROLE_ID,
+            UserRegistration.role_id == FREELANCER_ROLE_ID,
             UserServices.module_id == booking.module_id,
-            UserRegistration.is_active.is_(True)
+            UserRegistration.is_active.is_(True),
+            UserRegistration.status_id == STATUS_APPROVED
         )
         .group_by(UserRegistration.id)
         .order_by(desc(func.coalesce(func.avg(HomeService.rating), 0)))
@@ -107,8 +118,8 @@ def auto_allocate_employee(
             detail="No employees available for this service"
         )
 
-    booking.assigned_to=employee.id,
-    booking.status_id=BOOKING_STATUS_ASSIGNED
+    booking.assigned_to = employee.id
+    booking.status_id = BOOKING_STATUS_ASSIGNED
 
     db.commit()
     db.refresh(booking)
@@ -136,6 +147,13 @@ def manual_allocate_employee(
         raise HTTPException(
             status_code=404,
             detail="Booking not found"
+        )
+    
+    # Check if already allocated
+    if booking.assigned_to:
+        raise HTTPException(
+            status_code=400,
+            detail="Booking is already allocated to a freelancer. Cannot allocate again."
         )
 
     employee = db.query(UserRegistration).filter(

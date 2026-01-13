@@ -345,7 +345,7 @@ from utils.jwt_utils import create_access_token, create_refresh_token
 from core.constants import (
     CUSTOMER_ROLE_ID,
     FREELANCER_ROLE_ID,
-    STATUS_ACTIVE,
+        STATUS_APPROVED,
     STATUS_PENDING
 )
 
@@ -362,6 +362,15 @@ def calculate_age(dob: date | None) -> int | None:
 
 
 def get_message(work_type: int) -> str:
+    """
+    Generate role-based registration message based on work_type.
+    
+    Args:
+        work_type: 1=Customer, 2=Freelancer, 3=Both
+    
+    Returns:
+        Registration success message indicating user type
+    """
     if work_type == 1:
         return "Customer registered successfully"
     if work_type == 2:
@@ -370,6 +379,21 @@ def get_message(work_type: int) -> str:
 
 
 def register_user(db: Session, payload: RegisterUser):
+    """
+    Register a new user with role and status assignment based on work_type.
+    
+    Work Type Mapping:
+        1 = Customer       -> role_id=2, status_id=1 (APPROVED)
+        2 = Freelancer     -> role_id=4, status_id=2 (PENDING - needs admin approval)
+        3 = Both           -> role_id=4, status_id=2 (PENDING - needs admin approval)
+    
+    Args:
+        db: Database session
+        payload: RegisterUser schema containing work_type and user details
+    
+    Returns:
+        Dictionary with user info, tokens, and registration message
+    """
 
     # -------------------------
     # Validate services
@@ -399,12 +423,22 @@ def register_user(db: Session, payload: RegisterUser):
         raise HTTPException(status_code=409, detail="Mobile already registered")
 
     # -------------------------
-    # Role & status
+    # Role & status assignment based on work_type
     # -------------------------
     if payload.work_type == 1:
-        role_id, status_id = CUSTOMER_ROLE_ID, STATUS_ACTIVE
-    else:
+        # Customer: Immediate approval
+        role_id, status_id = CUSTOMER_ROLE_ID, STATUS_APPROVED
+    elif payload.work_type == 2:
+        # Freelancer or Both: Pending admin approval
         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
+    elif payload.work_type == 3:
+        role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid work_type. Must be 1 (Customer), 2 (Freelancer), or 3 (Both)."
+        )
+        
 
     # -------------------------
     # Create user
@@ -469,7 +503,7 @@ def register_user(db: Session, payload: RegisterUser):
     # -------------------------
     token_payload = {
         "user_id": user.id,
-        "email": user.email,
+        "status_id": user.status_id,
         "role_id": user.role_id
     }
 
@@ -484,6 +518,7 @@ def register_user(db: Session, payload: RegisterUser):
         "mobile": user.mobile,
         "role_id": user.role_id,
         "status_id": user.status_id,
+        "work_type": payload.work_type,
         "service_ids": service_ids,
         "skill_ids": skill_ids,
         "access_token": access_token,
@@ -496,11 +531,27 @@ def register_user(db: Session, payload: RegisterUser):
 # 🔹 LOGIN USER (JWT TOKENS)
 # ==================================================
 def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
+    """
+    Authenticate user and generate JWT tokens.
+    
+    Only allows login for APPROVED users (status_id=1).
+    Role determination:
+        - role_id=2 -> "customer"
+        - role_id=4 -> "freelancer"
+    
+    Args:
+        db: Database session
+        payload: LoginRequest with email/phone and password
+    
+    Returns:
+        LoginResponse with tokens, role, and user services/skills
+    """
     user = (
         db.query(UserRegistration)
         .filter(
             (UserRegistration.email == payload.email_or_phone) |
-            (UserRegistration.mobile == payload.email_or_phone)
+            (UserRegistration.mobile == payload.email_or_phone),
+            UserRegistration.status_id == STATUS_APPROVED
         )
         .first()
     )
@@ -511,7 +562,7 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
             detail="Invalid email/mobile or password"
         )
 
-    # 🔹 FETCH SERVICE IDS
+    # 🔹 FETCH SERVICE IDs (modules)
     service_ids = [
         s.module_id
         for s in db.query(UserServices)
@@ -519,13 +570,19 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
         .all()
     ]
 
-    # 🔹 FETCH SKILL IDS
+    # 🔹 FETCH SKILL IDs
     skill_ids = [
         s.skill_id
         for s in db.query(UserSkill)
         .filter(UserSkill.user_id == user.id)
         .all()
     ]
+
+    # Determine role string based on role_id
+    role = "customer" if user.role_id == 2 else "freelancer" if user.role_id == 4 else "other"
+    
+    # Create role-based message
+    role_message = "User logged in as a customer" if role == "customer" else "User logged in as a freelancer"
 
     token_payload = {
         "user_id": user.id,
@@ -534,6 +591,7 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
     }
 
     return LoginResponse(
+        message=role_message,
         user_id=user.id,
         email_or_phone=payload.email_or_phone,
         service_ids=service_ids,
@@ -541,5 +599,6 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
         access_token=create_access_token(token_payload),
         refresh_token=create_refresh_token(token_payload),
         expires_in=60 * 60,
-        refresh_expires_in=60 * 60 * 24
+        refresh_expires_in=60 * 60 * 24,
+        role=role
     )

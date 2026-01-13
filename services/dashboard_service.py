@@ -34,8 +34,8 @@ def get_dashboard(db: Session, user: UserRegistration):
         },
          "dashboard_flags": {
             "approval_pending": user.status_id == 2,
-            "can_book_service": user.role_id == 1,
-            "can_accept_jobs": user.role_id != 1 and user.status_id == 1
+            "can_book_service": user.role_id == 2,  # Customers can book services
+            "can_accept_jobs": user.role_id == 4 and user.status_id == 1  # Only approved freelancers can accept jobs
         },
         "categories": categories
     }

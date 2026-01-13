@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from pydantic import validate_call
 from sqlalchemy.orm import Session
 from datetime import datetime
+from models.user_skill import UserSkill
 from services.role_service import validate_role
 from utils.jwt_utils import create_access_token,create_refresh_token
 from models.user_registration import UserRegistration
@@ -29,72 +30,6 @@ STATUS_REJECTED = 3
 STATUS_ASSIGNED = 4
 STATUS_NOT_ASSIGNED = 5
 STATUS_COMPLETED = 6
-
-
-def freelancer_register_service(db: Session, payload) -> dict:
-
-    if db.query(UserRegistration).filter(UserRegistration.email == payload.email).first():
-        raise HTTPException(400, "Email already exists")
-
-    if db.query(UserRegistration).filter(UserRegistration.mobile == payload.mobile).first():
-        raise HTTPException(400, "Mobile already exists")
-
-    # ✅ Validate role
-    role = validate_role(db, payload.role_id)
-
-    # ✅ Government ID JSON
-    government_id = None
-    if payload.government_id_type and payload.government_id_number:
-        government_id = {
-            "type": payload.government_id_type,
-            "number": payload.government_id_number,
-            "verified": False
-        }
-
-    user = UserRegistration(
-        unique_id=str(uuid.uuid4()),
-        first_name=payload.first_name,
-        last_name=payload.last_name,
-        email=payload.email,
-        mobile=payload.mobile,
-        password=hash_password(payload.password),
-
-        role_id=role.id,
-        status_id=STATUS_PENDING,
-        is_active=True,
-
-        gender_id=payload.gender_id,
-        state_id=payload.state_id,
-        district_id=payload.district_id,
-        skill_id=payload.skill_id,
-
-        address=payload.address,
-        government_id=government_id,
-
-        experience_summary=payload.experience_summary,
-        experience_doc=payload.experience_doc
-    )
-
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    token_payload = {
-        "user_id": str(user.id),
-        "role_id": role.id,
-        "role": role.role_name,
-        "status": "pending"
-    }
-
-    return {
-        "message": "User registered successfully. Awaiting admin approval.",
-        "user_id": user.id,
-        "role": role.role_name,
-        "access_token": create_access_token(token_payload),
-        "refresh_token": create_refresh_token(token_payload),
-        "token_type": "bearer",
-        "expires_in": int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
-    }
 
 
 def freelancer_login_service(db: Session, payload, response) -> dict:
@@ -190,6 +125,8 @@ def get_freelancer_by_id(db: Session, freelancer_id: int)-> dict:
             detail="Freelancer profile is not approved by admin"
         )
     
+    # Fetch all skill_ids for this freelancer
+    skill_ids = [s.skill_id for s in db.query(UserSkill).filter_by(user_id=freelancer.id).all()]
     return {
         "message": "Freelancer fetched successfully",
         "freelancer_id": freelancer.id,
@@ -200,7 +137,7 @@ def get_freelancer_by_id(db: Session, freelancer_id: int)-> dict:
         "gender_id": freelancer.gender_id,
         "state_id": freelancer.state_id,
         "district_id": freelancer.district_id,
-        "skill_id": freelancer.skill_id,
+        "skill_ids": skill_ids,
         "address": freelancer.address,
         "status_id": freelancer.status_id,
         "created_date": freelancer.created_date
