@@ -1,26 +1,41 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status,Request
+from fastapi import HTTPException, status, Request
 from sqlalchemy import or_
 from models.user_registration import UserRegistration
 from models.home_service import HomeService
-from schemas.admin_schema import RegisterAdmin,AdminLogin,UserBase
-from utils.hash_utils import hash_password,verify_password
-from utils.jwt_utils import create_access_token,create_refresh_token,is_admin_already_logged_in
+from schemas.admin_schema import RegisterAdmin, AdminLogin, UserBase
+from utils.hash_utils import hash_password, verify_password
+from utils.jwt_utils import create_access_token, create_refresh_token, is_admin_already_logged_in
+from core.constants import (
+    ADMIN_ROLE_ID,
+    CUSTOMER_ROLE_ID,
+    FREELANCER_ROLE_ID,
+    STATUS_APPROVED,
+    STATUS_PENDING,
+    STATUS_REJECTED,
+    STATUS_ASSIGNED,
+    STATUS_NOT_ASSIGNED
+)
 import uuid
 from datetime import datetime
 
-ADMIN_ROLE_ID = 1
-FREELANCER_ROLE_ID = 4
-
-STATUS_APPROVED = 1
-STATUS_PENDING = 2
-STATUS_REJECTED = 3
-
-STATUS_ASSIGNED = 4
-STATUS_NOT_ASSIGNED = 5
+# Service completion status (mapped to master_status or work_status)
 STATUS_COMPLETED = 6
 
 def register_admin_service(request: RegisterAdmin, db: Session):
+    """
+    Register a new admin user with APPROVED status.
+    
+    Args:
+        request: Admin registration request
+        db: Database session
+    
+    Returns:
+        Dictionary with success message and admin_id
+    
+    Raises:
+        HTTPException: If email or mobile already exists
+    """
     if db.query(UserRegistration).filter(UserRegistration.email == request.email).first():
         raise HTTPException(status_code=400, detail="Email already exists")
 
@@ -39,7 +54,7 @@ def register_admin_service(request: RegisterAdmin, db: Session):
         status_id=STATUS_APPROVED,
         created_date=datetime.utcnow(),
         is_active=True,
-        unique_id = str(uuid.uuid4())
+        unique_id=str(uuid.uuid4())
     )
 
     db.add(admin)
@@ -51,7 +66,21 @@ def register_admin_service(request: RegisterAdmin, db: Session):
         "data": admin.id
     }
 
-def admin_login_service(credentials: AdminLogin, db: Session,http_request:Request):
+def admin_login_service(credentials: AdminLogin, db: Session, http_request: Request):
+    """
+    Authenticate admin and generate JWT tokens.
+    
+    Args:
+        credentials: Admin login credentials (email/mobile/unique_id + password)
+        db: Database session
+        http_request: HTTP request for checking existing sessions
+    
+    Returns:
+        Dictionary with tokens and admin info
+    
+    Raises:
+        HTTPException: If already logged in or credentials invalid
+    """
     if is_admin_already_logged_in(http_request):
         return {
             "status": "warning",
@@ -77,13 +106,13 @@ def admin_login_service(credentials: AdminLogin, db: Session,http_request:Reques
             detail="Invalid credentials"
         )
     
+    # JWT token with role_id (consistent with freelancer and auth_dependencies)
     payload = {
-    "sub": str(admin.id),
-    "email": admin.email,
-    "role": "admin"
+        "user_id": str(admin.id),
+        "email": admin.email,
+        "role_id": admin.role_id
     }
 
-    
     return {
         "message": "Login successful",
         "user": UserBase.model_validate(admin),
@@ -95,9 +124,23 @@ def admin_login_service(credentials: AdminLogin, db: Session,http_request:Reques
 
 
 def admin_update_service(db: Session, admin_id: int, payload: dict):
+    """
+    Update admin profile information.
+    
+    Args:
+        db: Database session
+        admin_id: ID of admin to update
+        payload: Dictionary with fields to update
+    
+    Returns:
+        Dictionary with success message and updated admin
+    
+    Raises:
+        HTTPException: If admin not found or email/mobile duplicate
+    """
     admin = db.query(UserRegistration).filter(
         UserRegistration.id == admin_id,
-        UserRegistration.role_id == 1 
+        UserRegistration.role_id == ADMIN_ROLE_ID
     ).first()
 
     if not admin:
@@ -106,7 +149,7 @@ def admin_update_service(db: Session, admin_id: int, payload: dict):
     if "email" in payload and payload["email"] != admin.email:
         existing_email = db.query(UserRegistration).filter(
             UserRegistration.email == payload["email"],
-            UserRegistration.id != admin_id  
+            UserRegistration.id != admin_id
         ).first()
         if existing_email:
             raise HTTPException(status_code=400, detail="Email already exists")
@@ -114,7 +157,7 @@ def admin_update_service(db: Session, admin_id: int, payload: dict):
     if "mobile" in payload and payload["mobile"] != admin.mobile:
         existing_mobile = db.query(UserRegistration).filter(
             UserRegistration.mobile == payload["mobile"],
-            UserRegistration.id != admin_id   
+            UserRegistration.id != admin_id
         ).first()
         if existing_mobile:
             raise HTTPException(status_code=400, detail="Mobile number already exists")
@@ -133,6 +176,19 @@ def admin_update_service(db: Session, admin_id: int, payload: dict):
 
 
 def admin_delete_service(db: Session, admin_id: int):
+    """
+    Soft delete (deactivate) an admin user.
+    
+    Args:
+        db: Database session
+        admin_id: ID of admin to deactivate
+    
+    Returns:
+        Dictionary with success message
+    
+    Raises:
+        HTTPException: If admin not found
+    """
     admin = db.query(UserRegistration).filter(
         UserRegistration.id == admin_id,
         UserRegistration.role_id == ADMIN_ROLE_ID,
@@ -151,7 +207,7 @@ def admin_delete_service(db: Session, admin_id: int):
 def admin_hard_delete_service(db: Session, admin_id: int):
     admin = db.query(UserRegistration).filter(
         UserRegistration.id == admin_id,
-        UserRegistration.role_id == 1
+        UserRegistration.role_id == ADMIN_ROLE_ID
     ).first()
 
     if not admin:
@@ -170,15 +226,30 @@ def get_pending_freelancers_service(db: Session):
 
 
 def approve_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
-    freelancer =( 
-    db.query(UserRegistration).filter(
-        UserRegistration.id == freelancer_id,
-        UserRegistration.role_id == FREELANCER_ROLE_ID,
-        UserRegistration.status_id == STATUS_PENDING,
-        UserRegistration.is_active == True
-      )
-      .with_for_update()
-      .first()
+    """
+    Approve a PENDING freelancer (status: PENDING → APPROVED).
+    Uses row-level locking to prevent race conditions.
+    
+    Args:
+        db: Database session
+        freelancer_id: ID of freelancer to approve
+        admin_id: ID of admin approving
+    
+    Returns:
+        Dictionary with success message and freelancer info
+    
+    Raises:
+        HTTPException: If freelancer not found or not in PENDING status
+    """
+    freelancer = (
+        db.query(UserRegistration).filter(
+            UserRegistration.id == freelancer_id,
+            UserRegistration.role_id == FREELANCER_ROLE_ID,
+            UserRegistration.status_id == STATUS_PENDING,
+            UserRegistration.is_active == True
+        )
+        .with_for_update()
+        .first()
     )
 
     if not freelancer:
@@ -199,20 +270,34 @@ def approve_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
 
 
 def reject_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
+    """
+    Reject a PENDING freelancer (status: PENDING → REJECTED).
+    Uses row-level locking to prevent race conditions.
+    
+    Args:
+        db: Database session
+        freelancer_id: ID of freelancer to reject
+        admin_id: ID of admin rejecting
+    
+    Returns:
+        Dictionary with success message and freelancer info
+    
+    Raises:
+        HTTPException: If freelancer not found or not in PENDING status
+    """
     freelancer = (
-    db.query(UserRegistration).filter(
-        UserRegistration.id == freelancer_id,
-        UserRegistration.role_id == FREELANCER_ROLE_ID,
-        UserRegistration.status_id == STATUS_PENDING,
-        UserRegistration.is_active == True
-       )
-       .with_for_update()
-       .first()
+        db.query(UserRegistration).filter(
+            UserRegistration.id == freelancer_id,
+            UserRegistration.role_id == FREELANCER_ROLE_ID,
+            UserRegistration.status_id == STATUS_PENDING,
+            UserRegistration.is_active == True
+        )
+        .with_for_update()
+        .first()
     )
 
     if not freelancer:
-        raise HTTPException(status_code=409,detail="freelancer already processed or not found")
-
+        raise HTTPException(status_code=409, detail="Freelancer already processed or not found")
 
     freelancer.status_id = STATUS_REJECTED
     freelancer.modified_by = admin_id
@@ -227,65 +312,79 @@ def reject_freelancer_service(db: Session, freelancer_id: int, admin_id: int):
         "rejected_by": admin_id
     }
     
-def assign_freelancer_to_home_service_service(
-    db: Session,
-    home_service_id: int,
-    freelancer_id: int
-):
-    # 1️⃣ Fetch home service ONLY by ID
-    home_service = (
-        db.query(HomeService)
-        .filter(HomeService.id == home_service_id)
-        .with_for_update()
-        .first()
-    )
-
-    if not home_service:
-        raise HTTPException(
-            status_code=404,
-            detail="Home service not found"
-        )
-
-    # 2️⃣ If already completed → STOP
-    if home_service.status_id == STATUS_COMPLETED:
-        raise HTTPException(
-            status_code=409,
-            detail="Home service is already completed and cannot be assigned"
-        )
-
-    # 3️⃣ If already assigned → STOP
-    if home_service.assigned_to is not None:
-        raise HTTPException(
-            status_code=409,
-            detail="Home service is already assigned to a freelancer"
-        )
-
-    # 4️⃣ Validate freelancer
-    freelancer = db.query(UserRegistration).filter(
-        UserRegistration.id == freelancer_id,
-        UserRegistration.role_id == FREELANCER_ROLE_ID,
-        UserRegistration.status_id == STATUS_APPROVED,
+def get_all_customers_service(db: Session):
+    """
+    Fetch all active customers (role_id = 2).
+    
+    Args:
+        db: Database session
+    
+    Returns:
+        List of customer records
+    """
+    customers = db.query(UserRegistration).filter(
+        UserRegistration.role_id == CUSTOMER_ROLE_ID,
         UserRegistration.is_active == True
+    ).all()
+    
+    return customers
+
+
+def get_customer_details_service(db: Session, customer_id: int):
+    """
+    Fetch complete customer profile details.
+    
+    Args:
+        db: Database session
+        customer_id: Customer user ID
+    
+    Returns:
+        Dictionary with customer details
+    
+    Raises:
+        HTTPException: If customer not found
+    """
+    customer = db.query(UserRegistration).filter(
+        UserRegistration.id == customer_id,
+        UserRegistration.role_id == CUSTOMER_ROLE_ID
     ).first()
-
-    if not freelancer:
-        raise HTTPException(
-            status_code=404,
-            detail="Approved freelancer not found"
-        )
-
-    # 5️⃣ Assign freelancer
-    home_service.assigned_to = freelancer_id
-    home_service.status_id = STATUS_ASSIGNED
-    home_service.modified_date = datetime.utcnow()
-
-    db.commit()
-    db.refresh(home_service)
-
+    
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Import here to avoid circular imports
+    from models.master.master_gender import MasterGender
+    from models.master.master_state import MasterState
+    from models.master.master_district import MasterDistrict
+    
+    state_name = db.query(MasterState.state_name).filter(
+        MasterState.id == customer.state_id
+    ).scalar() if customer.state_id else None
+    
+    district_name = db.query(MasterDistrict.district_name).filter(
+        MasterDistrict.id == customer.district_id
+    ).scalar() if customer.district_id else None
+    
+    gender_value = db.query(MasterGender.gender_name).filter(
+        MasterGender.id == customer.gender_id
+    ).scalar() if customer.gender_id else None
+    
+    response = {
+        "user_id": customer.id,
+        "full_name": f"{customer.first_name} {customer.last_name or ''}".strip(),
+        "mobile": customer.mobile,
+        "email": customer.email,
+        "gender": gender_value,
+        "state": state_name,
+        "district": district_name,
+        "address": customer.address,
+        "status": "active" if customer.is_active else "inactive",
+        "created_date": customer.created_date.isoformat() if customer.created_date else None
+    }
+    
     return {
-        "message": "Freelancer assigned to home service successfully",
-        "home_service_id": home_service.id,
-        "freelancer_id": freelancer.id,
-        "status_id": STATUS_ASSIGNED,
-        "status_name": "Assigned"
+        "status": "success",
+        "code": 200,
+        "message": "Customer details fetched successfully",
+        "data": response
     }

@@ -7,7 +7,7 @@ import os
 from core.database import get_db          
 from models.home_service import HomeService 
 
-router = APIRouter()
+router = APIRouter(prefix="/api/payment", tags=["Payment"])
 
 # Razorpay client
 client = razorpay.Client(

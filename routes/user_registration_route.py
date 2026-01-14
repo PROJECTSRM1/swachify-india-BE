@@ -21,7 +21,7 @@ from models.user_registration import UserRegistration
 
 router = APIRouter(
     prefix="/api/auth",
-    tags=["Authentication"]
+    tags=["User Authentication"]
 )
 
 @router.post(

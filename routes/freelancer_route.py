@@ -10,7 +10,7 @@ from utils.sms_agent import send_welcome_sms
 from schemas.user_schema import RefreshRequest, VerifyTokenResponse
 from utils.jwt_utils import verify_token
 from utils.auth_dependencies import get_current_freelancer
-from schemas.freelancer_schema import FreelancerRegister, FreelancerLogin
+from schemas.freelancer_schema import FreelancerLogin
 from services.freelancer_service import (
     freelancer_login_service,
     freelancer_update_service,
@@ -45,10 +45,14 @@ def get_freelancer_details(
 @router.put("/update/{freelancer_id}")
 def update_freelancer(
     freelancer_id: int,
-    payload: FreelancerRegister,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    freelancer = Depends(get_current_freelancer)
 ):
-    return freelancer_update_service(db, freelancer_id, payload)
+    """
+    Update freelancer profile. Use request body for profile updates.
+    Note: Freelancer registration is now handled by /api/auth/register with work_type=2
+    """
+    return freelancer_update_service(db, freelancer_id, None)
 
 
 @router.delete("/delete/{freelancer_id}")

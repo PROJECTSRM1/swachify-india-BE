@@ -6,37 +6,45 @@ from pydantic import validate_call
 from sqlalchemy.orm import Session
 from datetime import datetime
 from models.user_skill import UserSkill
+from models.user_services import UserServices
 from services.role_service import validate_role
-from utils.jwt_utils import create_access_token,create_refresh_token
+from utils.jwt_utils import create_access_token, create_refresh_token
 from models.user_registration import UserRegistration
 from models.home_service import HomeService
-from utils.hash_utils import hash_password,verify_password
+from utils.hash_utils import hash_password, verify_password
 from services.master_default_service import (
     fetch_default_skill,
     fetch_default_state,
     fetch_default_district,
     fetch_default_gender
 )
-
-
-FREELANCER_ROLE_ID = 4
-
-#freelancer status IDs
-STATUS_APPROVED = 1
-STATUS_PENDING = 2
-STATUS_REJECTED = 3
-
-#🔹 FREELANCER SERVICES🔹#
-STATUS_ASSIGNED = 4
-STATUS_NOT_ASSIGNED = 5
-STATUS_COMPLETED = 6
+from core.constants import (
+    FREELANCER_ROLE_ID,
+    STATUS_APPROVED,
+    STATUS_PENDING,
+    STATUS_REJECTED,
+    STATUS_ASSIGNED,
+    WORK_STATUS_JOB_COMPLETED,
+)
 
 
 def freelancer_login_service(db: Session, payload, response) -> dict:
+    """
+    Authenticate freelancer and generate JWT tokens.
+    Only allows login for APPROVED freelancers (status_id=1).
+    
+    Args:
+        db: Database session
+        payload: LoginRequest with email_or_phone and password
+        response: FastAPI response for setting cookies
+    
+    Returns:
+        Dictionary with tokens and user information
+    """
 
     identifier = payload.email_or_phone.strip()
 
-    query= db.query(UserRegistration).filter(
+    query = db.query(UserRegistration).filter(
         UserRegistration.role_id == FREELANCER_ROLE_ID, 
         UserRegistration.is_active == True
     )
@@ -53,7 +61,7 @@ def freelancer_login_service(db: Session, payload, response) -> dict:
     if not verify_password(payload.password, freelancer.password):
         raise HTTPException(status_code=400, detail="Invalid password")
     
-    
+    # Explicitly require APPROVED status (status_id=1)
     if freelancer.status_id == STATUS_PENDING:
         raise HTTPException(
             status_code=403,
@@ -65,12 +73,18 @@ def freelancer_login_service(db: Session, payload, response) -> dict:
             status_code=403,
             detail="Your account has been rejected by admin"
         )
+    
+    if freelancer.status_id != STATUS_APPROVED:
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has not been approved by admin"
+        )
 
 
     subject = {
         "user_id": str(freelancer.id),
         "email": freelancer.email,
-        "role": "freelancer"
+        "role_id": freelancer.role_id
     }
 
     access_token = create_access_token(subject)
@@ -96,7 +110,17 @@ def freelancer_login_service(db: Session, payload, response) -> dict:
         "expires_in": int(os.getenv("JWT_EXPIRE_MINUTES", 15)) * 60
     }
 
-def get_freelancer_by_id(db: Session, freelancer_id: int)-> dict:
+def get_freelancer_by_id(db: Session, freelancer_id: int) -> dict:
+    """
+    Fetch freelancer details including skills. Only accessible if APPROVED.
+    
+    Args:
+        db: Database session
+        freelancer_id: ID of freelancer to fetch
+    
+    Returns:
+        Dictionary with freelancer profile and skills
+    """
 
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
@@ -107,10 +131,11 @@ def get_freelancer_by_id(db: Session, freelancer_id: int)-> dict:
     if not freelancer:
         raise HTTPException(status_code=404, detail="Freelancer not found")
     
+    # Explicitly require APPROVED status
     if freelancer.status_id == STATUS_PENDING:
         raise HTTPException(
             status_code=403,
-            detail="Freelancer profile is still pending, wait  admin approval"
+            detail="Freelancer profile is still pending, wait for admin approval"
         )
     
     if freelancer.status_id == STATUS_REJECTED:
@@ -143,9 +168,20 @@ def get_freelancer_by_id(db: Session, freelancer_id: int)-> dict:
         "created_date": freelancer.created_date
     }
 
-def freelancer_update_service(db: Session, freelancer_id: int, payload):
+def freelancer_update_service(db: Session, freelancer_id: int, payload) -> dict:
+    """
+    Update freelancer profile. Only allowed for APPROVED freelancers.
+    
+    Args:
+        db: Database session
+        freelancer_id: ID of freelancer to update
+        payload: Update request with optional fields
+    
+    Returns:
+        Dictionary with success message
+    """
 
-    freelancer= db.query(UserRegistration).filter(
+    freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID,
         UserRegistration.is_active == True
@@ -175,7 +211,17 @@ def freelancer_update_service(db: Session, freelancer_id: int, payload):
 
 
 
-def freelancer_delete_service(db: Session, freelancer_id: int)-> dict:
+def freelancer_delete_service(db: Session, freelancer_id: int) -> dict:
+    """
+    Delete freelancer account and associated data.
+    
+    Args:
+        db: Database session
+        freelancer_id: ID of freelancer to delete
+    
+    Returns:
+        Dictionary with success message
+    """
 
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
@@ -190,7 +236,17 @@ def freelancer_delete_service(db: Session, freelancer_id: int)-> dict:
 
     return {"message": "Freelancer deleted successfully"}
 
-def freelancer_status_service(db: Session, freelancer_id: int)-> dict:
+def freelancer_status_service(db: Session, freelancer_id: int) -> dict:
+    """
+    Get freelancer account status with human-readable message.
+    
+    Args:
+        db: Database session
+        freelancer_id: ID of freelancer
+    
+    Returns:
+        Dictionary with status and status message
+    """
 
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == freelancer_id,
@@ -256,22 +312,22 @@ def freelancer_complete_job_service(
             detail="Service is assigned to another freelancer"
         )
 
-    # 4️⃣ Already completed
-    if service.status_id == STATUS_COMPLETED:
-        raise HTTPException(
-            status_code=409,
-            detail="Service is already marked as completed"
-        )
-
-    # 5️⃣ Not in assigned state
+    # 4️⃣ Not in assigned state
     if service.status_id != STATUS_ASSIGNED:
         raise HTTPException(
             status_code=400,
             detail="Service cannot be completed in its current state"
         )
 
-    # ✅ Valid completion
-    service.status_id = STATUS_COMPLETED
+    # 5️⃣ Check if already completed
+    if service.work_status_id == WORK_STATUS_JOB_COMPLETED:
+        raise HTTPException(
+            status_code=409,
+            detail="Service is already completed and cannot be completed again"
+        )
+
+    # ✅ Valid completion - Update status and mark completion time
+    service.work_status_id = WORK_STATUS_JOB_COMPLETED
     service.modified_date = datetime.utcnow()
 
     db.commit()
@@ -280,9 +336,7 @@ def freelancer_complete_job_service(
     return {
         "message": "Service marked as completed successfully",
         "service_id": service.id,
-        "previous_status": STATUS_ASSIGNED,
-        "current_status": STATUS_COMPLETED,
-        "status_name": "Completed",
+        "status": "Completed",
         "completed_by": freelancer_id,
         "completed_at": service.modified_date
     }

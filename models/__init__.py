@@ -3,6 +3,7 @@
 # ===============================
 
 from .master_status import MasterStatus
+from .master_work_status import MasterWorkStatus
 from .master_role import MasterRole
 
 from .master_module import MasterModule
