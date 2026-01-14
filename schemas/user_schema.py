@@ -210,6 +210,7 @@ class ProfessionalDetails(BaseModel):
 # ==================================================
 
 class RegisterUser(BaseModel):
+    """User registration request schema with work_type mapping."""
     first_name: str = Field(..., min_length=2, max_length=50)
     last_name: Optional[str] = None
 
@@ -222,9 +223,12 @@ class RegisterUser(BaseModel):
     gender_id: Optional[int] = None
     dob: Optional[date] = None
 
-    work_type: int = Field(..., description="1=Customer, 2=Freelancer, 3=Both")
+    work_type: int = Field(
+        ..., 
+        description="1=Customer (immediate approval), 2=Freelancer (pending approval), 3=Both (pending approval)"
+    )
 
-    service_ids: List[int] = Field(..., min_items=1)
+    service_ids: List[int] = Field(..., min_items=1, description="Service/module IDs to register for")
 
     government_id: Optional[List[GovernmentID]] = None
     professional_details: Optional[ProfessionalDetails] = None
@@ -261,17 +265,19 @@ class RegisterUser(BaseModel):
 
 
 class RegisterResponse(BaseModel):
-    message: str
+    """Response after successful user registration."""
+    message: str  # Role-based success message
 
     user_id: int
     unique_id: str
     email: EmailStr
     mobile: str
-    role_id: int
-    status_id: int
+    role_id: int  # 2=Customer, 4=Freelancer
+    status_id: int  # 1=Approved, 2=Pending
+    work_type: int  # 1=Customer, 2=Freelancer, 3=Both (input mapping)
 
-    service_ids: List[int]
-    skill_ids: List[int]
+    service_ids: List[int]  # Services/modules assigned
+    skill_ids: List[int]  # Skills for freelancers
 
     access_token: str
     refresh_token: str
@@ -290,17 +296,20 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
+    """Response after successful login with role-based data."""
+    message: str  # "User logged in as a customer" or "User logged in as a freelancer"
     user_id: int
     email_or_phone: str
 
-    service_ids: List[int]
-    skill_ids: List[int]
+    service_ids: List[int]  # Services/modules user is registered for
+    skill_ids: List[int]  # Skills user has (for freelancers)
 
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
     refresh_expires_in: int
+    role: str  # "customer" or "freelancer"
 
 
 # ==================================================

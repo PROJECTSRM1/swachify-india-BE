@@ -112,7 +112,15 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from models.home_service import HomeService
-from schemas.home_schema import HomeServiceBase, HomeServiceCreate, HomeServiceUpdate
+from schemas.home_schema import  HomeServiceCreate, HomeServiceUpdate
+from core.constants import (
+    BOOKING_STATUS_PENDING,
+    STATUS_ASSIGNED,
+    WORK_STATUS_ON_THE_WAY,
+    WORK_STATUS_REACHED_LOCATION,
+    WORK_STATUS_JOB_STARTED,
+    WORK_STATUS_JOB_COMPLETED,
+)
 
 
 # def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
@@ -150,7 +158,8 @@ def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
     service = HomeService(
         **data.model_dump(exclude={"created_by"}),
         created_by=user_id,
-        status_id=1,
+        status_id=BOOKING_STATUS_PENDING,
+        work_status_id=WORK_STATUS_ON_THE_WAY,
         is_active=True
     )
 

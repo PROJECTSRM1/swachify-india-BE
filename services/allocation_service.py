@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from sqlalchemy import and_,func,desc
+from sqlalchemy import and_,func,desc, asc
+from sqlalchemy.sql import literal
 
 from models.home_service import HomeService
 from models.user_registration import UserRegistration
@@ -8,7 +9,9 @@ from models.user_services import UserServices
 from core.constants import (
     CUSTOMER_ROLE_ID,
     FREELANCER_ROLE_ID,
-    BOOKING_STATUS_ASSIGNED
+    STATUS_APPROVED,
+    BOOKING_STATUS_ASSIGNED,
+    WORK_STATUS_ON_THE_WAY
 )
 from fastapi import HTTPException
 
@@ -17,7 +20,8 @@ def get_allocation_options(db, booking_id: int, user_id: int):
     # 1. Validate booking ownership
     booking = db.query(HomeService).filter(
         HomeService.id == booking_id,
-        HomeService.created_by == user_id
+        HomeService.created_by == user_id,
+        HomeService.is_active == True
     ).first()
 
     if not booking:
@@ -25,8 +29,14 @@ def get_allocation_options(db, booking_id: int, user_id: int):
             status_code=403,
             detail="You are not authorized to access this booking"
         )
+    
+    # Check if already allocated
+    if booking.assigned_to:
+        raise HTTPException(
+            status_code=400,
+            detail="Booking is already allocated to a freelancer"
+        )
 
-    # 2. Get employees matching service
     employees = (
         db.query(
             UserRegistration.id,
@@ -42,6 +52,9 @@ def get_allocation_options(db, booking_id: int, user_id: int):
         )
         .filter(
             UserServices.module_id == booking.module_id,
+            UserRegistration.is_active == True,
+            UserRegistration.role_id == FREELANCER_ROLE_ID,
+            UserRegistration.status_id == STATUS_APPROVED,
             UserRegistration.is_active == True
         )
         .group_by(UserRegistration.id)
@@ -65,6 +78,12 @@ def auto_allocate_employee(
     booking_id: int,
     system_user_id: int
 ):
+    """
+    Auto-allocate booking using ROUND-ROBIN strategy:
+    - Prefers freelancers with fewer active assignments
+    - Falls back to highest rating if workload is equal
+    - Ensures fair distribution across team
+    """
     booking = db.query(HomeService).filter(
         HomeService.id == booking_id,
         HomeService.created_by == system_user_id,
@@ -84,6 +103,8 @@ def auto_allocate_employee(
         )
 
     # 🔹 Find employees who provide this module/service
+    # ✅ ORDER BY: Workload (ASC) → Rating (DESC)
+    # This ensures fair distribution while maintaining quality
     employee = (
         db.query(UserRegistration)
         .join(UserServices, UserServices.user_id == UserRegistration.id)
@@ -92,12 +113,16 @@ def auto_allocate_employee(
             HomeService.assigned_to == UserRegistration.id
         )
         .filter(
-            UserRegistration.role_id==FREELANCER_ROLE_ID,
+            UserRegistration.role_id == FREELANCER_ROLE_ID,
             UserServices.module_id == booking.module_id,
-            UserRegistration.is_active.is_(True)
+            UserRegistration.is_active.is_(True),
+            UserRegistration.status_id == STATUS_APPROVED
         )
         .group_by(UserRegistration.id)
-        .order_by(desc(func.coalesce(func.avg(HomeService.rating), 0)))
+        .order_by(
+            asc(func.count(HomeService.id)),  # 🟢 Fewest assignments first
+            desc(func.coalesce(func.avg(HomeService.rating), 0))  # 🟢 Then highest rating
+        )
         .first()
     )
 
@@ -107,16 +132,18 @@ def auto_allocate_employee(
             detail="No employees available for this service"
         )
 
-    booking.assigned_to=employee.id,
-    booking.status_id=BOOKING_STATUS_ASSIGNED
+    booking.assigned_to = employee.id
+    booking.status_id = BOOKING_STATUS_ASSIGNED
+    booking.work_status_id = WORK_STATUS_ON_THE_WAY
 
     db.commit()
     db.refresh(booking)
 
     return {
-        "message": "Employee auto-allocated successfully",
+        "message": "Employee auto-allocated successfully (Round-Robin strategy)",
         "booking_id": booking.id,
-        "assigned_to": employee.id
+        "assigned_to": employee.id,
+        "strategy": "Distributes work evenly across freelancers"
     }
 
 
@@ -137,11 +164,19 @@ def manual_allocate_employee(
             status_code=404,
             detail="Booking not found"
         )
+    
+    # Check if already allocated
+    if booking.assigned_to:
+        raise HTTPException(
+            status_code=400,
+            detail="Booking is already allocated to a freelancer. Cannot allocate again."
+        )
 
     employee = db.query(UserRegistration).filter(
         UserRegistration.id == employee_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID,
-        UserRegistration.is_active.is_(True)
+        UserRegistration.is_active.is_(True),
+        UserRegistration.status_id == STATUS_APPROVED
     ).first()
 
     if not employee:
@@ -152,6 +187,7 @@ def manual_allocate_employee(
 
     booking.assigned_to = employee.id
     booking.status_id = BOOKING_STATUS_ASSIGNED, # ASSIGNED
+    booking.work_status_id = WORK_STATUS_ON_THE_WAY
     booking.modified_by = current_user_id
 
     db.commit()

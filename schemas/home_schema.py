@@ -117,12 +117,12 @@ class HomeServiceBase(BaseModel):
     sub_module_id: int
     service_id: int
     sub_service_id: int
-    sub_group_id: int
 
     full_name: str
     email: EmailStr
     mobile: str = Field(..., pattern=r"^[6-9]\d{9}$")
     address: str
+    others_address: Optional[str] = None
 
     service_type_id: int
     issue_id: Optional[int] = None
@@ -136,9 +136,6 @@ class HomeServiceBase(BaseModel):
     payment_type_id: int
     service_price: Optional[float] = None
     payment_done: bool = False
-
-    # ✅ INTERNAL FIELD (SET BY BACKEND, NOT CLIENT)
-    created_by: Optional[int] = None
 
     model_config = {"from_attributes": True}
 
@@ -162,6 +159,7 @@ class HomeServiceUpdate(BaseModel):
     email: Optional[EmailStr] = None
     mobile: Optional[str] = Field(None, pattern=r"^[6-9]\d{9}$")
     address: Optional[str] = None
+    others_address: Optional[str] = None
 
     issue_id: Optional[int] = None
     problem_description: Optional[str] = None
@@ -177,6 +175,7 @@ class HomeServiceUpdate(BaseModel):
 
     assigned_to: Optional[int] = None
     status_id: Optional[int] = None
+    work_status_id : Optional[int] = None
     is_active: Optional[bool] = None
 
 
@@ -190,12 +189,12 @@ class HomeServiceResponse(BaseModel):
     sub_module_id: Optional[int] = None
     service_id: Optional[int] = None
     sub_service_id: Optional[int] = None
-    sub_group_id: Optional[int] = None
 
     full_name: Optional[str] = None
     email: Optional[str] = None
     mobile: Optional[str] = None      # ✅ NO REGEX IN RESPONSE
     address: Optional[str] = None
+    others_address: Optional[str] = None
 
     service_type_id: Optional[int] = None
     issue_id: Optional[int] = None
@@ -214,6 +213,7 @@ class HomeServiceResponse(BaseModel):
     created_by: int                    # ✅ VISIBLE
     assigned_to: Optional[int] = None
     status_id: int
+    work_status_id:Optional[int] = None
     is_active: bool
 
     created_date: Optional[datetime] = None
@@ -230,5 +230,6 @@ class HomeServiceCreateResponse(BaseModel):
     message: str
     service_id: int
     status_id: int
+    work_status_id : int
     created_by: int
 

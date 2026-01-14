@@ -25,7 +25,7 @@ from models.user_registration import UserRegistration
 from models.master_module import MasterModule
 
 
-router = APIRouter(prefix="/student/education", tags=["Student Education"])
+router = APIRouter(prefix="/api/student/education", tags=["Student Education"])
 bearer_scheme = HTTPBearer() 
 
 # ================= CERTIFICATION =================

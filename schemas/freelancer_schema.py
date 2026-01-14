@@ -116,92 +116,37 @@
 #     user_id: int
 
 
-from pydantic import BaseModel, EmailStr, field_validator
-from typing import Optional, List
+from pydantic import BaseModel, field_validator
 import re
 
-VALID_GOV_ID_TYPES = ["aadhar", "pan", "voter", "driving_license"]
-
-
-class FreelancerRegister(BaseModel):
-    first_name: str
-    last_name: Optional[str] = None
-    email: EmailStr
-    mobile: str
-    password: str
-    confirm_password: str
-    role_id: int
-    gender_id: int
-    state_id: Optional[int] = None
-    district_id: Optional[int] = None
-
-    skill_id: Optional[int] = None
-
-    government_id_type: Optional[str] = None
-    government_id_number: Optional[str] = None
-
-    address: Optional[str] = None
-    experience_summary: Optional[str] = None
-    experience_doc: Optional[str] = None
-
-    # ---------------- VALIDATORS ----------------
-    @field_validator("email")
-    def validate_email(cls, v):
-        if not v.endswith("@gmail.com"):
-            raise ValueError("Email must end with @gmail.com")
-        return v
-
-    @field_validator("mobile")
-    def validate_mobile(cls, v):
-        if not re.fullmatch(r"^[6-9]\d{9}$", v):
-            raise ValueError("Invalid mobile number")
-        return v
-
-    @field_validator("password")
-    def validate_password(cls, v):
-        if len(v) > 72:
-            raise ValueError("Password too long")
-        pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
-        if not re.match(pattern, v):
-            raise ValueError("Weak password")
-        return v
-
-    @field_validator("confirm_password")
-    def validate_confirm_password(cls, v, info):
-        if v != info.data.get("password"):
-            raise ValueError("Passwords do not match")
-        return v
-
-    @field_validator("government_id_type")
-    def validate_gov_type(cls, v):
-        if v and v.lower() not in VALID_GOV_ID_TYPES:
-            raise ValueError(f"Invalid government ID type")
-        return v.lower() if v else v
-
-    @field_validator("government_id_number")
-    def validate_gov_number(cls, v, info):
-        gov_type = info.data.get("government_id_type")
-        if not v:
-            return v
-        if not gov_type:
-            raise ValueError("government_id_type required")
-
-        patterns = {
-            "aadhar": r"^\d{12}$",
-            "pan": r"^[A-Z]{5}\d{4}[A-Z]$",
-            "voter": r"^[A-Z]{3}\d{7}$",
-            "driving_license": r"^[A-Z]{2}\d{2}\s?\d{11}$",
-        }
-
-        if not re.fullmatch(patterns[gov_type], v):
-            raise ValueError(f"Invalid {gov_type} number")
-        return v
-
-
+# ==================================================
+# 🔹 FREELANCER LOGIN
+# ==================================================
 class FreelancerLogin(BaseModel):
+    """
+    Freelancer login request.
+    Note: Freelancer registration is handled by unified /api/auth/register endpoint with work_type=2
+    """
     email_or_phone: str
     password: str
+    
+    @field_validator("email_or_phone")
+    @classmethod
+    def validate_identifier(cls, v):
+        v = v.strip()
+        email_pattern = r"^\S+@\S+\.\S+$"
+        mobile_pattern = r"^[6-9]\d{9}$"
+        if not (re.match(email_pattern, v) or re.match(mobile_pattern, v)):
+            raise ValueError("Enter valid email or 10-digit mobile number")
+        return v
+    
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v):
+        v = v.strip()
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters")
+        if len(v) > 72:
+            raise ValueError("Password cannot exceed 72 characters (bcrypt limit)")
+        return v
 
-
-class FreelancerLogout(BaseModel):
-    user_id: int

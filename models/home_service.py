@@ -145,10 +145,12 @@
 
 from sqlalchemy import (
     Column, Integer, BigInteger, String,
-    Boolean, Date, DateTime, Numeric
+    Boolean, Date, DateTime, Numeric, ForeignKey
 )
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from core.database import Base
+
 
 
 class HomeService(Base):
@@ -161,13 +163,13 @@ class HomeService(Base):
     sub_module_id = Column(Integer, nullable=False)
     service_id = Column(BigInteger, nullable=False)
     sub_service_id = Column(Integer, nullable=False)
-    sub_group_id = Column(BigInteger, nullable=False)
 
     # Customer
     full_name = Column(String(255), nullable=False)
     email = Column(String(150), nullable=False)
     mobile = Column(String(255), nullable=False)
     address = Column(String(500), nullable=False)
+    others_address = Column(String(255), nullable=True)
 
     # Service details
     service_type_id = Column(Integer, nullable=False)
@@ -193,5 +195,16 @@ class HomeService(Base):
 
     assigned_to = Column(BigInteger)
     status_id = Column(Integer, nullable=False, default=1)
+    work_status_id = Column(
+        Integer,
+        ForeignKey("master_work_status.id"),
+        nullable=False
+    )  
     rating = Column(Integer)
     is_active = Column(Boolean, default=True)
+
+
+work_status = relationship(
+        "MasterWorkStatus",
+        lazy="joined"
+    )

@@ -76,6 +76,17 @@ def verify_token(token: str) -> dict:
 
 
 def is_admin_already_logged_in(request: Request):
+    """
+    Check if admin user already has active session via JWT token.
+    
+    Args:
+        request: HTTP request containing Authorization header
+    
+    Returns:
+        True if valid admin JWT token present, False otherwise
+    """
+    from core.constants import ADMIN_ROLE_ID
+    
     token = request.headers.get("Authorization")
 
     if not token:
@@ -85,7 +96,7 @@ def is_admin_already_logged_in(request: Request):
         token = token.replace("Bearer ", "")
         payload = verify_token(token)
 
-        if payload.get("role") == "admin":
+        if payload.get("role_id") == ADMIN_ROLE_ID:
             return True
 
         return False
@@ -94,9 +105,23 @@ def is_admin_already_logged_in(request: Request):
         return False 
     
 def verify_admin_token(token: str) -> dict:
+    """
+    Verify admin JWT token and validate admin role.
+    
+    Args:
+        token: JWT token string
+    
+    Returns:
+        Decoded token payload with admin data
+    
+    Raises:
+        HTTPException: If token invalid or user not admin
+    """
+    from core.constants import ADMIN_ROLE_ID
+    
     payload = verify_token(token)
     
-    if payload.get("role") != "admin":
+    if payload.get("role_id") != ADMIN_ROLE_ID:
         raise HTTPException(
             status_code=403,
             detail="Access denied. Admin privileges required."
