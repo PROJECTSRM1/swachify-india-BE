@@ -50,21 +50,9 @@ def hard_delete_admin(admin_id: int, db: Session = Depends(get_db)):
     return admin_hard_delete_service(db, admin_id)
 
 def get_current_admin(token: str) -> dict:
-    """
-    Verify admin JWT token and validate admin role.
-    
-    Args:
-        token: JWT token from Authorization header
-    
-    Returns:
-        Token payload dictionary with user_id, email, role_id
-    
-    Raises:
-        HTTPException: If token invalid or user is not admin
-    """
+  
     payload = verify_token(token)
     
-    # Check if user has admin role (role_id = 1)
     if payload.get("role_id") != ADMIN_ROLE_ID:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

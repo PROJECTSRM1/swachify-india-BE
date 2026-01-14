@@ -10,7 +10,6 @@ class MasterRole(Base):
     role_name = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
 
-    # Optional: back reference to users
     users = relationship(
         "UserRegistration",
         back_populates="role"

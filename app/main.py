@@ -21,10 +21,7 @@ load_dotenv()
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="Swachify India API",
-    version="1.0.0"
-)
+app = FastAPI(title="Swachify India API",version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
