@@ -44,6 +44,3 @@ app.include_router(master_module_router)
 app.include_router(student_education_router)
 app.include_router(payment_router)
 
-@app.get("/", tags=["Home"])
-def home():
-    return {"message": "Swachify India Backend Running Successfully!"}
