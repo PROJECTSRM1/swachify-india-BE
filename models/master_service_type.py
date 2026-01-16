@@ -1,4 +1,3 @@
-# models/master_service_type.py
 from sqlalchemy import Column, Integer, String, Boolean
 from core.database import Base
 

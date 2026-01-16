@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, Any
 
-# ================= CERTIFICATION =================
 
 class StudentCertificateCreate(BaseModel):
     user_id: int
@@ -24,7 +23,6 @@ class StudentCertificateResponse(BaseModel):
         from_attributes = True
 
 
-# ================= NOC =================
 
 class StudentNOCUpdate(BaseModel):
     user_id: int
@@ -45,22 +43,6 @@ class StudentNOCResponse(BaseModel):
         from_attributes = True
 
 
-# ================= PROFILE  =================
-
-# class StudentProfileResponse(BaseModel):
-#     first_name: str
-#     last_name: str
-#     email: str
-#     mobile_number: str
-#     government_id: Optional[List[Dict]]
-#     location: str
-#     work_type: str
-#     service_name: str
-
-#     class Config:
-#         from_attributes = True
-
-
 class StudentProfileResponse(BaseModel):
     user_id: int  
     first_name: str
@@ -73,9 +55,6 @@ class StudentProfileResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-# ================= EDUCATION =================
 
 class StudentEducationCreate(BaseModel):
     user_id: int

@@ -527,25 +527,9 @@ def register_user(db: Session, payload: RegisterUser):
         "refresh_expires_in": 60 * 60 * 24
     }
 
-# ==================================================
-# 🔹 LOGIN USER (JWT TOKENS)
-# ==================================================
+
 def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
-    """
-    Authenticate user and generate JWT tokens.
-    
-    Only allows login for APPROVED users (status_id=1).
-    Role determination:
-        - role_id=2 -> "customer"
-        - role_id=4 -> "freelancer"
-    
-    Args:
-        db: Database session
-        payload: LoginRequest with email/phone and password
-    
-    Returns:
-        LoginResponse with tokens, role, and user services/skills
-    """
+
     user = (
         db.query(UserRegistration)
         .filter(
@@ -562,7 +546,13 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
             detail="Invalid email/mobile or password"
         )
 
-    # 🔹 FETCH SERVICE IDs (modules)
+    # ✅ SAVE LATITUDE & LONGITUDE (THIS WAS MISSING)
+    if payload.latitude is not None and payload.longitude is not None:
+        user.latitude = payload.latitude
+        user.longitude = payload.longitude
+        db.commit()
+        db.refresh(user)
+
     service_ids = [
         s.module_id
         for s in db.query(UserServices)
@@ -570,7 +560,6 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
         .all()
     ]
 
-    # 🔹 FETCH SKILL IDs
     skill_ids = [
         s.skill_id
         for s in db.query(UserSkill)
@@ -578,11 +567,17 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
         .all()
     ]
 
-    # Determine role string based on role_id
-    role = "customer" if user.role_id == 2 else "freelancer" if user.role_id == 4 else "other"
-    
-    # Create role-based message
-    role_message = "User logged in as a customer" if role == "customer" else "User logged in as a freelancer"
+    role = (
+        "customer" if user.role_id == 2
+        else "freelancer" if user.role_id == 4
+        else "other"
+    )
+
+    role_message = (
+        "User logged in as a customer"
+        if role == "customer"
+        else "User logged in as a freelancer"
+    )
 
     token_payload = {
         "user_id": user.id,
@@ -596,9 +591,14 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
         email_or_phone=payload.email_or_phone,
         service_ids=service_ids,
         skill_ids=skill_ids,
+
+        # ✅ NOW THESE WILL NOT BE NULL
+        latitude=float(user.latitude) if user.latitude else None,
+        longitude=float(user.longitude) if user.longitude else None,
+
         access_token=create_access_token(token_payload),
         refresh_token=create_refresh_token(token_payload),
-        expires_in=60 * 60,
-        refresh_expires_in=60 * 60 * 24,
+        expires_in=3600,
+        refresh_expires_in=86400,
         role=role
     )
