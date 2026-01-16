@@ -65,37 +65,37 @@ def create_master_data(type: str, data: dict, db: Session = Depends(get_db)):
     return obj
 
 
-@router.put("/master-data/{id}")
-def update_master_data(id: int, type: str, data: dict, db: Session = Depends(get_db)):
-    ModelClass = MODEL_MAP.get(type)
-    if not ModelClass:
-        raise HTTPException(400, "Invalid type")
+# @router.put("/master-data/{id}")
+# def update_master_data(id: int, type: str, data: dict, db: Session = Depends(get_db)):
+#     ModelClass = MODEL_MAP.get(type)
+#     if not ModelClass:
+#         raise HTTPException(400, "Invalid type")
 
-    obj = db.query(ModelClass).filter(ModelClass.id == id).first()
-    if not obj:
-        raise HTTPException(404, "Not found")
+#     obj = db.query(ModelClass).filter(ModelClass.id == id).first()
+#     if not obj:
+#         raise HTTPException(404, "Not found")
 
-    for key, value in data.items():
-        setattr(obj, key, value)
+#     for key, value in data.items():
+#         setattr(obj, key, value)
 
-    db.commit()
-    db.refresh(obj)
-    return obj
+#     db.commit()
+#     db.refresh(obj)
+#     return obj
 
 
-@router.delete("/master-data/{id}")
-def delete_master_data(id: int, type: str, db: Session = Depends(get_db)):
-    ModelClass = MODEL_MAP.get(type)
-    if not ModelClass:
-        raise HTTPException(400, "Invalid type")
+# @router.delete("/master-data/{id}")
+# def delete_master_data(id: int, type: str, db: Session = Depends(get_db)):
+#     ModelClass = MODEL_MAP.get(type)
+#     if not ModelClass:
+#         raise HTTPException(400, "Invalid type")
 
-    obj = db.query(ModelClass).filter(ModelClass.id == id).first()
-    if not obj:
-        raise HTTPException(404, "Not found")
+#     obj = db.query(ModelClass).filter(ModelClass.id == id).first()
+#     if not obj:
+#         raise HTTPException(404, "Not found")
 
-    db.delete(obj)
-    db.commit()
-    return {"message": "Deleted successfully"}
+#     db.delete(obj)
+#     db.commit()
+#     return {"message": "Deleted successfully"}
 
 @router.get("/home-service", response_model=list[HomeServiceResponse])
 def read_home_services(db: Session = Depends(get_db)):
@@ -105,47 +105,21 @@ def read_home_services(db: Session = Depends(get_db)):
 def read_home_service_by_id(id: int, db: Session = Depends(get_db)):
     return get_home_service(db, id)
 
-@router.post(
-    "/home-service",
-    response_model=HomeServiceResponse
-)
-def create_new_home_service(
-    data: HomeServiceCreate,
-    db: Session = Depends(get_db),
-    current_user: UserRegistration = Depends(get_current_user)
-):
-    """
-    Create a new home service booking.
-    
-    🔹 REQUIRED FIELDS:
-    - module_id, sub_module_id, service_id, sub_service_id, sub_group_id
-    - full_name, email, mobile (10 digits, starts with 6-9), address
-    - service_type_id, duration_id
-    - preferred_date, time_slot_id
-    - payment_type_id, service_price
-    
-    🔹 OPTIONAL FIELDS:
-    - issue_id, problem_description, property_size_sqft
-    
-    🔹 NOTES:
-    - created_by is automatically set from authenticated user
-    - status_id is automatically set to 1 (pending)
-    - payment_done defaults to false
-    """
-
+@router.post("/home-service",response_model=HomeServiceResponse)
+def create_new_home_service(data: HomeServiceCreate,db: Session = Depends(get_db),current_user: UserRegistration = Depends(get_current_user)):
     return create_home_service(db, data, current_user.id)
 
 
 
-@router.put("/home-service/{id}", response_model=HomeServiceResponse)
-def update_existing_home_service(
-    id: int,
-    data: HomeServiceUpdate,
-    db: Session = Depends(get_db)
-):
-    return update_home_service(db, id, data)
+# @router.put("/home-service/{id}", response_model=HomeServiceResponse)
+# def update_existing_home_service(
+#     id: int,
+#     data: HomeServiceUpdate,
+#     db: Session = Depends(get_db)
+# ):
+#     return update_home_service(db, id, data)
 
 
-@router.delete("/home-service/{id}")
-def remove_home_service(id: int, db: Session = Depends(get_db)):
-    return delete_home_service(db, id)
+# @router.delete("/home-service/{id}")
+# def remove_home_service(id: int, db: Session = Depends(get_db)):
+#     return delete_home_service(db, id)
