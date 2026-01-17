@@ -38,6 +38,28 @@ def get_job_opening(db: Session, job_id: int):
         raise HTTPException(404, "Job not found")
     return job
 
+def delete_job_opening_service(db: Session,job_id: int,user_id: int):
+    job = (
+        db.query(JobOpenings)
+        .filter(
+            JobOpenings.id == job_id,
+            JobOpenings.created_by == user_id,
+            JobOpenings.is_active == True
+        )
+        .first()
+    )
+
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Job opening not found or not authorized"
+        )
+
+    job.is_active = False  
+    db.commit()
+
+    return {"message": "Job opening deleted successfully"}
+
 
 
 

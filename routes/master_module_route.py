@@ -4,14 +4,15 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 
 from core.dependencies import get_current_user
-from models.master_module import MasterModule
-from models.master_sub_module import MasterSubModule
-from models.master_service import MasterService
-from models.master_sub_service import MasterSubService
-from models.master_sub_group import MasterSubGroup
-from models.master_service_type import MasterServiceType
+# from models.master_module import MasterModule
+# from models.master_sub_module import MasterSubModule
+# from models.master_service import MasterService
+# from models.master_sub_service import MasterSubService
+# from models.master_sub_group import MasterSubGroup
+# from models.master_service_type import MasterServiceType
 
-from models.user_registration import UserRegistration
+from models.generated_models import UserRegistration,MasterModule,MasterSubModule,MasterService,MasterSubService,MasterSubGroup,MasterServiceType
+# from models.user_registration import UserRegistration
 from schemas.home_schema import (
     HomeServiceBase,
     HomeServiceCreate,

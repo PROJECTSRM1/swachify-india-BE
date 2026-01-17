@@ -23,7 +23,8 @@ from services.student_education_service import (
     create_job_openings,
     get_job_openings,
     get_job_opening,
-    apply_job_service
+    apply_job_service,
+    delete_job_opening_service
 )
 
 # Router
@@ -85,6 +86,22 @@ def get_opening(
     if not job:
         raise HTTPException(status_code=404, detail="Job opening not found")
     return job
+
+
+@router.delete("/openings/{job_id}")
+def delete_job_opening(
+    job_id: int,
+    db: Session = Depends(get_db),
+    current_user: UserRegistration = Depends(get_current_user)
+):
+    """
+    Delete (soft delete) a job opening
+    """
+    return delete_job_opening_service(
+        db=db,
+        job_id=job_id,
+        user_id=current_user.id
+    )
 
 
 # ==================================================

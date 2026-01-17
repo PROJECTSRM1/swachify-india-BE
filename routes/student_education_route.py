@@ -1,74 +1,47 @@
 from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy.orm import Session
 from fastapi.security import HTTPBearer
-
 from core.database import get_db
 from core.dependencies import get_current_user
 
-# ---------------- SCHEMAS ----------------
 from schemas.student_education_schema import (
     StudentCertificateCreate,
     StudentCertificateResponse,
     StudentProfileResponse,
+    StudentProfileRequest,
     StudentEducationCreate,
     StudentNOCUpdate,
     StudentNOCResponse
 )
 
-# ---------------- SERVICES ----------------
 from services.student_education_service import (
     create_student_certificate,
+    get_student_certificates,
     add_student_education_service,
     update_student_noc
 )
 
-# ---------------- MODELS ----------------
 from models.user_registration import UserRegistration
 from models.master_module import MasterModule
 
-# ---------------- ROUTER ----------------
-router = APIRouter(
-    prefix="/api/student",
-    tags=["Education Module"]
-)
 
-bearer_scheme = HTTPBearer()
+router = APIRouter(prefix="/api/student/education", tags=["Student Education"])
+bearer_scheme = HTTPBearer() 
 
-# ==================================================
-# ADD CERTIFICATE
-# ==================================================
-@router.post(
-    "/education/certifications",
-    response_model=StudentCertificateResponse
-)
+@router.post("/certifications")
 def add_certificate(
     payload: StudentCertificateCreate,
     db: Session = Depends(get_db),
-    current_user: UserRegistration = Depends(get_current_user)
 ):
-    return create_student_certificate(
-        db=db,
-        payload=payload,
-        user_id=current_user.id   # ✅ FIX
-    )
+    return create_student_certificate(db, payload)
 
-# ==================================================
-# UPDATE NOC
-# ==================================================
-@router.post(
-    "/education/noc",
-    response_model=StudentNOCResponse
-)
+
+@router.post("/noc", response_model=StudentNOCResponse)
 def save_student_noc(
     payload: StudentNOCUpdate,
-    db: Session = Depends(get_db),
-    current_user: UserRegistration = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
-    user = update_student_noc(
-        db=db,
-        payload=payload,
-        user_id=current_user.id   # ✅ SAFE
-    )
+    user = update_student_noc(db, payload)
 
     return {
         "user_id": user.id,
@@ -78,22 +51,22 @@ def save_student_noc(
         "upload_noc": user.upload_noc
     }
 
-# ==================================================
-# GET STUDENT PROFILE
-# ==================================================
+
 @router.get(
-    "/education/profile",
+    "/profile",
     response_model=StudentProfileResponse,
     dependencies=[Security(bearer_scheme)]
 )
+
 def get_student_profile(
     current_user: UserRegistration = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    user_id = current_user.id
     student = (
         db.query(UserRegistration)
         .filter(
-            UserRegistration.id == current_user.id,
+            UserRegistration.id == user_id,
             UserRegistration.services.any(
                 MasterModule.module_name == "Education"
             )
@@ -107,9 +80,8 @@ def get_student_profile(
             detail="Student profile not found"
         )
 
-    # ✅ MAP RESPONSE EXPLICITLY
     return StudentProfileResponse(
-        user_id=student.id,
+        user_id=student.id, 
         first_name=student.first_name,
         last_name=student.last_name,
         email=student.email,
@@ -119,23 +91,21 @@ def get_student_profile(
         service_name="Education"
     )
 
-# ==================================================
-# ADD EDUCATION DETAILS
-# ==================================================
-@router.post("/education")
+@router.post("")
 def add_student_education(
     payload: StudentEducationCreate,
-    db: Session = Depends(get_db),
-    current_user: UserRegistration = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
+    
+
     education = add_student_education_service(
-        user_id=current_user.id,
+        user_id=payload.user_id,
         payload=payload,
         db=db
     )
 
     return {
         "message": "Education qualification added successfully",
-        "user_id": current_user.id,
+        "user_id":payload.user_id,
         "education_id": education.id
     }
