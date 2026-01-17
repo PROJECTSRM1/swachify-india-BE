@@ -9,6 +9,71 @@ from schemas.student_education_schema import (
 
 from models.user_registration import UserRegistration
 from models.student_qualification import StudentQualification
+from models.generated_models import JobOpenings
+from schemas.student_education_schema import JobOpeningCreate
+
+from sqlalchemy.orm import Session
+from models.generated_models import JobApplication
+from schemas.student_education_schema import JobApplicationCreate
+
+
+
+
+##job openings
+
+def create_job_openings(db:Session,data:JobOpeningCreate,user_id:int):
+    job=JobOpenings(**data.model_dump(),created_by=user_id)
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+    return job
+
+def get_job_openings(db: Session):
+    return db.query(JobOpenings).filter(JobOpenings.is_active == True).all()
+
+
+def get_job_opening(db: Session, job_id: int):
+    job = db.query(JobOpenings).filter(JobOpenings.id == job_id).first()
+    if not job:
+        raise HTTPException(404, "Job not found")
+    return job
+
+def delete_job_opening_service(db: Session,job_id: int,user_id: int):
+    job = (
+        db.query(JobOpenings)
+        .filter(
+            JobOpenings.id == job_id,
+            JobOpenings.created_by == user_id,
+            JobOpenings.is_active == True
+        )
+        .first()
+    )
+
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Job opening not found or not authorized"
+        )
+
+    job.is_active = False  
+    db.commit()
+
+    return {"message": "Job opening deleted successfully"}
+
+
+
+
+def apply_job_service(db: Session,payload: JobApplicationCreate,user_id: int):
+    application = JobApplication(**payload.model_dump(),user_id=user_id)
+    db.add(application)
+    db.commit()
+    db.refresh(application)
+    return application
+
+
+
+
+
 
 
 # ================= CERTIFICATION =================

@@ -15,6 +15,7 @@ from routes.freelancer_route import router as freelancer_router
 from routes.master_module_route import router as master_module_router
 from routes.payment_routes import router as payment_router
 from routes.student_education_route import router as student_education_router
+from routes.job_application_openings_route import router as job_application_openings_router
 
 
 load_dotenv()
@@ -42,5 +43,7 @@ app.include_router(admin_router)
 app.include_router(freelancer_router)
 app.include_router(master_module_router)
 app.include_router(student_education_router)
+app.include_router(job_application_openings_router)
 app.include_router(payment_router)
+
 

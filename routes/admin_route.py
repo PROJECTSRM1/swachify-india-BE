@@ -20,6 +20,8 @@ from models.master.master_skill import MasterSkill
 from models.master.master_state import MasterState
 from models.master.master_district import MasterDistrict
 
+# from models.generated_models import MasterGender,MasterSkill, MasterState, MasterDistrict
+
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
 
