@@ -34,33 +34,14 @@ def get_by_id(listing_id: int,db: Session = Depends(get_db)):
 
 
 
-@router.post(
-    "/-listing",
-    response_model=PropertyListingResponse
-)
-def create(
-    payload: PropertyListingCreate,
-    db: Session = Depends(get_db)
-):
+@router.post("-listing",response_model=PropertyListingResponse)
+def create(payload: PropertyListingCreate,db: Session = Depends(get_db)):
     return create_property_listing(payload, db)
 
-
-# ---------------- GET ALL ----------------
-@router.get(
-    "/-listing",
-    response_model=list[PropertyListingResponse]
-)
+@router.get("-listing",response_model=list[PropertyListingResponse])
 def get_all(db: Session = Depends(get_db)):
     return get_all_property_listings(db)
 
-
-# ---------------- GET BY ID ----------------
-@router.get(
-    "/-listing/{listing_id}",
-    response_model=PropertyListingResponse
-)
-def get_by_id(
-    listing_id: int,
-    db: Session = Depends(get_db)
-):
+@router.get("-listing/{listing_id}",response_model=PropertyListingResponse)
+def get_by_id(listing_id: int,db: Session = Depends(get_db)):
     return get_property_listing_by_id(listing_id, db)
