@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-
-from models.master_sub_service import MasterSubService
+from models.generated_models import MasterSubService
 from schemas.master_sub_service_schema import (
     SubServiceCreate,
     SubServiceUpdate

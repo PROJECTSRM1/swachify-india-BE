@@ -5,12 +5,9 @@ from fastapi import HTTPException
 from pydantic import validate_call
 from sqlalchemy.orm import Session
 from datetime import datetime
-from models.user_skill import UserSkill
-from models.user_services import UserServices
 from services.role_service import validate_role
 from utils.jwt_utils import create_access_token, create_refresh_token
-from models.user_registration import UserRegistration
-from models.home_service import HomeService
+from models.generated_models import UserRegistration,HomeService,UserSkill,UserServices
 from utils.hash_utils import hash_password, verify_password
 from services.master_default_service import (
     fetch_default_skill,

@@ -21,14 +21,9 @@ from services.freelancer_service import (
 )
 
 router = APIRouter(prefix="/api/freelancer", tags=["Freelancer"])
-# Freelancer registration is now handled by /api/auth/register with work_type=2
-# Use /api/auth/register endpoint instead
 
 @router.get("/status/{freelancer_id}")
-def get_freelancer_status(
-    freelancer_id: int,
-    db: Session = Depends(get_db)
-):
+def get_freelancer_status(freelancer_id: int,db: Session = Depends(get_db)):
   return freelancer_status_service(db, freelancer_id)
 
 @router.post("/login")
@@ -36,22 +31,11 @@ def login_freelancer(payload: FreelancerLogin, response: Response, db: Session =
     return freelancer_login_service(db, payload, response)
 
 @router.get("/{freelancer_id}")
-def get_freelancer_details(
-    freelancer_id: int,
-    db: Session = Depends(get_db)
-):
+def get_freelancer_details(freelancer_id: int,db: Session = Depends(get_db)):
     return get_freelancer_by_id(db, freelancer_id)
 
 @router.put("/update/{freelancer_id}")
-def update_freelancer(
-    freelancer_id: int,
-    db: Session = Depends(get_db),
-    freelancer = Depends(get_current_freelancer)
-):
-    """
-    Update freelancer profile. Use request body for profile updates.
-    Note: Freelancer registration is now handled by /api/auth/register with work_type=2
-    """
+def update_freelancer(freelancer_id: int,db: Session = Depends(get_db),freelancer = Depends(get_current_freelancer)):
     return freelancer_update_service(db, freelancer_id, None)
 
 
@@ -60,11 +44,7 @@ def delete_freelancer(freelancer_id: int, db: Session = Depends(get_db)):
     return freelancer_delete_service(db, freelancer_id)
 
 @router.put("/services/{service_id}/complete", response_model=None)
-def complete_service(
-    service_id: int,
-    db: Session = Depends(get_db),
-    freelancer = Depends(get_current_freelancer)
-):
+def complete_service(service_id: int,db: Session = Depends(get_db),freelancer = Depends(get_current_freelancer)):
     return freelancer_complete_job_service(
         db=db,
         freelancer_id=freelancer["user_id"],

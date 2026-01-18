@@ -6,14 +6,10 @@ from schemas.student_education_schema import (
     StudentCertificateCreate,
     StudentNOCUpdate
 )
-
-from models.user_registration import UserRegistration
-from models.student_qualification import StudentQualification
-from models.generated_models import JobOpenings
+from models.generated_models import UserRegistration,StudentQualification,JobOpenings,JobApplication
 from schemas.student_education_schema import JobOpeningCreate
 
 from sqlalchemy.orm import Session
-from models.generated_models import JobApplication
 from schemas.student_education_schema import JobApplicationCreate
 
 
@@ -38,29 +34,36 @@ def get_job_opening(db: Session, job_id: int):
         raise HTTPException(404, "Job not found")
     return job
 
-def delete_job_opening_service(db: Session,job_id: int,user_id: int):
-    job = (
+
+def delete_job_opening_service(db: Session,opening_id: int,user_id: int):
+    job_opening = (
         db.query(JobOpenings)
         .filter(
-            JobOpenings.id == job_id,
-            JobOpenings.created_by == user_id,
+            JobOpenings.id == opening_id,
             JobOpenings.is_active == True
         )
         .first()
     )
 
-    if not job:
+    if not job_opening:
         raise HTTPException(
             status_code=404,
-            detail="Job opening not found or not authorized"
+            detail="Job opening not found"
         )
 
-    job.is_active = False  
+    if job_opening.created_by != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to delete this job opening"
+        )
+    job_opening.is_active = False
+    job_opening.modified_by = user_id
+
     db.commit()
 
-    return {"message": "Job opening deleted successfully"}
-
-
+    return {
+        "message": "Job opening deleted successfully"
+    }
 
 
 def apply_job_service(db: Session,payload: JobApplicationCreate,user_id: int):

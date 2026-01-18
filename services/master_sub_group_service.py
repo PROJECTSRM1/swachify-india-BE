@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-
-from models.master_sub_group import MasterSubGroup
+from models.generated_models import MasterSubGroup
 from schemas.master_sub_group_schema import (SubGroupCreate,SubGroupUpdate)
 
 

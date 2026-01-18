@@ -21,8 +21,7 @@ from services.student_education_service import (
     update_student_noc
 )
 
-from models.user_registration import UserRegistration
-from models.master_module import MasterModule
+from models.generated_models import UserRegistration, MasterModule
 
 
 router = APIRouter(prefix="/api/student/education", tags=["Student Education"])
@@ -52,24 +51,60 @@ def save_student_noc(
     }
 
 
+# @router.get(
+#     "/profile",
+#     response_model=StudentProfileResponse,
+#     dependencies=[Security(bearer_scheme)]
+# )
+
+# def get_student_profile(
+#     current_user: UserRegistration = Depends(get_current_user),
+#     db: Session = Depends(get_db)
+# ):
+#     user_id = current_user.id
+#     student = (
+#         db.query(UserRegistration)
+#         .filter(
+#             UserRegistration.id == user_id,
+#             UserRegistration.services.any(
+#                 MasterModule.module_name == "Education"
+#             )
+#         )
+#         .first()
+#     )
+
+#     if not student:
+#         raise HTTPException(
+#             status_code=404,
+#             detail="Student profile not found"
+#         )
+
+#     return StudentProfileResponse(
+#         user_id=student.id, 
+#         first_name=student.first_name,
+#         last_name=student.last_name,
+#         email=student.email,
+#         mobile_number=student.mobile,
+#         government_id=student.government_id,
+#         location=student.address,
+#         service_name="Education"
+#     )
+
+
 @router.get(
     "/profile",
     response_model=StudentProfileResponse,
     dependencies=[Security(bearer_scheme)]
 )
-
 def get_student_profile(
     current_user: UserRegistration = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    user_id = current_user.id
     student = (
         db.query(UserRegistration)
         .filter(
-            UserRegistration.id == user_id,
-            UserRegistration.services.any(
-                MasterModule.module_name == "Education"
-            )
+            UserRegistration.id == current_user.id,
+            UserRegistration.is_active == True
         )
         .first()
     )
@@ -81,7 +116,7 @@ def get_student_profile(
         )
 
     return StudentProfileResponse(
-        user_id=student.id, 
+        user_id=student.id,
         first_name=student.first_name,
         last_name=student.last_name,
         email=student.email,
@@ -90,6 +125,7 @@ def get_student_profile(
         location=student.address,
         service_name="Education"
     )
+
 
 @router.post("")
 def add_student_education(

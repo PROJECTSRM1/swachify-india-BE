@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.master_time_slot import MasterTimeSlot
+from models.generated_models import MasterTimeSlot
 from schemas.master_time_slot_schema import TimeSlotCreate, TimeSlotUpdate
 
 def build_timeslot_response(record: MasterTimeSlot):

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from core.database import get_db,SessionLocal
 from core.dependencies import get_current_user
-from models.user_registration import UserRegistration
+from models.generated_models import UserRegistration
 from services.allocation_service import (
     get_allocation_options,
     auto_allocate_employee,

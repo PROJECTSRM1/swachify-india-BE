@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Request
 from sqlalchemy import or_
-from models.user_registration import UserRegistration
-from models.home_service import HomeService
+from models.generated_models import UserRegistration,HomeService
 from schemas.admin_schema import RegisterAdmin, AdminLogin, UserBase
 from utils.hash_utils import hash_password, verify_password
 from utils.jwt_utils import create_access_token, create_refresh_token, is_admin_already_logged_in
