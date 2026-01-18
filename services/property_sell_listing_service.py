@@ -1,11 +1,8 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from models.generated_models import PropertySellListing, PropertyListing,UserRegistration
-from models.generated_models import MasterCity
-from models.master_module import MasterModule
-from models.master_sub_module import MasterSubModule
-from schemas.property_sell_listing_schema import (PropertySellListingCreate,PropertyListingCreate)
+from models.generated_models import PropertySellListing, PropertyListing,UserRegistration, MasterModule, MasterSubModule, MasterCity
 
+from schemas.property_sell_listing_schema import (PropertySellListingCreate,PropertyListingCreate)
 
 
 def create_property_sell_listing(payload: PropertySellListingCreate,db: Session):

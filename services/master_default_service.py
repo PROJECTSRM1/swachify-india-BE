@@ -1,8 +1,4 @@
 from sqlalchemy.orm import Session
-# from models.master.master_skill import MasterSkill
-# from models.master.master_state import MasterState
-# from models.master.master_district import MasterDistrict
-# from models.master.master_gender import MasterGender
 from models.generated_models import MasterSkill, MasterState, MasterDistrict, MasterGender
 
 def fetch_default_skill(db: Session):

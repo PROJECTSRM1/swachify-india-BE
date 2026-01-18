@@ -14,17 +14,7 @@ from core.constants import (
 
 
 def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
-    """
-    Create a new home service booking.
-    
-    Args:
-        db: Database session
-        data: HomeServiceCreate schema containing all service details
-        user_id: The user ID (customer) creating the booking
-    
-    Returns:
-        HomeService object with all details
-    """
+  
     service = HomeService(
         **data.model_dump(exclude={"created_by"}),
         created_by=user_id,
@@ -41,15 +31,10 @@ def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
 
 
 def get_home_services(db: Session):
-        
-    """Get all active home services."""
-
     return db.query(HomeService).filter(HomeService.is_active == True).all()
 
 
 def get_home_service(db: Session, service_id: int):
-    """Get a specific home service by ID."""
-
     obj = db.query(HomeService).filter(HomeService.id == service_id).first()
     if not obj:
         raise HTTPException(404, "Service not found")
@@ -57,9 +42,6 @@ def get_home_service(db: Session, service_id: int):
 
 
 def update_home_service(db: Session, service_id: int, data: HomeServiceUpdate):
-
-    """Update a home service booking."""
-
     obj = db.query(HomeService).filter(HomeService.id == service_id).first()
     if not obj:
         raise HTTPException(404, "Service not found")
@@ -73,9 +55,6 @@ def update_home_service(db: Session, service_id: int, data: HomeServiceUpdate):
 
 
 def delete_home_service(db: Session, service_id: int):
-
-    """Soft delete a home service (mark as inactive)."""
-    
     obj = db.query(HomeService).filter(HomeService.id == service_id).first()
     if not obj:
         raise HTTPException(404, "Service not found")

@@ -2,10 +2,6 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy import and_,func,desc, asc
 from sqlalchemy.sql import literal
-
-# from models.home_service import HomeService
-# from models.user_registration import UserRegistration
-# from models.user_services import UserServices
 from models.generated_models import HomeService,UserRegistration,UserServices
 from core.constants import (
     CUSTOMER_ROLE_ID,

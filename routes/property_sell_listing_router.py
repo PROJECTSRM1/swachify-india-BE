@@ -32,8 +32,6 @@ def get_by_id(listing_id: int,db: Session = Depends(get_db)):
     return get_property_sell_listing_by_id(listing_id, db)
 
 
-
-
 @router.post("-listing",response_model=PropertyListingResponse)
 def create(payload: PropertyListingCreate,db: Session = Depends(get_db)):
     return create_property_listing(payload, db)

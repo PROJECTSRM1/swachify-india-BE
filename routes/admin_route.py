@@ -13,13 +13,13 @@ from services.admin_service import (
     get_all_customers_service, get_customer_details_service
 )
 from utils.jwt_utils import verify_admin_token, verify_token
-from models.user_registration import UserRegistration
 import json
-from models.master.master_gender import MasterGender
-from models.master.master_skill import MasterSkill
-from models.master.master_state import MasterState
-from models.master.master_district import MasterDistrict
-# from models.generated_models import MasterGender,MasterSkill, MasterState, MasterDistrict,UserRegistration
+# from models.master.master_gender import MasterGender
+# from models.master.master_skill import MasterSkill
+# from models.master.master_state import MasterState
+# from models.master.master_district import MasterDistrict
+# from models.user_registration import UserRegistration
+from models.generated_models import MasterGender,MasterSkill, MasterState, MasterDistrict,UserRegistration
 
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])

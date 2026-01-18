@@ -14,7 +14,6 @@ from schemas.user_schema import (
 )
 from services.user_registration_service import (register_user,login_user)
 from utils.jwt_utils import verify_token, create_access_token
-# from models.user_registration import UserRegistration
 from models.generated_models import UserRegistration
 
 router = APIRouter(prefix="/api/auth",tags=["User Authentication"])

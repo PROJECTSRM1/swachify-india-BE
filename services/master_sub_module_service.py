@@ -1,7 +1,5 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-
-# from models.master_sub_module import MasterSubModule
 from models.generated_models import MasterSubModule
 from schemas.sub_module_schema import (
     SubModuleCreate,

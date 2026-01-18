@@ -1,10 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from typing import Dict
-
 from sqlalchemy.orm import Session
-
-# from models.user_registration import UserRegistration
 from models.generated_models import UserRegistration
 from utils.hash_utils import hash_password
 from utils.otp_utils import generate_otp
