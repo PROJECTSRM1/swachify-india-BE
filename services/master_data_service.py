@@ -1,13 +1,13 @@
 from sqlalchemy.orm import Session
 
-from models.master_module import MasterModule
-from models.master_sub_module import MasterSubModule
-from models.master_service import MasterService
-from models.master_sub_service import MasterSubService
-from models.master_sub_group import MasterSubGroup
-from models.master_service_type import MasterServiceType
+# from models.master_module import MasterModule
+# from models.master_sub_module import MasterSubModule
+# from models.master_service import MasterService
+# from models.master_sub_service import MasterSubService
+# from models.master_sub_group import MasterSubGroup
+# from models.master_service_type import MasterServiceType
 
-
+from models.generated_models import MasterModule,MasterSubModule,MasterService,MasterSubService,MasterSubGroup,MasterServiceType
 
 def get_master_data(db: Session):
     return {

@@ -21,8 +21,9 @@ from services.student_education_service import (
     update_student_noc
 )
 
-from models.user_registration import UserRegistration
-from models.master_module import MasterModule
+# from models.user_registration import UserRegistration
+# from models.master_module import MasterModule
+from models.generated_models import UserRegistration, MasterModule
 
 
 router = APIRouter(prefix="/api/student/education", tags=["Student Education"])

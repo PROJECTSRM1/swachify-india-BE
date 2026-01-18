@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
-from models.master_module import MasterModule
-from models.user_services import UserServices
-from models.user_registration import UserRegistration
+# from models.master_module import MasterModule
+# from models.user_services import UserServices
+# from models.user_registration import UserRegistration
+
+from models.generated_models import MasterModule, UserServices, UserRegistration
 
 
 def get_dashboard(db: Session, user: UserRegistration):

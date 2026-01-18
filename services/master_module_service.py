@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from models.master_module import MasterModule
+# from models.master_module import MasterModule
+from models.generated_models import MasterModule
 from schemas.master_module_schema import (MasterModuleCreate,MasterModuleUpdate)
 
 def get_modules_service(db: Session):

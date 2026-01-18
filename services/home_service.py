@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from models.home_service import HomeService
+from models.generated_models import HomeService
 from schemas.home_schema import  HomeServiceCreate, HomeServiceUpdate
 from core.constants import (
     BOOKING_STATUS_PENDING,

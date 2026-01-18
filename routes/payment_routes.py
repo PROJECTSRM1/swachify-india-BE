@@ -5,7 +5,8 @@ import razorpay
 import os
 
 from core.database import get_db          
-from models.home_service import HomeService 
+# from models.home_service import HomeService 
+from models.generated_models import HomeService
 
 router = APIRouter(prefix="/api/payment", tags=["Payment"])
 

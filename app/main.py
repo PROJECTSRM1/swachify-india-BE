@@ -3,8 +3,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-import models  
-
 from core.database import Base, engine
 
 from routes.user_registration_route import router as user_registration_router
@@ -16,6 +14,7 @@ from routes.master_module_route import router as master_module_router
 from routes.payment_routes import router as payment_router
 from routes.student_education_route import router as student_education_router
 from routes.job_application_openings_route import router as job_application_openings_router
+from routes.property_sell_listing_router import router as property_sell_listing_router
 
 
 load_dotenv()
@@ -44,6 +43,7 @@ app.include_router(freelancer_router)
 app.include_router(master_module_router)
 app.include_router(student_education_router)
 app.include_router(job_application_openings_router)
+app.include_router(property_sell_listing_router)
 app.include_router(payment_router)
 
 

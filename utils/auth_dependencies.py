@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from core.constants import FREELANCER_ROLE_ID, STATUS_APPROVED
 from utils.jwt_utils import verify_token
-from models.user_registration import UserRegistration
+# from models.user_registration import UserRegistration
+from models.generated_models import UserRegistration
 
 security = HTTPBearer()
 

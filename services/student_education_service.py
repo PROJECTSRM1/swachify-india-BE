@@ -7,13 +7,14 @@ from schemas.student_education_schema import (
     StudentNOCUpdate
 )
 
-from models.user_registration import UserRegistration
-from models.student_qualification import StudentQualification
-from models.generated_models import JobOpenings
+# from models.user_registration import UserRegistration
+# from models.student_qualification import StudentQualification
+# from models.generated_models import JobOpenings
+from models.generated_models import UserRegistration,StudentQualification,JobOpenings,JobApplication
 from schemas.student_education_schema import JobOpeningCreate
 
 from sqlalchemy.orm import Session
-from models.generated_models import JobApplication
+# from models.generated_models import JobApplication
 from schemas.student_education_schema import JobApplicationCreate
 
 

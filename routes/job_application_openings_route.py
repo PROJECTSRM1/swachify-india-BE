@@ -7,8 +7,9 @@ from core.database import get_db
 from core.dependencies import get_current_user
 
 # Models
-from models.user_registration import UserRegistration
-from models.generated_models import JobApplication
+# from models.user_registration import UserRegistration
+# from models.generated_models import JobApplication
+from models.generated_models import UserRegistration,JobApplication
 
 # Schemas
 from schemas.student_education_schema import (

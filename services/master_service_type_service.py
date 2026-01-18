@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from models.master_service_type import MasterServiceType
+# from models.master_service_type import MasterServiceType
+from models.generated_models import MasterServiceType
 from schemas.master_service_type_schema import (
     ServiceTypeCreate,
     ServiceTypeUpdate
