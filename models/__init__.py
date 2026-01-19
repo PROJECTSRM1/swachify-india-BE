@@ -29,3 +29,12 @@ from .user_skill import UserSkill
 # ===============================
 
 from .home_service import HomeService
+
+
+from models.user_registration import UserRegistration
+from models.user_skill import UserSkill
+from models.generated_models import JobSkill
+
+# 🔥 MASTER TABLES (IMPORTANT)
+from models.master.master_skill import MasterSkill
+from . import generated_models
