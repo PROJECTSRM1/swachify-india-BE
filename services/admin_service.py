@@ -22,19 +22,7 @@ from datetime import datetime
 STATUS_COMPLETED = 6
 
 def register_admin_service(request: RegisterAdmin, db: Session):
-    """
-    Register a new admin user with APPROVED status.
-    
-    Args:
-        request: Admin registration request
-        db: Database session
-    
-    Returns:
-        Dictionary with success message and admin_id
-    
-    Raises:
-        HTTPException: If email or mobile already exists
-    """
+
     if db.query(UserRegistration).filter(UserRegistration.email == request.email).first():
         raise HTTPException(status_code=400, detail="Email already exists")
 
@@ -60,9 +48,10 @@ def register_admin_service(request: RegisterAdmin, db: Session):
     db.commit()
     db.refresh(admin)
 
+    # ✅ RETURN ORM OBJECT
     return {
         "message": "Admin registered successfully",
-        "data": admin.id
+        "data": admin
     }
 
 def admin_login_service(credentials: AdminLogin, db: Session, http_request: Request):
@@ -387,3 +376,7 @@ def get_customer_details_service(db: Session, customer_id: int):
         "message": "Customer details fetched successfully",
         "data": response
     }
+
+
+
+#rajashekar
