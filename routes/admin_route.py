@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request, Response, Header, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from core.database import get_db
 from core.constants import ADMIN_ROLE_ID, CUSTOMER_ROLE_ID, FREELANCER_ROLE_ID
 from schemas.admin_schema import (
@@ -92,7 +92,7 @@ def get_freelancer_full_details(freelancer_id: int, db: Session = Depends(get_db
     Fetch complete freelancer profile details including skills, location, and documents.
     Masks sensitive government ID numbers for privacy.
     """
-    freelancer = db.query(UserRegistration).filter(
+    freelancer = db.query(UserRegistration).options(joinedload(UserRegistration.user_skill1)).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID
     ).first()
@@ -110,8 +110,8 @@ def get_freelancer_full_details(freelancer_id: int, db: Session = Depends(get_db
     
     # Get skills from the relationship (UserSkill junction table)
     skills_list = []
-    if freelancer.skills:
-        for user_skill in freelancer.skills:
+    if freelancer.user_skill1:
+        for user_skill in freelancer.user_skill1:
             skill_name = db.query(MasterSkill.skill).filter(
                 MasterSkill.id == user_skill.skill_id
             ).scalar()
