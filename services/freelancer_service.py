@@ -228,6 +228,12 @@ def freelancer_delete_service(db: Session, freelancer_id: int) -> dict:
     if not freelancer:
         raise HTTPException(status_code=404, detail="Freelancer not found")
 
+    # Delete related UserServices
+    db.query(UserServices).filter(UserServices.user_id == freelancer_id).delete()
+    # Delete related UserSkill
+    db.query(UserSkill).filter(UserSkill.user_id == freelancer_id).delete()
+    # (Add more related deletes here if needed)
+
     db.delete(freelancer)
     db.commit()
 
@@ -331,8 +337,9 @@ def freelancer_complete_job_service(
     db.refresh(service)
 
     return {
-        "message": "Service marked as completed successfully",
+        "message": "Service Completed successfully",
         "service_id": service.id,
+        "previous_status": STATUS_ASSIGNED,
         "status": "Completed",
         "completed_by": freelancer_id,
         "completed_at": service.modified_date
