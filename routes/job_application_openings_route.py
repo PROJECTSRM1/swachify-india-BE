@@ -31,7 +31,7 @@ def create_opening(payload: JobOpeningCreate,db: Session = Depends(get_db),curre
         data=payload,            
         user_id=current_user.id
     )
-
+# gggggggggggggggggggggggggggggggggg
 @router.get("/openings",response_model=list[JobOpeningResponse])
 def list_openings(db: Session = Depends(get_db)):
     return get_job_openings(db)
