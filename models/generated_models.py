@@ -2,7 +2,7 @@ from typing import Optional
 import datetime
 import decimal
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, ForeignKeyConstraint, Index, Integer, JSON, Numeric, PrimaryKeyConstraint, String, UniqueConstraint, text
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Column, Date, DateTime, ForeignKeyConstraint, Index, Integer, JSON, Numeric, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
@@ -104,6 +104,19 @@ class MasterBoundaryType(Base):
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='boundary_type')
 
 
+class MasterBusinessType(Base):
+    __tablename__ = 'master_business_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_business_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    business_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='business_type')
+
+
 class MasterCity(Base):
     __tablename__ = 'master_city'
     __table_args__ = (
@@ -118,6 +131,20 @@ class MasterCity(Base):
     job_application: Mapped[list['JobApplication']] = relationship('JobApplication', foreign_keys='[JobApplication.city_id]', back_populates='city')
     job_application_: Mapped[list['JobApplication']] = relationship('JobApplication', foreign_keys='[JobApplication.company_city_id]', back_populates='company_city')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='city')
+
+
+class MasterDepartment(Base):
+    __tablename__ = 'master_department'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_department_id'),
+        UniqueConstraint('department', name='uk_master_department_department')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    department: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    master_designation: Mapped[list['MasterDesignation']] = relationship('MasterDesignation', back_populates='dept')
 
 
 class MasterDuration(Base):
@@ -216,6 +243,8 @@ class MasterJobSkill(Base):
     skill: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
+    user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='job_skill')
+
 
 class MasterLandType(Base):
     __tablename__ = 'master_land_type'
@@ -285,6 +314,7 @@ class MasterModule(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     master_sub_module: Mapped[list['MasterSubModule']] = relationship('MasterSubModule', back_populates='module')
+    raw_material_details: Mapped[list['RawMaterialDetails']] = relationship('RawMaterialDetails', back_populates='module')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='module')
     user_services: Mapped[list['UserServices']] = relationship('UserServices', back_populates='module')
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='module')
@@ -360,6 +390,20 @@ class MasterPreferredTenants(Base):
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='preferred_tenants')
 
 
+class MasterProject(Base):
+    __tablename__ = 'master_project'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_project_id'),
+        UniqueConstraint('project_name', name='uk_master_project')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    tasks: Mapped[list['Tasks']] = relationship('Tasks', back_populates='project')
+
+
 class MasterPropertyType(Base):
     __tablename__ = 'master_property_type'
     __table_args__ = (
@@ -372,6 +416,19 @@ class MasterPropertyType(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='property_type')
+
+
+class MasterRawMaterialType(Base):
+    __tablename__ = 'master_raw_material_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_raw_material_type'),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    raw_material_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    raw_material_details: Mapped[list['RawMaterialDetails']] = relationship('RawMaterialDetails', back_populates='raw_material_type')
 
 
 class MasterRole(Base):
@@ -449,7 +506,22 @@ class MasterStatus(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='status')
+    tasks: Mapped[list['Tasks']] = relationship('Tasks', back_populates='status')
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='status')
+
+
+class MasterTaskType(Base):
+    __tablename__ = 'master_task_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_task_type_id'),
+        UniqueConstraint('task_type', name='uk_master_task_type_task_type')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    task_type: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    tasks: Mapped[list['Tasks']] = relationship('Tasks', back_populates='task_type')
 
 
 class MasterTimeSlot(Base):
@@ -495,6 +567,16 @@ class MasterWorkType(Base):
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='work_type')
 
 
+t_vw_students_get_list = Table(
+    'vw_students_get_list', Base.metadata,
+    Column('student_name', String),
+    Column('skill_id', Integer),
+    Column('skill', String(255)),
+    Column('rating', Numeric),
+    Column('degree', String(255))
+)
+
+
 class JobOpenings(Base):
     __tablename__ = 'job_openings'
     __table_args__ = (
@@ -524,6 +606,22 @@ class JobOpenings(Base):
     work_type: Mapped['MasterWorkType'] = relationship('MasterWorkType', back_populates='job_openings')
     job_skill: Mapped[list['JobSkill']] = relationship('JobSkill', back_populates='job_openings')
     job_application: Mapped[list['JobApplication']] = relationship('JobApplication', back_populates='job_openings')
+
+
+class MasterDesignation(Base):
+    __tablename__ = 'master_designation'
+    __table_args__ = (
+        ForeignKeyConstraint(['dept_id'], ['master_department.id'], name='fk_master_designation_dept_id'),
+        PrimaryKeyConstraint('id', name='pk_master_designation_id'),
+        UniqueConstraint('designation_name', 'dept_id', name='uk_master_designation_designation_name_dept_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    designation_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    dept_id: Mapped[Optional[int]] = mapped_column(Integer)
+
+    dept: Mapped[Optional['MasterDepartment']] = relationship('MasterDepartment', back_populates='master_designation')
 
 
 class MasterDistrict(Base):
@@ -565,6 +663,31 @@ class MasterSubModule(Base):
     master_service: Mapped[list['MasterService']] = relationship('MasterService', back_populates='sub_module')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='sub_module')
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='sub_module')
+
+
+class RawMaterialDetails(Base):
+    __tablename__ = 'raw_material_details'
+    __table_args__ = (
+        ForeignKeyConstraint(['module_id'], ['master_module.id'], name='fk_raw_material_details_raw_module_id'),
+        ForeignKeyConstraint(['raw_material_type_id'], ['master_raw_material_type.id'], name='fk_raw_material_details_raw_material_type_id'),
+        PrimaryKeyConstraint('id', name='pk_raw_material_details_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    module_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    raw_material_type_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    cost: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    latitude: Mapped[decimal.Decimal] = mapped_column(Numeric(9, 6), nullable=False)
+    longitude: Mapped[decimal.Decimal] = mapped_column(Numeric(9, 6), nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    module: Mapped['MasterModule'] = relationship('MasterModule', back_populates='raw_material_details')
+    raw_material_type: Mapped['MasterRawMaterialType'] = relationship('MasterRawMaterialType', back_populates='raw_material_details')
 
 
 class JobSkill(Base):
@@ -630,8 +753,10 @@ class MasterSubDistrict(Base):
 class UserRegistration(Base):
     __tablename__ = 'user_registration'
     __table_args__ = (
+        ForeignKeyConstraint(['business_type_id'], ['master_business_type.id'], name='fk_user_registration_business_type_id'),
         ForeignKeyConstraint(['district_id'], ['master_district.id'], name='fk_user_registration_district_id'),
         ForeignKeyConstraint(['gender_id'], ['master_gender.id'], name='fk_user_registration_gender_id'),
+        ForeignKeyConstraint(['job_skill_id'], ['master_job_skill.id'], name='fk_user_registration_job_skill_id'),
         ForeignKeyConstraint(['role_id'], ['master_role.id'], name='fk_user_registration_role_id'),
         ForeignKeyConstraint(['state_id'], ['master_state.id'], name='fk_user_registration_state_id'),
         ForeignKeyConstraint(['status_id'], ['master_status.id'], name='fk_user_registration_status_id'),
@@ -679,9 +804,17 @@ class UserRegistration(Base):
     upload_noc: Mapped[Optional[str]] = mapped_column(String(500))
     latitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
     longitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
+    business_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    product_name: Mapped[Optional[str]] = mapped_column(String(255))
+    business_description: Mapped[Optional[str]] = mapped_column(String(255))
+    org_name: Mapped[Optional[int]] = mapped_column(Integer)
+    gst_number: Mapped[Optional[str]] = mapped_column(String(100))
+    job_skill_id: Mapped[Optional[int]] = mapped_column(Integer)
 
+    business_type: Mapped[Optional['MasterBusinessType']] = relationship('MasterBusinessType', back_populates='user_registration')
     district: Mapped[Optional['MasterDistrict']] = relationship('MasterDistrict', back_populates='user_registration')
     gender: Mapped[Optional['MasterGender']] = relationship('MasterGender', back_populates='user_registration')
+    job_skill: Mapped[Optional['MasterJobSkill']] = relationship('MasterJobSkill', back_populates='user_registration')
     role: Mapped[Optional['MasterRole']] = relationship('MasterRole', back_populates='user_registration')
     state: Mapped[Optional['MasterState']] = relationship('MasterState', back_populates='user_registration')
     status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='user_registration')
@@ -694,6 +827,7 @@ class UserRegistration(Base):
     student_qualification: Mapped[list['StudentQualification']] = relationship('StudentQualification', foreign_keys='[StudentQualification.created_by]', back_populates='user_registration')
     student_qualification_: Mapped[list['StudentQualification']] = relationship('StudentQualification', foreign_keys='[StudentQualification.modified_by]', back_populates='user_registration_')
     student_qualification1: Mapped[list['StudentQualification']] = relationship('StudentQualification', foreign_keys='[StudentQualification.user_id]', back_populates='user')
+    tasks: Mapped[list['Tasks']] = relationship('Tasks', back_populates='user')
     user_role: Mapped[list['UserRole']] = relationship('UserRole', foreign_keys='[UserRole.created_by]', back_populates='user_registration')
     user_role_: Mapped[list['UserRole']] = relationship('UserRole', foreign_keys='[UserRole.modified_by]', back_populates='user_registration_')
     user_role1: Mapped[list['UserRole']] = relationship('UserRole', foreign_keys='[UserRole.user_id]', back_populates='user')
@@ -709,6 +843,10 @@ class UserRegistration(Base):
     property_listing: Mapped[list['PropertyListing']] = relationship('PropertyListing', foreign_keys='[PropertyListing.created_by]', back_populates='user_registration')
     property_listing_: Mapped[list['PropertyListing']] = relationship('PropertyListing', foreign_keys='[PropertyListing.modified_by]', back_populates='user_registration_')
     property_listing1: Mapped[list['PropertyListing']] = relationship('PropertyListing', foreign_keys='[PropertyListing.user_id]', back_populates='user')
+    task_history: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.from_assignee_id]', back_populates='from_assignee')
+    task_history_: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.reporting_manager_id]', back_populates='reporting_manager')
+    task_history1: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.to_assignee_id]', back_populates='to_assignee')
+    task_history2: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.user_id]', back_populates='user')
     freelancer_task_history: Mapped[list['FreelancerTaskHistory']] = relationship('FreelancerTaskHistory', foreign_keys='[FreelancerTaskHistory.created_by]', back_populates='user_registration')
     freelancer_task_history_: Mapped[list['FreelancerTaskHistory']] = relationship('FreelancerTaskHistory', foreign_keys='[FreelancerTaskHistory.modified_by]', back_populates='user_registration_')
     hs_add_on: Mapped[list['HsAddOn']] = relationship('HsAddOn', foreign_keys='[HsAddOn.created_by]', back_populates='user_registration')
@@ -957,6 +1095,41 @@ class StudentQualification(Base):
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='student_qualification1')
 
 
+class Tasks(Base):
+    __tablename__ = 'tasks'
+    __table_args__ = (
+        ForeignKeyConstraint(['project_id'], ['master_project.id'], name='fk_tasks_project_id'),
+        ForeignKeyConstraint(['status_id'], ['master_status.id'], name='fk_tasks_status_id'),
+        ForeignKeyConstraint(['task_type_id'], ['master_task_type.id'], name='fk_tasks_task_type_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_tasks_user_id'),
+        PrimaryKeyConstraint('id', name='pk_tasks_id'),
+        UniqueConstraint('title', 'task_type_id', 'project_id', 'user_id', 'status_id', name='uk_tasks_title_task_type_id_project_id_user_id_status_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    task_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    project_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    status_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    due_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    reporting_manager_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    task_manager_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    efforts_in_days: Mapped[Optional[int]] = mapped_column(Integer)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    project: Mapped['MasterProject'] = relationship('MasterProject', back_populates='tasks')
+    status: Mapped['MasterStatus'] = relationship('MasterStatus', back_populates='tasks')
+    task_type: Mapped['MasterTaskType'] = relationship('MasterTaskType', back_populates='tasks')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='tasks')
+    task_history: Mapped[list['TaskHistory']] = relationship('TaskHistory', back_populates='task')
+
+
 class UserRole(Base):
     __tablename__ = 'user_role'
     __table_args__ = (
@@ -1170,6 +1343,39 @@ class PropertyListing(Base):
     user_registration_: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[modified_by], back_populates='property_listing_')
     property_sell_listing: Mapped['PropertySellListing'] = relationship('PropertySellListing', back_populates='property_listing')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='property_listing1')
+
+
+class TaskHistory(Base):
+    __tablename__ = 'task_history'
+    __table_args__ = (
+        CheckConstraint('rating >= 1 AND rating <= 5', name='ck_task_history_rating'),
+        ForeignKeyConstraint(['from_assignee_id'], ['user_registration.id'], name='fk_task_history_from_assignee_id'),
+        ForeignKeyConstraint(['reporting_manager_id'], ['user_registration.id'], name='fk_task_history_reporting_manager_id'),
+        ForeignKeyConstraint(['task_id'], ['tasks.id'], name='fk_task_history_task_id'),
+        ForeignKeyConstraint(['to_assignee_id'], ['user_registration.id'], name='fk_task_history_to_assignee_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_task_history_user_id'),
+        PrimaryKeyConstraint('id', name='pk_task_history_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    task_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    from_assignee_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    to_assignee_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    reporting_manager_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    comments: Mapped[Optional[str]] = mapped_column(String)
+    rating: Mapped[Optional[int]] = mapped_column(Integer)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    from_assignee: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[from_assignee_id], back_populates='task_history')
+    reporting_manager: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[reporting_manager_id], back_populates='task_history_')
+    task: Mapped['Tasks'] = relationship('Tasks', back_populates='task_history')
+    to_assignee: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[to_assignee_id], back_populates='task_history1')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='task_history2')
 
 
 class FreelancerTaskHistory(Base):
