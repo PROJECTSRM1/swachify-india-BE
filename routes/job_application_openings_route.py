@@ -24,14 +24,13 @@ router = APIRouter( prefix="/api/jobs",tags=["Jobs Module"])
 bearer_scheme = HTTPBearer()
 
 # job openings
-@router.post("/openings",response_model=JobOpeningResponse)
+@router.post("/openings", response_model=JobOpeningResponse)
 def create_opening(payload: JobOpeningCreate,db: Session = Depends(get_db),current_user: UserRegistration = Depends(get_current_user)):
     return create_job_openings(
         db=db,
-        payload=payload,
+        data=payload,            
         user_id=current_user.id
     )
-
 
 @router.get("/openings",response_model=list[JobOpeningResponse])
 def list_openings(db: Session = Depends(get_db)):
