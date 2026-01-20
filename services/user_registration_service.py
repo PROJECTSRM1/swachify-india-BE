@@ -328,7 +328,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from models.user_registration import UserRegistration
+from models.generated_models import UserRegistration
 from models.master_module import MasterModule
 from models.user_services import UserServices
 from models.user_skill import UserSkill
@@ -458,7 +458,13 @@ def register_user(db: Session, payload: RegisterUser):
         state_id=payload.state_id,
         district_id=payload.district_id,
         address=payload.address,
-        is_active=True
+        is_active=True,
+        business_type_id=payload.business_type_id,
+        product_name=payload.product_name,
+        business_description=payload.business_description,
+        org_name=payload.org_name,
+        gst_number=payload.gst_number,
+        job_skill_id=payload.job_skill_id
     )
 
     if payload.government_id:
@@ -523,8 +529,27 @@ def register_user(db: Session, payload: RegisterUser):
         "skill_ids": skill_ids,
         "access_token": access_token,
         "refresh_token": refresh_token,
+        "token_type": "bearer",
         "expires_in": 60 * 60,
-        "refresh_expires_in": 60 * 60 * 24
+        "refresh_expires_in": 60 * 60 * 24,
+        "business_type_id": user.business_type_id,
+        "product_name": user.product_name,
+        "business_description": user.business_description,
+        "org_name": user.org_name,
+        "gst_number": user.gst_number,
+        "job_skill_id": user.job_skill_id
+        # "profile_image": user.profile_image,
+        # "experience_summary": user.experience_summary,
+        # "experience_doc": user.experience_doc,
+        # "reg_payment_done": user.reg_payment_done,
+        # "reg_fee": float(user.reg_fee) if user.reg_fee is not None else None,
+        # "experience_in_years": user.experience_in_years,
+        # "noc_number": user.noc_number,
+        # "police_station_name": user.police_station_name,
+        # "issue_year": user.issue_year,
+        # "upload_noc": user.upload_noc,
+        # "latitude": float(user.latitude) if user.latitude is not None else None,
+        # "longitude": float(user.longitude) if user.longitude is not None else None
     }
 
 

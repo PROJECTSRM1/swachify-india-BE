@@ -40,6 +40,27 @@ class RegisterUser(BaseModel):
     district_id: Optional[int] = None
     address: Optional[str] = None
 
+    # Additional fields from user_registration table
+    business_type_id: Optional[int] = None
+    product_name: Optional[str] = None
+    business_description: Optional[str] = None
+    org_name: Optional[int] = None
+    gst_number: Optional[str] = None
+    job_skill_id: Optional[int] = None
+    # profile_image: Optional[str] = None
+    # experience_summary: Optional[str] = None
+    # experience_doc: Optional[str] = None
+    # reg_payment_done: Optional[bool] = None
+    # reg_fee: Optional[float] = None
+    # experience_in_years: Optional[str] = None
+    # noc_number: Optional[str] = None
+    # police_station_name: Optional[str] = None
+    # issue_year: Optional[int] = None
+    # upload_noc: Optional[str] = None
+    # latitude: Optional[float] = None
+    # longitude: Optional[float] = None
+
+
 
     @field_validator("email")
     @classmethod
@@ -68,24 +89,41 @@ class RegisterUser(BaseModel):
 
 class RegisterResponse(BaseModel):
     """Response after successful user registration."""
-    message: str 
-
+    message: str
     user_id: int
     unique_id: str
     email: EmailStr
     mobile: str
-    role_id: int 
-    status_id: int  
-    work_type: int  
-
-    service_ids: List[int] 
-    skill_ids: List[int]  
-
+    role_id: int
+    status_id: int
+    work_type: int
+    service_ids: List[int]
+    skill_ids: List[int]
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
     refresh_expires_in: int
+    # Additional fields from user_registration table
+    business_type_id: Optional[int] = None
+    product_name: Optional[str] = None
+    business_description: Optional[str] = None
+    org_name: Optional[int] = None
+    gst_number: Optional[str] = None
+    job_skill_id: Optional[int] = None
+    # profile_image: Optional[str] = None
+    # experience_summary: Optional[str] = None
+    # experience_doc: Optional[str] = None
+    # reg_payment_done: Optional[bool] = None
+    # reg_fee: Optional[float] = None
+    # experience_in_years: Optional[str] = None
+    # noc_number: Optional[str] = None
+    # police_station_name: Optional[str] = None
+    # issue_year: Optional[int] = None
+    # upload_noc: Optional[str] = None
+    # latitude: Optional[float] = None
+    # longitude: Optional[float] = None
+
 
 
 class LoginRequest(BaseModel):
