@@ -104,7 +104,6 @@ class RegisterResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     refresh_expires_in: int
-    # Additional fields from user_registration table
     business_type_id: Optional[int] = None
     product_name: Optional[str] = None
     business_description: Optional[str] = None

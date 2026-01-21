@@ -339,7 +339,6 @@ def freelancer_complete_job_service(
     return {
         "message": "Service Completed successfully",
         "service_id": service.id,
-        "previous_status": STATUS_ASSIGNED,
         "status": "Completed",
         "completed_by": freelancer_id,
         "completed_at": service.modified_date
