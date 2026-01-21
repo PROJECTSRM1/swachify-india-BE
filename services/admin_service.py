@@ -151,6 +151,8 @@ def admin_update_service(db: Session, admin_id: int, payload: dict):
             raise HTTPException(status_code=400, detail="Mobile number already exists")
 
     for key, value in payload.items():
+        if key == "password":
+            value = hash_password(value)
         setattr(admin, key, value)
 
     admin.modified_date = datetime.utcnow()
