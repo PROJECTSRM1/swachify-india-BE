@@ -189,5 +189,20 @@ class StudentEducationCreate(BaseModel):
     institute: str
     percentage: str
 
+
+# Unified schema for full student education profile creation
+from typing import List, Optional
+
+class StudentEducationFullCreate(BaseModel):
+    education: Optional[List[StudentEducationCreate]] = None
+    certificates: Optional[List[StudentCertificateCreate]] = None
+    noc: Optional[StudentNOCUpdate] = None
+
+    @model_validator(mode="after")
+    def at_least_one_field(cls, values):
+        if not (values.education or values.certificates or values.noc):
+            raise ValueError("At least one of education, certificates, or noc must be provided.")
+        return values
+
 class StudentProfileRequest(BaseModel):
     user_id: int

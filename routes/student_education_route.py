@@ -7,7 +7,7 @@ from typing import List
 
 from core.database import get_db
 from schemas.student_education_schema import (
-    StudentCertificateCreate, StudentProfileResponse, StudentEducationCreate, StudentNOCUpdate
+    StudentCertificateCreate, StudentProfileResponse, StudentEducationCreate, StudentNOCUpdate, StudentEducationFullCreate
 )
 from services.student_education_service import (
     create_student_certificate, add_student_education_service, get_students_list_service, update_student_noc
@@ -179,7 +179,36 @@ def add_student_certificate_by_id(student_id: int, payload: StudentCertificateCr
     return {"message": "Certificate added successfully", "user_id": student_id, "certificate_id": cert.id}
 
 
-# ========== Student NOC ==========
+@router.post("/students/{student_id}/full-profile")
+def add_full_student_profile(student_id: int, payload: StudentEducationFullCreate, db: Session = Depends(get_db)):
+    """
+    Add education, certificates, and/or NOC for a student in a single request.
+    """
+    results = {}
+    # Add education records
+    if payload.education:
+        results["education"] = []
+        for edu in payload.education:
+            edu.user_id = student_id
+            education = add_student_education_service(user_id=student_id, payload=edu, db=db)
+            results["education"].append({"education_id": education.id})
+    # Add certificates
+    if payload.certificates:
+        results["certificates"] = []
+        for cert in payload.certificates:
+            cert.user_id = student_id
+            certificate = create_student_certificate(db, cert)
+            results["certificates"].append({"certificate_id": certificate.id})
+    # Add/update NOC
+    if payload.noc:
+        payload.noc.user_id = student_id
+        noc = update_student_noc(db, payload.noc)
+        results["noc"] = {"user_id": noc.id}
+    if not results:
+        raise HTTPException(status_code=400, detail="No valid data provided.")
+    return {"message": "Student profile updated successfully", **results}
+
+# ========== Student NOC ========== 
 @router.get("/students/{student_id}/noc")
 def get_student_noc(student_id: int, db: Session = Depends(get_db)):
     """
