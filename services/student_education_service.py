@@ -1,3 +1,6 @@
+from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from sqlalchemy import text
 
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -153,7 +156,6 @@ def get_students_list_service(
         AND (:aggregate IS NULL OR aggregate = :aggregate)
         AND (:internship_status IS NULL OR internship_status = :internship_status)
     """)
-
 
     return db.execute(
         query,
