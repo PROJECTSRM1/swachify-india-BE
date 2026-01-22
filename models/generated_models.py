@@ -24,6 +24,17 @@ class MasterAddOn(Base):
     hs_add_on: Mapped[list['HsAddOn']] = relationship('HsAddOn', back_populates='add_on')
 
 
+class MasterAggregate(Base):
+    __tablename__ = 'master_aggregate'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_aggregate_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    aggregate: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+
 class MasterApprovalType(Base):
     __tablename__ = 'master_approval_type'
     __table_args__ = (
@@ -567,13 +578,32 @@ class MasterWorkType(Base):
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='work_type')
 
 
+t_vw_students_filtered = Table(
+    'vw_students_filtered', Base.metadata,
+    Column('user_id', BigInteger),
+    Column('student_name', Text),
+    Column('joined_date', DateTime),
+    Column('attendance_percentage', Numeric(5, 2)),
+    Column('attendance_range', Text),
+    Column('certificate_name', String(255)),
+    Column('internship_status', String(255)),
+    Column('rating', Numeric)
+)
+
+
 t_vw_students_get_list = Table(
     'vw_students_get_list', Base.metadata,
+    Column('user_id', BigInteger),
     Column('student_name', String),
+    Column('joined_date', DateTime),
     Column('skill_id', Integer),
     Column('skill', String(255)),
-    Column('rating', Numeric),
-    Column('degree', String(255))
+    Column('attendance_percentage', Numeric(5, 2)),
+    Column('aggregate', Text),
+    Column('certificate_name', String(255)),
+    Column('degree', String(255)),
+    Column('internship_status', String(255)),
+    Column('rating', Numeric)
 )
 
 
@@ -819,8 +849,10 @@ class UserRegistration(Base):
     state: Mapped[Optional['MasterState']] = relationship('MasterState', back_populates='user_registration')
     status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='user_registration')
     job_application: Mapped[list['JobApplication']] = relationship('JobApplication', back_populates='user')
+    master_internship_status: Mapped[list['MasterInternshipStatus']] = relationship('MasterInternshipStatus', back_populates='user')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', foreign_keys='[PropertySellListing.created_by]', back_populates='user_registration')
     property_sell_listing_: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', foreign_keys='[PropertySellListing.modified_by]', back_populates='user_registration_')
+    student_attendance: Mapped[list['StudentAttendance']] = relationship('StudentAttendance', back_populates='user')
     student_certificate: Mapped[list['StudentCertificate']] = relationship('StudentCertificate', foreign_keys='[StudentCertificate.created_by]', back_populates='user_registration')
     student_certificate_: Mapped[list['StudentCertificate']] = relationship('StudentCertificate', foreign_keys='[StudentCertificate.modified_by]', back_populates='user_registration_')
     student_certificate1: Mapped[list['StudentCertificate']] = relationship('StudentCertificate', foreign_keys='[StudentCertificate.user_id]', back_populates='user')
@@ -896,6 +928,21 @@ class JobApplication(Base):
     job_openings: Mapped['JobOpenings'] = relationship('JobOpenings', back_populates='job_application')
     mobile_code: Mapped['MasterMobileCode'] = relationship('MasterMobileCode', back_populates='job_application')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='job_application')
+
+
+class MasterInternshipStatus(Base):
+    __tablename__ = 'master_internship_status'
+    __table_args__ = (
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_master_internship_status_user_id'),
+        PrimaryKeyConstraint('id', name='pk_master_internship_status_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    internship_status: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    user_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+
+    user: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', back_populates='master_internship_status')
 
 
 class MasterSubService(Base):
@@ -1036,6 +1083,21 @@ class PropertySellListing(Base):
     state: Mapped[Optional['MasterState']] = relationship('MasterState', back_populates='property_sell_listing')
     sub_module: Mapped['MasterSubModule'] = relationship('MasterSubModule', back_populates='property_sell_listing')
     property_listing: Mapped[list['PropertyListing']] = relationship('PropertyListing', back_populates='property_sell_listing')
+
+
+class StudentAttendance(Base):
+    __tablename__ = 'student_attendance'
+    __table_args__ = (
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_student_attendance_user_id'),
+        PrimaryKeyConstraint('id', name='pk_student_attendance_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    user_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    attendance_percentage: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(5, 2))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    user: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', back_populates='student_attendance')
 
 
 class StudentCertificate(Base):

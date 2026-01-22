@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from sqlalchemy import text
 
 from models.student_certificate import StudentCertificate
 from schemas.student_education_schema import (
@@ -173,3 +174,28 @@ def add_student_education_service(
     db.refresh(education)
 
     return education
+
+
+def get_students_list_service(
+    db: Session,
+    skill_id: int | None = None,
+    aggregate: str | None = None,
+    internship_status: str | None = None
+):
+    query = text("""
+        SELECT *
+        FROM vw_students_get_list
+        WHERE
+          (:skill_id IS NULL OR skill_id = :skill_id)
+        AND (:aggregate IS NULL OR aggregate = :aggregate)
+        AND (:internship_status IS NULL OR internship_status = :internship_status)
+    """)
+
+    return db.execute(
+        query,
+        {
+            "skill_id": skill_id,
+            "aggregate": aggregate,
+            "internship_status": internship_status
+        }
+    ).mappings().all()

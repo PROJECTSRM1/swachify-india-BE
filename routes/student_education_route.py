@@ -18,7 +18,8 @@ from services.student_education_service import (
     create_student_certificate,
     get_student_certificates,
     add_student_education_service,
-    update_student_noc
+    update_student_noc,
+    get_students_list_service,
 )
 
 from models.generated_models import UserRegistration, MasterModule
@@ -145,3 +146,27 @@ def add_student_education(
         "user_id":payload.user_id,
         "education_id": education.id
     }
+
+@router.get("/students-list")
+def get_students_list(
+    skill_id: int | None = None,
+    aggregate: str | None = None,
+    internship_status: str | None = None,
+    db: Session = Depends(get_db)
+):
+    """
+    ✔ No filters → returns ALL students  
+    ✔ With filters → returns FILTERED students  
+
+    Optional Query Params:
+    - skill_id
+    - aggregate
+    - internship_status
+    """
+
+    return get_students_list_service(
+        db=db,
+        skill_id=skill_id,
+        aggregate=aggregate,
+        internship_status=internship_status
+    )
