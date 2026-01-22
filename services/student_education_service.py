@@ -165,3 +165,17 @@ def get_students_list_service(
             "internship_status": internship_status
         }
     ).mappings().all()
+
+
+
+def get_active_job_openings(db: Session, category_id: int = -1):
+    query = text("""
+        SELECT *
+        FROM vw_active_job_openings
+        WHERE (:category_id = -1 OR category_id = :category_id)
+    """)
+
+    return db.execute(
+        query,
+        {"category_id": category_id}
+    ).mappings().all()
