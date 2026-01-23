@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import text, cast, Float, desc
 from core.database import SessionLocal
-
+from models.user_registration import UserRegistration
+from models.student_qualification import StudentQualification
 
 def get_application_review(user_id: int):
     db: Session = SessionLocal()
@@ -135,3 +136,35 @@ def update_application(user_id: int, data):
 
     db.commit()
 
+
+
+def get_trending_students(db: Session):
+    students = (
+        db.query(
+            UserRegistration.first_name,
+            UserRegistration.last_name,
+            UserRegistration.is_active,
+            StudentQualification.institute,
+            StudentQualification.degree,
+            cast(StudentQualification.percentage, Float).label("percentage")
+        )
+        .join(StudentQualification, StudentQualification.user_id == UserRegistration.id)
+        .filter(
+            cast(StudentQualification.percentage, Float) >= 90,
+            UserRegistration.is_active.is_(True),
+            StudentQualification.is_active.is_(True)
+        )
+        .order_by(desc(cast(StudentQualification.percentage, Float)))
+        .all()
+    )
+
+    return [
+        {
+            "full_name": f"{s.first_name} {s.last_name}",
+            "institute": s.institute,
+            "degree": s.degree,
+            "attendance_percentage": float(s.percentage),
+            "active": bool(s.is_active)
+        }
+        for s in students
+    ]

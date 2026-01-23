@@ -46,3 +46,11 @@ class ApplicationUpdateRequest(BaseModel):
     # company: Optional[str]
     # location: Optional[str]
 
+
+
+class TrendingStudentResponse(BaseModel):
+    full_name: str
+    institute: str
+    degree: str
+    attendance_percentage: float
+    active: bool
