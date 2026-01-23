@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -17,7 +16,7 @@ from routes.student_education_route import router as student_education_router
 from routes.job_application_openings_route import router as job_application_openings_router
 from routes.property_sell_listing_router import router as property_sell_listing_router
 from routes.raw_material_routes import router as raw_material_router
-
+from routes.application_routes import router
 
 load_dotenv()
 
@@ -48,5 +47,4 @@ app.include_router(job_application_openings_router)
 app.include_router(property_sell_listing_router)
 app.include_router(raw_material_router)
 app.include_router(payment_router)
-
-
+app.include_router(router)
