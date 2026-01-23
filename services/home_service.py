@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from models.generated_models import HomeService
 from schemas.home_schema import  HomeServiceCreate, HomeServiceUpdate
 from core.constants import (
@@ -66,3 +66,36 @@ def delete_home_service(db: Session, service_id: int):
 
 
 
+
+
+
+
+def update_home_service_rating(
+    db: Session,
+    service_id: int,
+    rating: int
+):
+    service = (
+        db.query(HomeService)
+        .filter(
+            HomeService.id == service_id,
+            HomeService.is_active == True
+        )
+        .first()
+    )
+
+    if not service:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Home service not found"
+        )
+
+    service.rating = rating
+    db.commit()
+    db.refresh(service)
+
+    return {
+        "message": "Rating updated successfully",
+        "service_id": service.id,
+        "rating": service.rating
+    }

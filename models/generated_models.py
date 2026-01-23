@@ -128,6 +128,20 @@ class MasterBusinessType(Base):
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='business_type')
 
 
+class MasterCategory(Base):
+    __tablename__ = 'master_category'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_master_category_id'),
+        UniqueConstraint('category_name', name='uk_master_master_category_category_name')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    category_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='category')
+
+
 class MasterCity(Base):
     __tablename__ = 'master_city'
     __table_args__ = (
@@ -156,6 +170,20 @@ class MasterDepartment(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     master_designation: Mapped[list['MasterDesignation']] = relationship('MasterDesignation', back_populates='dept')
+
+
+class MasterDoctorSpecialization(Base):
+    __tablename__ = 'master_doctor_specialization'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_doctor_specialization_id'),
+        UniqueConstraint('specialization_name', name='uk_master_doctor_specialization_name')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    specialization_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    doctor_profile: Mapped[list['DoctorProfile']] = relationship('DoctorProfile', back_populates='specialization')
 
 
 class MasterDuration(Base):
@@ -213,6 +241,32 @@ class MasterGender(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='gender')
+
+
+class MasterHealthCategories(Base):
+    __tablename__ = 'master_health_categories'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_health_categories_id'),
+        UniqueConstraint('category_name', name='uk_master_health_categories_category_name')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    category_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+
+class MasterInternshipDuration(Base):
+    __tablename__ = 'master_internship_duration'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_internship_duration_id'),
+        UniqueConstraint('duration_type', name='uk_master_internship_duration_duration_type')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    duration_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='internship_duration')
 
 
 class MasterIssue(Base):
@@ -521,6 +575,20 @@ class MasterStatus(Base):
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='status')
 
 
+class MasterStipendType(Base):
+    __tablename__ = 'master_stipend_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_stipend_type_id'),
+        UniqueConstraint('stipend_type', name='uk_master_stipend_type_stipend_type')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    stipend_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='stipend_type')
+
+
 class MasterTaskType(Base):
     __tablename__ = 'master_task_type'
     __table_args__ = (
@@ -578,16 +646,25 @@ class MasterWorkType(Base):
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='work_type')
 
 
-t_vw_students_filtered = Table(
-    'vw_students_filtered', Base.metadata,
-    Column('user_id', BigInteger),
-    Column('student_name', Text),
-    Column('joined_date', DateTime),
-    Column('attendance_percentage', Numeric(5, 2)),
-    Column('attendance_range', Text),
-    Column('certificate_name', String(255)),
-    Column('internship_status', String(255)),
-    Column('rating', Numeric)
+t_vw_active_job_openings = Table(
+    'vw_active_job_openings', Base.metadata,
+    Column('job_opening_id', BigInteger),
+    Column('job_name', String(255)),
+    Column('company_name', String(255)),
+    Column('company_address', String(255)),
+    Column('location_type_id', Integer),
+    Column('location_type', String(255)),
+    Column('work_type_id', Integer),
+    Column('work_type', String(255)),
+    Column('category_id', BigInteger),
+    Column('category_name', String(100)),
+    Column('internship_duration_id', BigInteger),
+    Column('internship_duration', String(100)),
+    Column('stipend_type_id', Integer),
+    Column('stipend_type', String(50)),
+    Column('role_description', String(500)),
+    Column('requirements', String(500)),
+    Column('created_date', DateTime)
 )
 
 
@@ -610,10 +687,16 @@ t_vw_students_get_list = Table(
 class JobOpenings(Base):
     __tablename__ = 'job_openings'
     __table_args__ = (
+        ForeignKeyConstraint(['category_id'], ['master_category.id'], name='fk_job_openings_category_id'),
+        ForeignKeyConstraint(['internship_duration_id'], ['master_internship_duration.id'], name='fk_job_openings_duration'),
         ForeignKeyConstraint(['job_id'], ['master_job.id'], name='fk_job_openings_job_id'),
         ForeignKeyConstraint(['location_type_id'], ['master_location_type.id'], name='fk_job_openings_location_type_id'),
+        ForeignKeyConstraint(['stipend_type_id'], ['master_stipend_type.id'], name='fk_job_openings_stipend_type_id'),
         ForeignKeyConstraint(['work_type_id'], ['master_work_type.id'], name='fk_job_openings_work_type_id'),
-        PrimaryKeyConstraint('id', name='pk_job_openings_id')
+        PrimaryKeyConstraint('id', name='pk_job_openings_id'),
+        Index('idx_job_openings_job_id', 'job_id'),
+        Index('idx_job_openings_location_type_id', 'location_type_id'),
+        Index('idx_job_openings_work_type_id', 'work_type_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -630,9 +713,16 @@ class JobOpenings(Base):
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
     sub_module_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    internship_stipend: Mapped[Optional[bool]] = mapped_column(Boolean)
+    category_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    internship_duration_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    stipend_type_id: Mapped[Optional[int]] = mapped_column(Integer)
 
+    category: Mapped[Optional['MasterCategory']] = relationship('MasterCategory', back_populates='job_openings')
+    internship_duration: Mapped[Optional['MasterInternshipDuration']] = relationship('MasterInternshipDuration', back_populates='job_openings')
     job: Mapped['MasterJob'] = relationship('MasterJob', back_populates='job_openings')
     location_type: Mapped['MasterLocationType'] = relationship('MasterLocationType', back_populates='job_openings')
+    stipend_type: Mapped[Optional['MasterStipendType']] = relationship('MasterStipendType', back_populates='job_openings')
     work_type: Mapped['MasterWorkType'] = relationship('MasterWorkType', back_populates='job_openings')
     job_skill: Mapped[list['JobSkill']] = relationship('JobSkill', back_populates='job_openings')
     job_application: Mapped[list['JobApplication']] = relationship('JobApplication', back_populates='job_openings')
@@ -643,7 +733,8 @@ class MasterDesignation(Base):
     __table_args__ = (
         ForeignKeyConstraint(['dept_id'], ['master_department.id'], name='fk_master_designation_dept_id'),
         PrimaryKeyConstraint('id', name='pk_master_designation_id'),
-        UniqueConstraint('designation_name', 'dept_id', name='uk_master_designation_designation_name_dept_id')
+        UniqueConstraint('designation_name', 'dept_id', name='uk_master_designation_designation_name_dept_id'),
+        Index('idx_master_designation_dept_id', 'dept_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -700,7 +791,9 @@ class RawMaterialDetails(Base):
     __table_args__ = (
         ForeignKeyConstraint(['module_id'], ['master_module.id'], name='fk_raw_material_details_raw_module_id'),
         ForeignKeyConstraint(['raw_material_type_id'], ['master_raw_material_type.id'], name='fk_raw_material_details_raw_material_type_id'),
-        PrimaryKeyConstraint('id', name='pk_raw_material_details_id')
+        PrimaryKeyConstraint('id', name='pk_raw_material_details_id'),
+        Index('idx_raw_material_details_module_id', 'module_id'),
+        Index('idx_raw_material_details_raw_material_type_id', 'raw_material_type_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -725,7 +818,9 @@ class JobSkill(Base):
     __table_args__ = (
         ForeignKeyConstraint(['job_openings_id'], ['job_openings.id'], name='fk_job_skill_job_openings_id'),
         ForeignKeyConstraint(['skill_id'], ['master_skill.id'], name='fk_job_skill_skill_id'),
-        PrimaryKeyConstraint('id', name='pk_job_skill_id')
+        PrimaryKeyConstraint('id', name='pk_job_skill_id'),
+        Index('idx_job_skill_job_openings_id', 'job_openings_id'),
+        Index('idx_job_skill_skill_id', 'skill_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -794,8 +889,10 @@ class UserRegistration(Base):
         UniqueConstraint('email', name='uk_user_registration_email'),
         UniqueConstraint('mobile', name='uk_user_registration_mobile'),
         UniqueConstraint('unique_id', name='uk_user_registration_unique_id'),
+        Index('idx_user_registration_business_type_id', 'business_type_id'),
         Index('idx_user_registration_district_id', 'district_id'),
         Index('idx_user_registration_gender_id', 'gender_id'),
+        Index('idx_user_registration_job_skill_id', 'job_skill_id'),
         Index('idx_user_registration_role_id', 'role_id'),
         Index('idx_user_registration_state_id', 'state_id'),
         Index('idx_user_registration_status_id', 'status_id')
@@ -848,6 +945,7 @@ class UserRegistration(Base):
     role: Mapped[Optional['MasterRole']] = relationship('MasterRole', back_populates='user_registration')
     state: Mapped[Optional['MasterState']] = relationship('MasterState', back_populates='user_registration')
     status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='user_registration')
+    doctor_profile: Mapped['DoctorProfile'] = relationship('DoctorProfile', uselist=False, back_populates='user')
     job_application: Mapped[list['JobApplication']] = relationship('JobApplication', back_populates='user')
     master_internship_status: Mapped[list['MasterInternshipStatus']] = relationship('MasterInternshipStatus', back_populates='user')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', foreign_keys='[PropertySellListing.created_by]', back_populates='user_registration')
@@ -885,6 +983,29 @@ class UserRegistration(Base):
     hs_add_on_: Mapped[list['HsAddOn']] = relationship('HsAddOn', foreign_keys='[HsAddOn.modified_by]', back_populates='user_registration_')
 
 
+class DoctorProfile(Base):
+    __tablename__ = 'doctor_profile'
+    __table_args__ = (
+        ForeignKeyConstraint(['specialization_id'], ['master_doctor_specialization.id'], name='fk_doctor_profile_specialization_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_doctor_profile_user_id'),
+        PrimaryKeyConstraint('id', name='pk_doctor_profile_id'),
+        UniqueConstraint('user_id', name='uk_doctor_profile_user_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    specialization_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    experience_years: Mapped[Optional[int]] = mapped_column(Integer)
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    fees_per_hour: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+
+    specialization: Mapped['MasterDoctorSpecialization'] = relationship('MasterDoctorSpecialization', back_populates='doctor_profile')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='doctor_profile')
+
+
 class JobApplication(Base):
     __tablename__ = 'job_application'
     __table_args__ = (
@@ -894,7 +1015,12 @@ class JobApplication(Base):
         ForeignKeyConstraint(['job_openings_id'], ['job_openings.id'], name='fk_job_application_job_openings_id'),
         ForeignKeyConstraint(['mobile_code_id'], ['master_mobile_code.id'], name='fk_job_application_mobile_code_id'),
         ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_job_application_user_id'),
-        PrimaryKeyConstraint('id', name='pk_job_application_id')
+        PrimaryKeyConstraint('id', name='pk_job_application_id'),
+        Index('idx_job_application_city_id', 'city_id'),
+        Index('idx_job_application_company_city_id', 'company_city_id'),
+        Index('idx_job_application_job_openings_id', 'job_openings_id'),
+        Index('idx_job_application_mobile_code_id', 'mobile_code_id'),
+        Index('idx_job_application_user_id', 'user_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -934,7 +1060,8 @@ class MasterInternshipStatus(Base):
     __tablename__ = 'master_internship_status'
     __table_args__ = (
         ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_master_internship_status_user_id'),
-        PrimaryKeyConstraint('id', name='pk_master_internship_status_id')
+        PrimaryKeyConstraint('id', name='pk_master_internship_status_id'),
+        Index('idx_master_internship_status_user_id', 'user_id')
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -1004,7 +1131,26 @@ class PropertySellListing(Base):
         ForeignKeyConstraint(['property_type_id'], ['master_property_type.id'], name='fk_property_sell_listing_property_type_id'),
         ForeignKeyConstraint(['state_id'], ['master_state.id'], name='fk_property_sell_listing_state_id'),
         ForeignKeyConstraint(['sub_module_id'], ['master_sub_module.id'], name='fk_property_sell_listing_sub_module_id'),
-        PrimaryKeyConstraint('id', name='pk_property_sell_listing')
+        PrimaryKeyConstraint('id', name='pk_property_sell_listing'),
+        Index('idx_property_sell_listing_approval_type_id', 'approval_type_id'),
+        Index('idx_property_sell_listing_availability_status_id', 'availability_status_id'),
+        Index('idx_property_sell_listing_bhk_type_id', 'bhk_type_id'),
+        Index('idx_property_sell_listing_boundary_type_id', 'boundary_type_id'),
+        Index('idx_property_sell_listing_city_id', 'city_id'),
+        Index('idx_property_sell_listing_created_by', 'created_by'),
+        Index('idx_property_sell_listing_facing_id', 'facing_id'),
+        Index('idx_property_sell_listing_furnishing_id', 'furnishing_id'),
+        Index('idx_property_sell_listing_land_type_id', 'land_type_id'),
+        Index('idx_property_sell_listing_lease_type_id', 'lease_type_id'),
+        Index('idx_property_sell_listing_modified_by', 'modified_by'),
+        Index('idx_property_sell_listing_module_id', 'module_id'),
+        Index('idx_property_sell_listing_ownership_type_id', 'ownership_type_id'),
+        Index('idx_property_sell_listing_parking_id', 'parking_id'),
+        Index('idx_property_sell_listing_posted_by_id', 'posted_by_id'),
+        Index('idx_property_sell_listing_preferred_tenants_id', 'preferred_tenants_id'),
+        Index('idx_property_sell_listing_property_type_id', 'property_type_id'),
+        Index('idx_property_sell_listing_state_id', 'state_id'),
+        Index('idx_property_sell_listing_sub_module_id', 'sub_module_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -1089,7 +1235,8 @@ class StudentAttendance(Base):
     __tablename__ = 'student_attendance'
     __table_args__ = (
         ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_student_attendance_user_id'),
-        PrimaryKeyConstraint('id', name='pk_student_attendance_id')
+        PrimaryKeyConstraint('id', name='pk_student_attendance_id'),
+        Index('idx_student_attendance_user_id', 'user_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -1165,7 +1312,11 @@ class Tasks(Base):
         ForeignKeyConstraint(['task_type_id'], ['master_task_type.id'], name='fk_tasks_task_type_id'),
         ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_tasks_user_id'),
         PrimaryKeyConstraint('id', name='pk_tasks_id'),
-        UniqueConstraint('title', 'task_type_id', 'project_id', 'user_id', 'status_id', name='uk_tasks_title_task_type_id_project_id_user_id_status_id')
+        UniqueConstraint('title', 'task_type_id', 'project_id', 'user_id', 'status_id', name='uk_tasks_title_task_type_id_project_id_user_id_status_id'),
+        Index('idx_tasks_project_id', 'project_id'),
+        Index('idx_tasks_status_id', 'status_id'),
+        Index('idx_tasks_task_type_id', 'task_type_id'),
+        Index('idx_tasks_user_id', 'user_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -1311,7 +1462,8 @@ class HomeService(Base):
         Index('idx_home_service_status_id', 'status_id'),
         Index('idx_home_service_sub_module_id', 'sub_module_id'),
         Index('idx_home_service_sub_service_id', 'sub_service_id'),
-        Index('idx_home_service_time_slot_id', 'time_slot_id')
+        Index('idx_home_service_time_slot_id', 'time_slot_id'),
+        Index('idx_home_service_work_status_id', 'work_status_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -1389,7 +1541,11 @@ class PropertyListing(Base):
         ForeignKeyConstraint(['modified_by'], ['user_registration.id'], name='fk_property_listing_modified_by'),
         ForeignKeyConstraint(['property_sell_listing_id'], ['property_sell_listing.id'], name='fk_property_listing_property_sell_listing_id'),
         ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_property_listing_user_id'),
-        PrimaryKeyConstraint('id', name='pk_property_listing_id')
+        PrimaryKeyConstraint('id', name='pk_property_listing_id'),
+        Index('idx_property_listing_created_by', 'created_by'),
+        Index('idx_property_listing_modified_by', 'modified_by'),
+        Index('idx_property_listing_property_sell_listing_id', 'property_sell_listing_id'),
+        Index('idx_property_listing_user_id', 'user_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -1416,7 +1572,12 @@ class TaskHistory(Base):
         ForeignKeyConstraint(['task_id'], ['tasks.id'], name='fk_task_history_task_id'),
         ForeignKeyConstraint(['to_assignee_id'], ['user_registration.id'], name='fk_task_history_to_assignee_id'),
         ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_task_history_user_id'),
-        PrimaryKeyConstraint('id', name='pk_task_history_id')
+        PrimaryKeyConstraint('id', name='pk_task_history_id'),
+        Index('idx_task_history_from_assignee_id', 'from_assignee_id'),
+        Index('idx_task_history_reporting_manager_id', 'reporting_manager_id'),
+        Index('idx_task_history_task_id', 'task_id'),
+        Index('idx_task_history_to_assignee_id', 'to_assignee_id'),
+        Index('idx_task_history_user_id', 'user_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
