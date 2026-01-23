@@ -376,12 +376,11 @@ def get_message(work_type: int) -> str:
         return "Customer registered successfully"
     if work_type == 2:
         return "Freelancer registered successfully. Awaiting admin approval"
+    if work_type == 3:
+        return "Registered as Customer & Freelancer. Awaiting approval"
     if work_type == 4:
          return "Student Registered Successfully"
-    return "Registered as Customer & Freelancer. Awaiting approval"
     
-
-
 def register_user(db: Session, payload: RegisterUser):
     """
     Register a new user with role and status assignment based on work_type.
@@ -601,12 +600,13 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
     role = (
         "customer" if user.role_id == 2
         else "freelancer" if user.role_id == 4
+        else "Student" if user.role_id == 5
         else "other"
     )
 
     role_message = (
-        "User logged in as a customer"
-        if role == "customer"
+        "User logged in as a " f"{role}"
+        if role == "Customer" or "Student"
         else "User logged in as a freelancer"
     )
 
