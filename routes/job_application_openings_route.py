@@ -12,6 +12,7 @@ from schemas.student_education_schema import (
 )
 from services.student_education_service import (
     create_job_openings,
+    get_active_job_openings,
     get_job_openings,
     get_job_opening,
     apply_job_service,
@@ -41,6 +42,15 @@ def get_opening(job_id: int,db: Session = Depends(get_db)):
     if not job:
         raise HTTPException(status_code=404, detail="Job opening not found")
     return job
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+
+@router.get("/active")
+def get_all_active_jobs(
+    category_id: int = Query(-1, description="Pass category_id to filter, -1 for all"),
+    db: Session = Depends(get_db)
+):
+    return get_active_job_openings(db, category_id)
 
 
 @router.delete("/openings/{opening_id}")
