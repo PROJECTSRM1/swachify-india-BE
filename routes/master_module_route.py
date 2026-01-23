@@ -8,6 +8,7 @@ from models.generated_models import UserRegistration,MasterModule,MasterSubModul
 from schemas.home_schema import (
     HomeServiceBase,
     HomeServiceCreate,
+    HomeServiceRatingUpdate,
     HomeServiceUpdate,
     HomeServiceResponse,
     HomeServiceCreateResponse
@@ -20,7 +21,8 @@ from services.home_service import (
     delete_home_service,
     get_home_service,
     get_home_services,
-    update_home_service
+    update_home_service,
+    update_home_service_rating
 )
 
 from services.master_data_service import get_master_data
@@ -102,7 +104,17 @@ def read_home_service_by_id(id: int, db: Session = Depends(get_db)):
 def create_new_home_service(data: HomeServiceCreate,db: Session = Depends(get_db),current_user: UserRegistration = Depends(get_current_user)):
     return create_home_service(db, data, current_user.id)
 
-
+@router.put("/home-service/{service_id}/rating")
+def update_rating(
+    service_id: int,
+    payload: HomeServiceRatingUpdate,
+    db: Session = Depends(get_db)
+):
+    return update_home_service_rating(
+        db=db,
+        service_id=service_id,
+        rating=payload.rating
+    )
 
 # @router.put("/home-service/{id}", response_model=HomeServiceResponse)
 # def update_existing_home_service(

@@ -111,3 +111,10 @@ class HomeServiceCreateResponse(BaseModel):
     work_status_id : int
     created_by: int
 
+
+
+class HomeServiceRatingUpdate(BaseModel):
+    rating: int = Field(..., ge=1, le=5, description="Rating must be between 1 and 5")
+
+
+
