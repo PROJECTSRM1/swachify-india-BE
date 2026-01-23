@@ -345,7 +345,8 @@ from utils.jwt_utils import create_access_token, create_refresh_token
 from core.constants import (
     CUSTOMER_ROLE_ID,
     FREELANCER_ROLE_ID,
-        STATUS_APPROVED,
+    STUDENT_ROLE_ID,
+    STATUS_APPROVED,
     STATUS_PENDING
 )
 
@@ -375,7 +376,10 @@ def get_message(work_type: int) -> str:
         return "Customer registered successfully"
     if work_type == 2:
         return "Freelancer registered successfully. Awaiting admin approval"
+    if work_type == 4:
+         return "Student Registered Successfully"
     return "Registered as Customer & Freelancer. Awaiting approval"
+    
 
 
 def register_user(db: Session, payload: RegisterUser):
@@ -433,10 +437,12 @@ def register_user(db: Session, payload: RegisterUser):
         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
     elif payload.work_type == 3:
         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
+    elif payload.work_type == 4:
+        role_id, status_id = STUDENT_ROLE_ID, STATUS_APPROVED  # <-- FIXED assignment
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid work_type. Must be 1 (Customer), 2 (Freelancer), or 3 (Both)."
+            detail="Invalid work_type. Must be 1 (Customer), 2 (Freelancer), 3 (Both), or 4 (Student)."
         )
         
 
@@ -459,11 +465,11 @@ def register_user(db: Session, payload: RegisterUser):
         district_id=payload.district_id,
         address=payload.address,
         is_active=True,
-        business_type_id=payload.business_type_id,
-        product_name=payload.product_name,
-        business_description=payload.business_description,
-        org_name=payload.org_name,
-        gst_number=payload.gst_number,
+        business_type_id=payload.business_type_id if payload.work_type != 4 else None,
+        product_name=payload.product_name if payload.work_type != 4 else None,
+        business_description=payload.business_description if payload.work_type != 4 else None,
+        org_name=payload.org_name if payload.work_type != 4 else None,
+        gst_number=payload.gst_number if payload.work_type != 4 else None,
         job_skill_id=payload.job_skill_id
     )
 
