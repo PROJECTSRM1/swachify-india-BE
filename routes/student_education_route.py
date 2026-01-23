@@ -1,36 +1,53 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
-from typing import List
 
 from core.database import get_db
+
 from schemas.student_education_schema import (
-    StudentCertificateCreate, StudentProfileResponse, StudentEducationCreate, StudentNOCUpdate, StudentEducationFullCreate
+    StudentProfileResponse,
+    StudentEducationFullCreate,
 )
+from schemas.student_attendance_schema import (
+    StudentAttendanceCreate,
+    StudentAttendanceResponse,
+)
+from schemas.student_internship_status import (
+    StudentInternshipStatusCreate,
+    StudentInternshipStatusResponse,
+)
+
 from services.student_education_service import (
     create_student_certificate,
-    get_student_certificates,
     add_student_education_service,
     update_student_noc,
     get_students_list_service,
 )
-from models.generated_models import UserRegistration, UserServices, MasterModule
+from services.student_attendance_service import upsert_student_attendance
+from services.student_internship_service import upsert_student_internship
+
+from models.generated_models import UserRegistration
 from models.student_certificate import StudentCertificate
 from models.student_qualification import StudentQualification
 
-router = APIRouter(prefix="/api/education", tags=["Student Education"])
+router = APIRouter(
+    prefix="/api/education",
+    tags=["Student Education"]
+)
 
-
-
-# ========== Student List & Detail ==========
 
 @router.get("/students-list")
-def get_students_list(skill_id: int = None, aggregate: str = None, internship_status: str = None, db: Session = Depends(get_db)):
-    """
-    List all students, with optional filters for skill, aggregate, and internship status.
-    """
-    return get_students_list_service(db=db, skill_id=skill_id, aggregate=aggregate, internship_status=internship_status)
-
+def get_students_list(
+    skill_id: int | None = None,
+    aggregate: str | None = None,
+    internship_status: str | None = None,
+    db: Session = Depends(get_db),
+):
+    return get_students_list_service(
+        db=db,
+        skill_id=skill_id,
+        aggregate=aggregate,
+        internship_status=internship_status,
+    )
 
 
 @router.get("/students/{student_id}/full-profile")
@@ -70,31 +87,75 @@ def get_full_student_profile(student_id: int, db: Session = Depends(get_db)):
     }
 
 @router.post("/students/{student_id}/full-profile")
-def add_full_student_profile(student_id: int, payload: StudentEducationFullCreate, db: Session = Depends(get_db)):
-    """
-    Add education, certificates, and/or NOC for a student in a single request.
-    """
+def add_full_student_profile(
+    student_id: int,
+    payload: StudentEducationFullCreate,
+    db: Session = Depends(get_db),
+):
     results = {}
-    # Add education records
+
     if payload.education:
         results["education"] = []
         for edu in payload.education:
-            edu.user_id = student_id
-            education = add_student_education_service(user_id=student_id, payload=edu, db=db)
-            results["education"].append({"education_id": education.id})
-    # Add certificates
+            record = add_student_education_service(
+                db=db,
+                student_id=student_id,
+                payload=edu,
+            )
+            results["education"].append({"education_id": record.id})
+
     if payload.certificates:
         results["certificates"] = []
         for cert in payload.certificates:
-            cert.user_id = student_id
-            certificate = create_student_certificate(db, cert)
-            results["certificates"].append({"certificate_id": certificate.id})
-    # Add/update NOC
-    if payload.noc:
-        payload.noc.user_id = student_id
-        noc = update_student_noc(db, payload.noc)
-        results["noc"] = {"user_id": noc.id}
-    if not results:
-        raise HTTPException(status_code=400, detail="No valid data provided.")
-    return {"message": "Student profile updated successfully", **results}
+            record = create_student_certificate(
+                db=db,
+                student_id=student_id,
+                payload=cert,
+            )
+            results["certificates"].append({"certificate_id": record.id})
 
+    if payload.noc:
+        user = update_student_noc(
+            db=db,
+            student_id=student_id,
+            payload=payload.noc,
+        )
+        results["noc"] = {"user_id": user.id}
+
+    if not results:
+        raise HTTPException(status_code=400, detail="No valid data provided")
+
+    return {
+        "message": "Student profile updated successfully",
+        **results,
+    }
+
+@router.post(
+    "/students/{student_id}/attendance",
+    response_model=StudentAttendanceResponse,
+)
+def update_student_attendance(
+    student_id: int,
+    payload: StudentAttendanceCreate,
+    db: Session = Depends(get_db),
+):
+    return upsert_student_attendance(
+        db=db,
+        user_id=student_id,
+        attendance_percentage=payload.attendance_percentage,
+    )
+
+@router.post(
+    "/students/{student_id}/internship-status",
+    response_model=StudentInternshipStatusResponse,
+)
+def update_student_internship_status(
+    student_id: int,
+    payload: StudentInternshipStatusCreate,
+    db: Session = Depends(get_db),
+):
+    return upsert_student_internship(
+        db=db,
+        user_id=student_id,
+        internship_status=payload.internship_status,
+    )

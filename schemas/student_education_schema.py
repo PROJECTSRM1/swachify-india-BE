@@ -1,11 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional, Any
-from datetime import datetime
+import datetime
 from pydantic import BaseModel, EmailStr, model_validator
-from typing import Optional
-from datetime import date
+from typing import Optional, List, Any
+from datetime import date,datetime
 from decimal import Decimal
-from sqlalchemy import Column,Integer
 
 class JobOpeningCreate(BaseModel):
     job_id: int
@@ -130,7 +127,6 @@ class JobApplicationResponse(BaseModel):
 
 #student certification
 class StudentCertificateCreate(BaseModel):
-    user_id: int
     certificate_name: str
     issued_by: str
     year: int
@@ -139,7 +135,6 @@ class StudentCertificateCreate(BaseModel):
 
 class StudentCertificateResponse(BaseModel):
     id: int
-    user_id: int
     certificate_name: str
     issued_by: str
     year: int
@@ -149,18 +144,13 @@ class StudentCertificateResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-
 class StudentNOCUpdate(BaseModel):
-    user_id: int
     noc_number: str
     police_station_name: str
     issue_year: int
     upload_noc: Optional[str] = None
 
-
 class StudentNOCResponse(BaseModel):
-    user_id: int
     noc_number: str
     police_station_name: str
     issue_year: int
@@ -184,14 +174,10 @@ class StudentProfileResponse(BaseModel):
         from_attributes = True
 
 class StudentEducationCreate(BaseModel):
-    user_id: int
     degree: str
     institute: str
     percentage: str
-
-
-# Unified schema for full student education profile creation
-from typing import List, Optional
+    passing_year: Optional[int] = None
 
 class StudentEducationFullCreate(BaseModel):
     education: Optional[List[StudentEducationCreate]] = None
@@ -203,6 +189,3 @@ class StudentEducationFullCreate(BaseModel):
         if not (values.education or values.certificates or values.noc):
             raise ValueError("At least one of education, certificates, or noc must be provided.")
         return values
-
-class StudentProfileRequest(BaseModel):
-    user_id: int
