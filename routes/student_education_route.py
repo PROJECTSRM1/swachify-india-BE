@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 
 from schemas.student_education_schema import (
+    StudentListResponse,
     StudentProfileResponse,
     StudentEducationFullCreate,
 )
@@ -19,6 +20,8 @@ from schemas.student_internship_status import (
 from services.student_education_service import (
     create_student_certificate,
     add_student_education_service,
+    # get_top_performers,
+    get_top_performers_service,
     update_student_noc,
     get_students_list_service,
 )
@@ -129,6 +132,13 @@ def add_full_student_profile(
         "message": "Student profile updated successfully",
         **results,
     }
+
+@router.get("/students/top-performers")
+def get_top_performers(
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    return get_top_performers_service(db, limit)
 
 @router.post(
     "/students/{student_id}/attendance",
