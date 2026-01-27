@@ -8,7 +8,11 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
+<<<<<<< HEAD
 set "VIRTUAL_ENV=C:\Users\Rajashekar\Documents\House_front_backend\swachify-india-BE\venv"
+=======
+set "VIRTUAL_ENV=C:\Users\admin\OneDrive\Desktop\Backend\swachify-india-BE\venv"
+>>>>>>> bae279349cda992364757e5386c0e75451a79be9
 
 if not defined PROMPT set PROMPT=$P$G
 

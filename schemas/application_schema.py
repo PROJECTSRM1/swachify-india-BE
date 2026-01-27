@@ -1,6 +1,44 @@
-from pydantic import BaseModel
+from datetime import datetime
+from pydantic import BaseModel, EmailStr, model_validator
 from typing import Optional
+from datetime import date
+from decimal import Decimal
 
+### Added
+class JobOpeningCreateSchema(BaseModel):
+    job_id: int
+    company_name: str
+    company_address: str
+    location_type_id: int
+    work_type_id: int
+    role_description: str
+    requirements: str
+    sub_module_id: int
+    category_id: int
+    internship_duration_id: int
+    stipend_type_id: int
+    internship_stipend: bool
+    created_by: int
+
+
+class JobOpeningResponseSchema(BaseModel):
+    id: int
+    job_id: int
+    company_name: str
+    company_address: str
+    location_type_id: int
+    work_type_id: int
+    role_description: str
+    requirements: str
+    sub_module_id: int
+    category_id: int
+    internship_duration_id: int
+    stipend_type_id: int
+    internship_stipend: bool
+    created_by: int
+
+    class Config:
+        from_attibutes = True
 
 
 class ApplicationReviewResponse(BaseModel):
@@ -18,9 +56,9 @@ class ApplicationReviewResponse(BaseModel):
     email: str
     phone: str
 
-    internship_title: str
-    company: str
-    location: str
+    # internship_title: str
+    # company: str
+    # location: str
 
 
 

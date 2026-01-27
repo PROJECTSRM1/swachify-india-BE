@@ -191,6 +191,16 @@ def get_students_list_service(
         },
     ).mappings().all()
 
+def get_top_performers_service(db: Session, limit: int = 10):
+    query = text("""
+        SELECT *
+        FROM vw_students_get_list
+        WHERE rating IS NOT NULL
+        ORDER BY rating DESC
+        LIMIT :limit
+    """)
+    return db.execute(query, {"limit": limit}).mappings().all()
+
 
 
 def get_active_job_openings(db: Session, category_id: int = -1):
