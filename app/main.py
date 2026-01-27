@@ -19,6 +19,7 @@ from routes.property_sell_listing_router import router as property_sell_listing_
 from routes.raw_material_routes import router as raw_material_router
 from routes.application_routes import router as application_router
 
+from routes.healthcare_route import router as healthcare_router
 
 load_dotenv()
 
@@ -51,3 +52,6 @@ app.include_router(application_router)
 app.include_router(property_sell_listing_router)
 app.include_router(raw_material_router)
 app.include_router(payment_router)
+app.include_router(application_router)
+
+app.include_router(healthcare_router)
