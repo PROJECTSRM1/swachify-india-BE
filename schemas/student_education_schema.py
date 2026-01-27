@@ -189,3 +189,23 @@ class StudentEducationFullCreate(BaseModel):
         if not (values.education or values.certificates or values.noc):
             raise ValueError("At least one of education, certificates, or noc must be provided.")
         return values
+
+class StudentListResponse(BaseModel):
+    user_id: int
+    student_name: str
+    joined_date: Optional[datetime]
+
+    skill_id: Optional[int]
+    skill: Optional[str]
+
+    attendance_percentage: Optional[Decimal]
+    aggregate: Optional[str]
+
+    certificate_name: Optional[str]
+    degree: Optional[str]
+
+    internship_status: Optional[str]
+    rating: Optional[Decimal]
+
+    class Config:
+        from_attributes = True
