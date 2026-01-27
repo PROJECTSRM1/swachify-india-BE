@@ -2,7 +2,7 @@ from typing import Optional
 import datetime
 import decimal
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, Column, Date, DateTime, ForeignKeyConstraint, Index, Integer, JSON, Numeric, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint, text
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Column, Date, DateTime, ForeignKeyConstraint, Index, Integer, JSON, Numeric, PrimaryKeyConstraint, String, Table, Text, Time, UniqueConstraint, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
@@ -35,6 +35,23 @@ class MasterAggregate(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
 
+class MasterAmbulance(Base):
+    __tablename__ = 'master_ambulance'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_ambulance_id'),
+        UniqueConstraint('service_provider', name='uk_master_ambulance_service_provider')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    service_provider: Mapped[str] = mapped_column(String(100), nullable=False)
+    contact_number: Mapped[Optional[str]] = mapped_column(String(20))
+    availability_status: Mapped[Optional[str]] = mapped_column(String(20), server_default=text("'Available'::character varying"))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='ambulance')
+    ambulance_booking: Mapped[list['AmbulanceBooking']] = relationship('AmbulanceBooking', back_populates='ambulance')
+
+
 class MasterApprovalType(Base):
     __tablename__ = 'master_approval_type'
     __table_args__ = (
@@ -47,6 +64,22 @@ class MasterApprovalType(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='approval_type')
+
+
+class MasterAssistants(Base):
+    __tablename__ = 'master_assistants'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_assistants_id'),
+        UniqueConstraint('name', name='uk_master_assistants_name')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    role: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'Professional'::character varying"))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='assistant')
 
 
 class MasterAvailabilityStatus(Base):
@@ -158,6 +191,20 @@ class MasterCity(Base):
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='city')
 
 
+class MasterCompanySize(Base):
+    __tablename__ = 'master_company_size'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_company_size_id'),
+        UniqueConstraint('size_range', name='uk_master_company_size_range')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    size_range: Mapped[str] = mapped_column(String(50), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='company_size')
+
+
 class MasterDepartment(Base):
     __tablename__ = 'master_department'
     __table_args__ = (
@@ -184,6 +231,7 @@ class MasterDoctorSpecialization(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     doctor_profile: Mapped[list['DoctorProfile']] = relationship('DoctorProfile', back_populates='specialization')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='doctor_specialization')
 
 
 class MasterDuration(Base):
@@ -213,6 +261,21 @@ class MasterFacing(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='facing')
+
+
+class MasterFuelType(Base):
+    __tablename__ = 'master_fuel_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_fuel_type_id'),
+        UniqueConstraint('fuel_type_name', name='uk_master_fuel_type_name')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    fuel_type_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    vehicle_brand_fuel: Mapped[list['VehicleBrandFuel']] = relationship('VehicleBrandFuel', back_populates='fuel')
+    vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='fuel')
 
 
 class MasterFurnishing(Base):
@@ -255,6 +318,33 @@ class MasterHealthCategories(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
 
+class MasterHostelType(Base):
+    __tablename__ = 'master_hostel_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_hostel_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    hostel_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='hostel_type')
+
+
+class MasterIndustry(Base):
+    __tablename__ = 'master_industry'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_industry_id'),
+        UniqueConstraint('industry_name', name='uk_master_industry_name')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    industry_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='industry')
+
+
 class MasterInternshipDuration(Base):
     __tablename__ = 'master_internship_duration'
     __table_args__ = (
@@ -283,6 +373,19 @@ class MasterIssue(Base):
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='issue')
 
 
+class MasterItemCondition(Base):
+    __tablename__ = 'master_item_condition'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_item_condition_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    item_condition: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='item_condition')
+
+
 class MasterJob(Base):
     __tablename__ = 'master_job'
     __table_args__ = (
@@ -309,6 +412,26 @@ class MasterJobSkill(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='job_skill')
+
+
+class MasterLabs(Base):
+    __tablename__ = 'master_labs'
+    __table_args__ = (
+        CheckConstraint('rating >= 1 AND rating <= 5', name='ck_master_labs_rating'),
+        PrimaryKeyConstraint('id', name='pk_master_labs_id'),
+        UniqueConstraint('lab_name', name='master_labs_lab_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    lab_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    services: Mapped[Optional[str]] = mapped_column(String(255))
+    rating: Mapped[Optional[int]] = mapped_column(Integer)
+    home_collection: Mapped[Optional[bool]] = mapped_column(Boolean)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    latitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
+    longitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
+
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='labs')
 
 
 class MasterLandType(Base):
@@ -425,6 +548,27 @@ class MasterPaymentType(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='payment_type')
+
+
+class MasterPharmacies(Base):
+    __tablename__ = 'master_pharmacies'
+    __table_args__ = (
+        CheckConstraint('rating >= 1 AND rating <= 5', name='ck_master_pharmacies_rating'),
+        PrimaryKeyConstraint('id', name='pk_master_pharmacies_id'),
+        UniqueConstraint('pharmacy_name', name='master_pharmacies_pharmacy_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    pharmacy_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    pharmacy_type: Mapped[Optional[str]] = mapped_column(String(100))
+    services: Mapped[Optional[str]] = mapped_column(String(255))
+    rating: Mapped[Optional[int]] = mapped_column(Integer)
+    delivery_time: Mapped[Optional[str]] = mapped_column(String(50))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    latitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
+    longitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
+
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='pharmacies')
 
 
 class MasterPostedBy(Base):
@@ -615,6 +759,22 @@ class MasterTimeSlot(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='time_slot')
+    vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='time_slot')
+
+
+class MasterVehicleBrand(Base):
+    __tablename__ = 'master_vehicle_brand'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_vehicle_brand_id'),
+        UniqueConstraint('brand_name', name='uk_master_vehicle_brand_name')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    brand_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    vehicle_brand_fuel: Mapped[list['VehicleBrandFuel']] = relationship('VehicleBrandFuel', back_populates='brand')
+    vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='brand')
 
 
 class MasterWorkStatus(Base):
@@ -668,6 +828,60 @@ t_vw_active_job_openings = Table(
 )
 
 
+t_vw_active_labs = Table(
+    'vw_active_labs', Base.metadata,
+    Column('lab_id', BigInteger),
+    Column('lab_name', String(255)),
+    Column('services', String(255)),
+    Column('rating', Integer),
+    Column('home_collection', Boolean),
+    Column('latitude', Numeric(9, 6)),
+    Column('longitude', Numeric(9, 6))
+)
+
+
+t_vw_available_doctors = Table(
+    'vw_available_doctors', Base.metadata,
+    Column('doctor_id', BigInteger),
+    Column('doctor_name', Text),
+    Column('specialization_id', BigInteger),
+    Column('specialization_name', String(255)),
+    Column('experience_years', Integer),
+    Column('rating', Integer),
+    Column('available_from', Time),
+    Column('available_to', Time)
+)
+
+
+t_vw_company_list = Table(
+    'vw_company_list', Base.metadata,
+    Column('company_id', BigInteger),
+    Column('company_name', String(255)),
+    Column('location', String(255)),
+    Column('industry_id', BigInteger),
+    Column('industry_name', String(100)),
+    Column('company_size_id', BigInteger),
+    Column('company_size', String(50)),
+    Column('jobs_count', BigInteger),
+    Column('internships_count', BigInteger),
+    Column('hiring_status', Text),
+    Column('last_active_time', DateTime)
+)
+
+
+t_vw_nearby_pharmacies = Table(
+    'vw_nearby_pharmacies', Base.metadata,
+    Column('pharmacy_id', BigInteger),
+    Column('pharmacy_name', String(255)),
+    Column('pharmacy_type', String(100)),
+    Column('services', String(255)),
+    Column('rating', Integer),
+    Column('delivery_time', String(50)),
+    Column('latitude', Numeric(9, 6)),
+    Column('longitude', Numeric(9, 6))
+)
+
+
 t_vw_students_get_list = Table(
     'vw_students_get_list', Base.metadata,
     Column('user_id', BigInteger),
@@ -688,6 +902,8 @@ class JobOpenings(Base):
     __tablename__ = 'job_openings'
     __table_args__ = (
         ForeignKeyConstraint(['category_id'], ['master_category.id'], name='fk_job_openings_category_id'),
+        ForeignKeyConstraint(['company_size_id'], ['master_company_size.id'], name='fk_job_openings_company_size'),
+        ForeignKeyConstraint(['industry_id'], ['master_industry.id'], name='fk_job_openings_industry'),
         ForeignKeyConstraint(['internship_duration_id'], ['master_internship_duration.id'], name='fk_job_openings_duration'),
         ForeignKeyConstraint(['job_id'], ['master_job.id'], name='fk_job_openings_job_id'),
         ForeignKeyConstraint(['location_type_id'], ['master_location_type.id'], name='fk_job_openings_location_type_id'),
@@ -717,8 +933,12 @@ class JobOpenings(Base):
     category_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     internship_duration_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     stipend_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    industry_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    company_size_id: Mapped[Optional[int]] = mapped_column(BigInteger)
 
     category: Mapped[Optional['MasterCategory']] = relationship('MasterCategory', back_populates='job_openings')
+    company_size: Mapped[Optional['MasterCompanySize']] = relationship('MasterCompanySize', back_populates='job_openings')
+    industry: Mapped[Optional['MasterIndustry']] = relationship('MasterIndustry', back_populates='job_openings')
     internship_duration: Mapped[Optional['MasterInternshipDuration']] = relationship('MasterInternshipDuration', back_populates='job_openings')
     job: Mapped['MasterJob'] = relationship('MasterJob', back_populates='job_openings')
     location_type: Mapped['MasterLocationType'] = relationship('MasterLocationType', back_populates='job_openings')
@@ -967,6 +1187,7 @@ class UserRegistration(Base):
     user_skill: Mapped[list['UserSkill']] = relationship('UserSkill', foreign_keys='[UserSkill.created_by]', back_populates='user_registration')
     user_skill_: Mapped[list['UserSkill']] = relationship('UserSkill', foreign_keys='[UserSkill.modified_by]', back_populates='user_registration_')
     user_skill1: Mapped[list['UserSkill']] = relationship('UserSkill', foreign_keys='[UserSkill.user_id]', back_populates='user')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='user')
     home_service: Mapped[list['HomeService']] = relationship('HomeService', foreign_keys='[HomeService.assigned_to]', back_populates='user_registration')
     home_service_: Mapped[list['HomeService']] = relationship('HomeService', foreign_keys='[HomeService.created_by]', back_populates='user_registration_')
     home_service1: Mapped[list['HomeService']] = relationship('HomeService', foreign_keys='[HomeService.modified_by]', back_populates='user_registration1')
@@ -981,11 +1202,14 @@ class UserRegistration(Base):
     freelancer_task_history_: Mapped[list['FreelancerTaskHistory']] = relationship('FreelancerTaskHistory', foreign_keys='[FreelancerTaskHistory.modified_by]', back_populates='user_registration_')
     hs_add_on: Mapped[list['HsAddOn']] = relationship('HsAddOn', foreign_keys='[HsAddOn.created_by]', back_populates='user_registration')
     hs_add_on_: Mapped[list['HsAddOn']] = relationship('HsAddOn', foreign_keys='[HsAddOn.modified_by]', back_populates='user_registration_')
+    vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', foreign_keys='[VehicleServiceBooking.created_by]', back_populates='user_registration')
+    vehicle_service_booking_: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', foreign_keys='[VehicleServiceBooking.modified_by]', back_populates='user_registration_')
 
 
 class DoctorProfile(Base):
     __tablename__ = 'doctor_profile'
     __table_args__ = (
+        CheckConstraint('rating >= 1 AND rating <= 5', name='ck_doctor_profile_rating'),
         ForeignKeyConstraint(['specialization_id'], ['master_doctor_specialization.id'], name='fk_doctor_profile_specialization_id'),
         ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_doctor_profile_user_id'),
         PrimaryKeyConstraint('id', name='pk_doctor_profile_id'),
@@ -996,14 +1220,20 @@ class DoctorProfile(Base):
     user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     specialization_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     experience_years: Mapped[Optional[int]] = mapped_column(Integer)
-    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    rating: Mapped[Optional[int]] = mapped_column(Integer)
     fees_per_hour: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    available_from: Mapped[Optional[datetime.time]] = mapped_column(Time)
+    available_to: Mapped[Optional[datetime.time]] = mapped_column(Time)
+    is_available: Mapped[Optional[bool]] = mapped_column(Boolean)
 
     specialization: Mapped['MasterDoctorSpecialization'] = relationship('MasterDoctorSpecialization', back_populates='doctor_profile')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='doctor_profile')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='doctor')
 
 
 class JobApplication(Base):
@@ -1088,7 +1318,11 @@ class MasterSubService(Base):
 
     service: Mapped['MasterService'] = relationship('MasterService', back_populates='master_sub_service')
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='sub_service')
+    master_garage: Mapped[list['MasterGarage']] = relationship('MasterGarage', back_populates='sub_service')
+    master_garage_service: Mapped[list['MasterGarageService']] = relationship('MasterGarageService', back_populates='sub_service')
     master_sub_group: Mapped[list['MasterSubGroup']] = relationship('MasterSubGroup', back_populates='sub_service')
+    vehicle_brand_fuel: Mapped[list['VehicleBrandFuel']] = relationship('VehicleBrandFuel', back_populates='sub_service')
+    vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='sub_service')
 
 
 class MasterVillage(Base):
@@ -1120,6 +1354,8 @@ class PropertySellListing(Base):
         ForeignKeyConstraint(['created_by'], ['user_registration.id'], name='fk_property_sell_listing_created_by'),
         ForeignKeyConstraint(['facing_id'], ['master_facing.id'], name='fk_property_sell_listing_facing_id'),
         ForeignKeyConstraint(['furnishing_id'], ['master_furnishing.id'], name='fk_property_sell_listing_furnishing_id'),
+        ForeignKeyConstraint(['hostel_type_id'], ['master_hostel_type.id'], name='fk_property_sell_listing_hostel_type_id'),
+        ForeignKeyConstraint(['item_condition_id'], ['master_item_condition.id'], name='fk_property_sell_listing_item_condition_id'),
         ForeignKeyConstraint(['land_type_id'], ['master_land_type.id'], name='fk_property_sell_listing_land_type_id'),
         ForeignKeyConstraint(['lease_type_id'], ['master_lease_type.id'], name='fk_property_sell_listing_lease_type_id'),
         ForeignKeyConstraint(['modified_by'], ['user_registration.id'], name='fk_property_sell_listing_modified_by'),
@@ -1208,6 +1444,12 @@ class PropertySellListing(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    item_condition_id: Mapped[Optional[int]] = mapped_column(Integer)
+    hostel_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    total_rooms: Mapped[Optional[int]] = mapped_column(Integer)
+    available_rooms: Mapped[Optional[int]] = mapped_column(Integer)
+    food_included: Mapped[Optional[bool]] = mapped_column(Boolean)
+    location: Mapped[Optional[int]] = mapped_column(Integer)
 
     approval_type: Mapped[Optional['MasterApprovalType']] = relationship('MasterApprovalType', back_populates='property_sell_listing')
     availability_status: Mapped[Optional['MasterAvailabilityStatus']] = relationship('MasterAvailabilityStatus', back_populates='property_sell_listing')
@@ -1217,6 +1459,8 @@ class PropertySellListing(Base):
     user_registration: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[created_by], back_populates='property_sell_listing')
     facing: Mapped[Optional['MasterFacing']] = relationship('MasterFacing', back_populates='property_sell_listing')
     furnishing: Mapped['MasterFurnishing'] = relationship('MasterFurnishing', back_populates='property_sell_listing')
+    hostel_type: Mapped[Optional['MasterHostelType']] = relationship('MasterHostelType', back_populates='property_sell_listing')
+    item_condition: Mapped[Optional['MasterItemCondition']] = relationship('MasterItemCondition', back_populates='property_sell_listing')
     land_type: Mapped[Optional['MasterLandType']] = relationship('MasterLandType', back_populates='property_sell_listing')
     lease_type: Mapped[Optional['MasterLeaseType']] = relationship('MasterLeaseType', back_populates='property_sell_listing')
     user_registration_: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[modified_by], back_populates='property_sell_listing_')
@@ -1431,6 +1675,53 @@ class UserSkill(Base):
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='user_skill1')
 
 
+class Appointments(Base):
+    __tablename__ = 'appointments'
+    __table_args__ = (
+        ForeignKeyConstraint(['ambulance_id'], ['master_ambulance.id'], name='fk_appointments_ambulance_id'),
+        ForeignKeyConstraint(['assistant_id'], ['master_assistants.id'], name='fk_appointments_assistant_id'),
+        ForeignKeyConstraint(['doctor_id'], ['doctor_profile.id'], name='fk_appointments_doctor_id'),
+        ForeignKeyConstraint(['doctor_specialization_id'], ['master_doctor_specialization.id'], name='fk_appointments_doctor_specialization_id'),
+        ForeignKeyConstraint(['labs_id'], ['master_labs.id'], name='fk_appointments_labs_id'),
+        ForeignKeyConstraint(['pharmacies_id'], ['master_pharmacies.id'], name='fk_appointments_pharmacies_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_appointments_user_id'),
+        PrimaryKeyConstraint('id', name='pk_appointments_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    consultation_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    appointment_time: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)
+    doctor_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    doctor_specialization_id: Mapped[Optional[int]] = mapped_column(Integer)
+    description: Mapped[Optional[str]] = mapped_column(String)
+    days_of_suffering: Mapped[Optional[int]] = mapped_column(Integer)
+    health_insurance: Mapped[Optional[bool]] = mapped_column(Boolean)
+    upload_prescription: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_test_list: Mapped[Optional[str]] = mapped_column(String(500))
+    required_ambulance: Mapped[Optional[bool]] = mapped_column(Boolean)
+    required_assistant: Mapped[Optional[bool]] = mapped_column(Boolean)
+    ambulance_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    pickup_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    assistant_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    pharmacies_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    labs_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    ambulance: Mapped[Optional['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='appointments')
+    assistant: Mapped[Optional['MasterAssistants']] = relationship('MasterAssistants', back_populates='appointments')
+    doctor: Mapped[Optional['DoctorProfile']] = relationship('DoctorProfile', back_populates='appointments')
+    doctor_specialization: Mapped[Optional['MasterDoctorSpecialization']] = relationship('MasterDoctorSpecialization', back_populates='appointments')
+    labs: Mapped[Optional['MasterLabs']] = relationship('MasterLabs', back_populates='appointments')
+    pharmacies: Mapped[Optional['MasterPharmacies']] = relationship('MasterPharmacies', back_populates='appointments')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='appointments')
+    ambulance_booking: Mapped[list['AmbulanceBooking']] = relationship('AmbulanceBooking', back_populates='appointment')
+
+
 class HomeService(Base):
     __tablename__ = 'home_service'
     __table_args__ = (
@@ -1517,6 +1808,44 @@ class HomeService(Base):
     hs_add_on: Mapped[list['HsAddOn']] = relationship('HsAddOn', back_populates='home_service')
 
 
+class MasterGarage(Base):
+    __tablename__ = 'master_garage'
+    __table_args__ = (
+        ForeignKeyConstraint(['sub_service_id'], ['master_sub_service.id'], name='fk_master_garage_sub_service_id'),
+        PrimaryKeyConstraint('id', name='pk_master_garage_id'),
+        UniqueConstraint('garage_name', 'sub_service_id', name='uk_master_garage_name_sub_service')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    garage_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    address: Mapped[str] = mapped_column(String(500), nullable=False)
+    sub_service_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(2, 1))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    sub_service: Mapped['MasterSubService'] = relationship('MasterSubService', back_populates='master_garage')
+    master_mechanic: Mapped[list['MasterMechanic']] = relationship('MasterMechanic', back_populates='garage')
+    vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='garage')
+
+
+class MasterGarageService(Base):
+    __tablename__ = 'master_garage_service'
+    __table_args__ = (
+        ForeignKeyConstraint(['sub_service_id'], ['master_sub_service.id'], name='fk_master_garage_service_sub_service_id'),
+        PrimaryKeyConstraint('id', name='pk_master_garage_service_id'),
+        UniqueConstraint('sub_service_id', 'service_name', name='uk_master_garage_service')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sub_service_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    service_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    price: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    sub_service: Mapped['MasterSubService'] = relationship('MasterSubService', back_populates='master_garage_service')
+    booking_service_mapping: Mapped[list['BookingServiceMapping']] = relationship('BookingServiceMapping', back_populates='garage_service')
+
+
 class MasterSubGroup(Base):
     __tablename__ = 'master_sub_group'
     __table_args__ = (
@@ -1601,6 +1930,54 @@ class TaskHistory(Base):
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='task_history2')
 
 
+class VehicleBrandFuel(Base):
+    __tablename__ = 'vehicle_brand_fuel'
+    __table_args__ = (
+        ForeignKeyConstraint(['brand_id'], ['master_vehicle_brand.id'], name='fk_vehicle_brand_fuel_brand_id'),
+        ForeignKeyConstraint(['fuel_id'], ['master_fuel_type.id'], name='fk_vehicle_brand_fuel_fuel_id'),
+        ForeignKeyConstraint(['sub_service_id'], ['master_sub_service.id'], name='fk_vehicle_brand_fuel_sub_service_id'),
+        PrimaryKeyConstraint('id', name='pk_vehicle_brand_fuel_id'),
+        UniqueConstraint('sub_service_id', 'brand_id', 'fuel_id', name='uk_vehicle_brand_fuel')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sub_service_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    brand_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    fuel_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+
+    brand: Mapped['MasterVehicleBrand'] = relationship('MasterVehicleBrand', back_populates='vehicle_brand_fuel')
+    fuel: Mapped['MasterFuelType'] = relationship('MasterFuelType', back_populates='vehicle_brand_fuel')
+    sub_service: Mapped['MasterSubService'] = relationship('MasterSubService', back_populates='vehicle_brand_fuel')
+
+
+class AmbulanceBooking(Base):
+    __tablename__ = 'ambulance_booking'
+    __table_args__ = (
+        ForeignKeyConstraint(['ambulance_id'], ['master_ambulance.id'], name='fk_ambulance_booking_ambulance'),
+        ForeignKeyConstraint(['appointment_id'], ['appointments.id'], name='fk_ambulance_booking_appointment'),
+        PrimaryKeyConstraint('id', name='pk_ambulance_booking_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    appointment_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    ambulance_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    patient_name: Mapped[Optional[str]] = mapped_column(String(255))
+    aadhar_number: Mapped[Optional[str]] = mapped_column(String(50))
+
+    ambulance: Mapped['MasterAmbulance'] = relationship('MasterAmbulance', back_populates='ambulance_booking')
+    appointment: Mapped['Appointments'] = relationship('Appointments', back_populates='ambulance_booking')
+
+
 class FreelancerTaskHistory(Base):
     __tablename__ = 'freelancer_task_history'
     __table_args__ = (
@@ -1670,3 +2047,92 @@ class HsAddOn(Base):
     duration: Mapped[Optional['MasterDuration']] = relationship('MasterDuration', back_populates='hs_add_on')
     home_service: Mapped['HomeService'] = relationship('HomeService', back_populates='hs_add_on')
     user_registration_: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[modified_by], back_populates='hs_add_on_')
+
+
+class MasterMechanic(Base):
+    __tablename__ = 'master_mechanic'
+    __table_args__ = (
+        ForeignKeyConstraint(['garage_id'], ['master_garage.id'], name='fk_master_mechanic_garage_id'),
+        PrimaryKeyConstraint('id', name='pk_master_mechanic_id'),
+        UniqueConstraint('garage_id', 'mechanic_name', name='uk_master_mechanic_name_garage')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    garage_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    mechanic_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(2, 1))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    garage: Mapped['MasterGarage'] = relationship('MasterGarage', back_populates='master_mechanic')
+    vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='mechanic')
+
+
+class VehicleServiceBooking(Base):
+    __tablename__ = 'vehicle_service_booking'
+    __table_args__ = (
+        ForeignKeyConstraint(['brand_id'], ['master_vehicle_brand.id'], name='fk_vehicle_service_booking_brand_id'),
+        ForeignKeyConstraint(['created_by'], ['user_registration.id'], name='fk_vehicle_service_booking_created_by'),
+        ForeignKeyConstraint(['fuel_id'], ['master_fuel_type.id'], name='fk_vehicle_service_booking_fuel_id'),
+        ForeignKeyConstraint(['garage_id'], ['master_garage.id'], name='fk_vehicle_service_booking_garage_id'),
+        ForeignKeyConstraint(['mechanic_id'], ['master_mechanic.id'], name='fk_vehicle_service_booking_mechanic_id'),
+        ForeignKeyConstraint(['modified_by'], ['user_registration.id'], name='fk_vehicle_service_booking_modified_by'),
+        ForeignKeyConstraint(['sub_service_id'], ['master_sub_service.id'], name='fk_vehicle_service_booking_sub_service_id'),
+        ForeignKeyConstraint(['time_slot_id'], ['master_time_slot.id'], name='fk_vehicle_service_booking_time_slot_id'),
+        PrimaryKeyConstraint('id', name='pk_vehicle_service_booking_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    sub_service_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    brand_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    fuel_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    garage_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    mechanic_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    problem_description: Mapped[Optional[str]] = mapped_column(String(500))
+    address: Mapped[Optional[str]] = mapped_column(String(500))
+    customer_name: Mapped[Optional[str]] = mapped_column(String(255))
+    contact_number: Mapped[Optional[str]] = mapped_column(String(255))
+    preferred_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    time_slot_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    image_urls: Mapped[Optional[str]] = mapped_column(String(500))
+    items_total: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    garage_base_fee: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    final_amount: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    brand: Mapped['MasterVehicleBrand'] = relationship('MasterVehicleBrand', back_populates='vehicle_service_booking')
+    user_registration: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[created_by], back_populates='vehicle_service_booking')
+    fuel: Mapped['MasterFuelType'] = relationship('MasterFuelType', back_populates='vehicle_service_booking')
+    garage: Mapped['MasterGarage'] = relationship('MasterGarage', back_populates='vehicle_service_booking')
+    mechanic: Mapped[Optional['MasterMechanic']] = relationship('MasterMechanic', back_populates='vehicle_service_booking')
+    user_registration_: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[modified_by], back_populates='vehicle_service_booking_')
+    sub_service: Mapped['MasterSubService'] = relationship('MasterSubService', back_populates='vehicle_service_booking')
+    time_slot: Mapped[Optional['MasterTimeSlot']] = relationship('MasterTimeSlot', back_populates='vehicle_service_booking')
+    booking_service_mapping: Mapped[list['BookingServiceMapping']] = relationship('BookingServiceMapping', back_populates='booking')
+
+
+class BookingServiceMapping(Base):
+    __tablename__ = 'booking_service_mapping'
+    __table_args__ = (
+        ForeignKeyConstraint(['booking_id'], ['vehicle_service_booking.id'], name='fk_booking_service_mapping_booking_id'),
+        ForeignKeyConstraint(['garage_service_id'], ['master_garage_service.id'], name='fk_booking_service_mapping_garage_service_id'),
+        PrimaryKeyConstraint('id', name='pk_booking_service_mapping_id'),
+        UniqueConstraint('booking_id', 'garage_service_id', name='uq_booking_service')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    booking_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    garage_service_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    quantity: Mapped[Optional[int]] = mapped_column(Integer)
+    service_price: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    booking: Mapped['VehicleServiceBooking'] = relationship('VehicleServiceBooking', back_populates='booking_service_mapping')
+    garage_service: Mapped['MasterGarageService'] = relationship('MasterGarageService', back_populates='booking_service_mapping')
