@@ -11,6 +11,10 @@ class JobOpeningCreate(BaseModel):
     job_id: int
     company_name: str
     company_address: Optional[str] = None
+
+    industry_id: Optional[int] = None        # ✅ ADD
+    company_size_id: Optional[int] = None    # ✅ ADD
+
     location_type_id: Optional[int] = None
     work_type_id: Optional[int] = None
     role_description: Optional[str] = None
@@ -23,6 +27,9 @@ class JobOpeningResponse(BaseModel):
     job_id: int
     company_name: str
     company_address: Optional[str] = None
+    industry_id: Optional[int] = None          # ✅ ADD
+    company_size_id: Optional[int] = None      # ✅ ADD
+
     location_type_id: Optional[int] = None
     work_type_id: Optional[int] = None
     role_description: Optional[str] = None
