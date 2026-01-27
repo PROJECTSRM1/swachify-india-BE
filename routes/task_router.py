@@ -21,7 +21,7 @@ from schemas.task_schema import (
 
 router = APIRouter(
     prefix="/api/tasks",
-    tags=["Tasks"]
+    tags=["Student/Tasks"]
 )
 
 # =====================================================
