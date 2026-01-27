@@ -1,8 +1,11 @@
-import datetime
 from pydantic import BaseModel, EmailStr, model_validator
 from typing import Optional, List, Any
-from datetime import date,datetime
+from datetime import date, datetime
 from decimal import Decimal
+
+# =====================================================
+# JOB OPENINGS
+# =====================================================
 
 class JobOpeningCreate(BaseModel):
     job_id: int
@@ -17,7 +20,7 @@ class JobOpeningCreate(BaseModel):
 
 class JobOpeningResponse(BaseModel):
     id: int
-    job_id: int                    
+    job_id: int
     company_name: str
     company_address: Optional[str] = None
     location_type_id: Optional[int] = None
@@ -25,12 +28,16 @@ class JobOpeningResponse(BaseModel):
     role_description: Optional[str] = None
     requirements: Optional[str] = None
     is_active: bool
-    created_date: Optional[datetime] = None
+    created_date: Optional[datetime]
 
     class Config:
         from_attributes = True
 
-#job appliaction
+
+# =====================================================
+# JOB APPLICATION
+# =====================================================
+
 class JobApplicationCreate(BaseModel):
     job_openings_id: int
     first_name: str
@@ -85,12 +92,11 @@ class JobApplicationCreate(BaseModel):
             raise ValueError(
                 "Either fresher=true or experienced=true (not both)"
             )
-
         return self
+
 
 class JobApplicationResponse(BaseModel):
     id: int
-
     user_id: int
     job_openings_id: int
 
@@ -104,28 +110,32 @@ class JobApplicationResponse(BaseModel):
     upload_resume: str
     notice_period_in_days: int
 
-    title: Optional[str] = None
-    company: Optional[str] = None
-    from_date: Optional[date] = None
-    to_date: Optional[date] = None
-    company_city_id: Optional[int] = None
-    description: Optional[str] = None
+    title: Optional[str]
+    company: Optional[str]
+    from_date: Optional[date]
+    to_date: Optional[date]
+    company_city_id: Optional[int]
+    description: Optional[str]
 
-    current_ctc: Optional[Decimal] = None
-    expected_ctc: Optional[Decimal] = None
+    current_ctc: Optional[Decimal]
+    expected_ctc: Optional[Decimal]
 
-    fresher: Optional[bool] = None
-    experienced: Optional[bool] = None
+    fresher: Optional[bool]
+    experienced: Optional[bool]
 
-    created_date: Optional[datetime] = None
-    modified_by: Optional[int] = None
-    modified_date: Optional[datetime] = None
-    is_active: Optional[bool] = None
+    created_date: Optional[datetime]
+    modified_by: Optional[int]
+    modified_date: Optional[datetime]
+    is_active: Optional[bool]
 
     class Config:
         from_attributes = True
 
-#student certification
+
+# =====================================================
+# STUDENT CERTIFICATE
+# =====================================================
+
 class StudentCertificateCreate(BaseModel):
     certificate_name: str
     issued_by: str
@@ -136,19 +146,45 @@ class StudentCertificateCreate(BaseModel):
 class StudentCertificateResponse(BaseModel):
     id: int
     certificate_name: str
-    issued_by: str
-    year: int
-    upload_certificate: Optional[str]
-    is_active: bool
+    issued_by: Optional[str] = None
+    year: Optional[int] = None
+    upload_certificate: Optional[str] = None
+    is_active: bool = True
 
     class Config:
         from_attributes = True
+
+
+
+# =====================================================
+# STUDENT EDUCATION
+# =====================================================
+
+class StudentEducationCreate(BaseModel):
+    degree: str
+    institute: str
+    percentage: str
+    passing_year: Optional[int] = None
+
+
+class StudentEducationResponse(BaseModel):
+    degree: str
+    institute: Optional[str] = None
+    percentage: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+# =====================================================
+# STUDENT NOC
+# =====================================================
 
 class StudentNOCUpdate(BaseModel):
     noc_number: str
     police_station_name: str
     issue_year: int
     upload_noc: Optional[str] = None
+
 
 class StudentNOCResponse(BaseModel):
     noc_number: str
@@ -160,11 +196,15 @@ class StudentNOCResponse(BaseModel):
         from_attributes = True
 
 
+# =====================================================
+# STUDENT PROFILE (BASIC)
+# =====================================================
+
 class StudentProfileResponse(BaseModel):
-    user_id: int  
+    user_id: int
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
     mobile_number: str
     government_id: Any
     location: Optional[str]
@@ -173,11 +213,10 @@ class StudentProfileResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class StudentEducationCreate(BaseModel):
-    degree: str
-    institute: str
-    percentage: str
-    passing_year: Optional[int] = None
+
+# =====================================================
+# STUDENT FULL UPDATE (EDU / CERT / NOC)
+# =====================================================
 
 class StudentEducationFullCreate(BaseModel):
     education: Optional[List[StudentEducationCreate]] = None
@@ -187,8 +226,15 @@ class StudentEducationFullCreate(BaseModel):
     @model_validator(mode="after")
     def at_least_one_field(cls, values):
         if not (values.education or values.certificates or values.noc):
-            raise ValueError("At least one of education, certificates, or noc must be provided.")
+            raise ValueError(
+                "At least one of education, certificates, or noc must be provided."
+            )
         return values
+
+
+# =====================================================
+# STUDENT LIST RESPONSE (NO DUPLICATES)
+# =====================================================
 
 class StudentListResponse(BaseModel):
     user_id: int
@@ -201,11 +247,11 @@ class StudentListResponse(BaseModel):
     attendance_percentage: Optional[Decimal]
     aggregate: Optional[str]
 
-    certificate_name: Optional[str]
-    degree: Optional[str]
-
     internship_status: Optional[str]
     rating: Optional[Decimal]
+
+    education: List[StudentEducationResponse] = []
+    certificates: List[StudentCertificateResponse] = []
 
     class Config:
         from_attributes = True
