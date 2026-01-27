@@ -92,3 +92,32 @@ class TrendingStudentResponse(BaseModel):
     degree: str
     attendance_percentage: float
     active: bool
+    
+    
+    
+
+
+# MASTER JOB RESPONSE
+class MasterJobResponse(BaseModel):
+    id: int
+    job_name: Optional[str]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attibutes = True
+
+
+# UI APPLICATION DETAILS
+class ApplicationDetailsSchema(BaseModel):
+    position: Optional[str]
+    company: Optional[str]
+    application_id: str
+    # status: str
+
+
+# UI SUCCESS RESPONSE
+class JobSuccessResponse(BaseModel):
+    success: bool
+    title: str
+    message: str
+    application_details: ApplicationDetailsSchema

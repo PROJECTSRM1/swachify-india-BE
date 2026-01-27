@@ -45,14 +45,16 @@ app.include_router(allocation_router)
 app.include_router(admin_router)
 app.include_router(freelancer_router)
 app.include_router(master_module_router)
-app.include_router(
-    task_router
-)
+app.include_router(task_router)
 app.include_router(student_education_router)
 app.include_router(job_application_openings_router)
+app.include_router(application_router)
 app.include_router(property_sell_listing_router)
 app.include_router(raw_material_router)
 app.include_router(payment_router)
+<<<<<<< HEAD
 app.include_router(application_router)
 
 app.include_router(healthcare_router)
+=======
+>>>>>>> 32420a5572c7167eb1a003eb7322bed792aef628

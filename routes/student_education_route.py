@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import List
 
 from core.database import get_db
 
@@ -8,10 +9,12 @@ from schemas.student_education_schema import (
     StudentProfileResponse,
     StudentEducationFullCreate,
 )
+
 from schemas.student_attendance_schema import (
     StudentAttendanceCreate,
     StudentAttendanceResponse,
 )
+
 from schemas.student_internship_status import (
     StudentInternshipStatusCreate,
     StudentInternshipStatusResponse,
@@ -20,11 +23,12 @@ from schemas.student_internship_status import (
 from services.student_education_service import (
     create_student_certificate,
     add_student_education_service,
-    # get_top_performers,
-    get_top_performers_service,
+    get_recent_joiners_service,
     update_student_noc,
     get_students_list_service,
+    get_top_performers_service,
 )
+
 from services.student_attendance_service import upsert_student_attendance
 from services.student_internship_service import upsert_student_internship
 
@@ -37,6 +41,9 @@ router = APIRouter(
     tags=["Student Education"]
 )
 
+# =====================================================
+# STUDENT LIST (NO DUPLICATES)
+# =====================================================
 
 @router.get("/students-list")
 def get_students_list(
@@ -49,26 +56,50 @@ def get_students_list(
         db=db,
         skill_id=skill_id,
         aggregate=aggregate,
-        internship_status=internship_status,
+        internship_status=internship_status
     )
 
+# =====================================================
+# STUDENT FULL PROFILE
+# =====================================================
 
-@router.get("/students/{student_id}/full-profile")
-def get_full_student_profile(student_id: int, db: Session = Depends(get_db)):
-    """
-    Get all education, certificates, and NOC for a student in a single response.
-    """
-    student = db.query(UserRegistration).filter(UserRegistration.id == student_id, UserRegistration.is_active == True).first()
+@router.get(
+    "/students/{student_id}/full-profile",
+)
+def get_full_student_profile(
+    student_id: int,
+    db: Session = Depends(get_db)
+):
+    student = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == student_id,
+            UserRegistration.is_active == True
+        )
+        .first()
+    )
+
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
-    education = db.query(StudentQualification).filter(StudentQualification.user_id == student_id, StudentQualification.is_active == True).all()
-    certificates = db.query(StudentCertificate).filter(StudentCertificate.user_id == student_id, StudentCertificate.is_active == True).all()
-    noc = {
-        "noc_number": getattr(student, "noc_number", None),
-        "police_station_name": getattr(student, "police_station_name", None),
-        "issue_year": getattr(student, "issue_year", None),
-        "upload_noc": getattr(student, "upload_noc", None)
-    }
+
+    education = (
+        db.query(StudentQualification)
+        .filter(
+            StudentQualification.user_id == student_id,
+            StudentQualification.is_active == True
+        )
+        .all()
+    )
+
+    certificates = (
+        db.query(StudentCertificate)
+        .filter(
+            StudentCertificate.user_id == student_id,
+            StudentCertificate.is_active == True
+        )
+        .all()
+    )
+
     return {
         "profile": StudentProfileResponse(
             user_id=student.id,
@@ -80,16 +111,23 @@ def get_full_student_profile(student_id: int, db: Session = Depends(get_db)):
             location=student.address,
             service_name="Education"
         ),
-        "education": [
-            {"degree": e.degree, "institute": e.institute, "percentage": e.percentage} for e in education
-        ],
-        "certificates": [
-            {"certificate_name": c.certificate_name, "issued_by": c.issued_by, "year": c.year, "upload_certificate": c.upload_certificate} for c in certificates
-        ],
-        "noc": noc
+        "education": education,
+        "certificates": certificates,
+        "noc": {
+            "noc_number": student.noc_number,
+            "police_station_name": student.police_station_name,
+            "issue_year": student.issue_year,
+            "upload_noc": student.upload_noc
+        }
     }
 
-@router.post("/students/{student_id}/full-profile")
+# =====================================================
+# ADD FULL STUDENT PROFILE DATA
+# =====================================================
+
+@router.post(
+    "/students/{student_id}/full-profile"
+    )
 def add_full_student_profile(
     student_id: int,
     payload: StudentEducationFullCreate,
@@ -105,7 +143,7 @@ def add_full_student_profile(
                 student_id=student_id,
                 payload=edu,
             )
-            results["education"].append({"education_id": record.id})
+            results["education"].append(record.id)
 
     if payload.certificates:
         results["certificates"] = []
@@ -115,7 +153,7 @@ def add_full_student_profile(
                 student_id=student_id,
                 payload=cert,
             )
-            results["certificates"].append({"certificate_id": record.id})
+            results["certificates"].append(record.id)
 
     if payload.noc:
         user = update_student_noc(
@@ -123,22 +161,19 @@ def add_full_student_profile(
             student_id=student_id,
             payload=payload.noc,
         )
-        results["noc"] = {"user_id": user.id}
+        results["noc_updated_for_user"] = user.id
 
     if not results:
         raise HTTPException(status_code=400, detail="No valid data provided")
 
     return {
         "message": "Student profile updated successfully",
-        **results,
+        "data": results
     }
 
-@router.get("/students/top-performers")
-def get_top_performers(
-    limit: int = 10,
-    db: Session = Depends(get_db)
-):
-    return get_top_performers_service(db, limit)
+# =====================================================
+# ATTENDANCE
+# =====================================================
 
 @router.post(
     "/students/{student_id}/attendance",
@@ -155,6 +190,10 @@ def update_student_attendance(
         attendance_percentage=payload.attendance_percentage,
     )
 
+# =====================================================
+# INTERNSHIP STATUS
+# =====================================================
+
 @router.post(
     "/students/{student_id}/internship-status",
     response_model=StudentInternshipStatusResponse,
@@ -169,3 +208,23 @@ def update_student_internship_status(
         user_id=student_id,
         internship_status=payload.internship_status,
     )
+
+@router.get(
+    "/students/top-performers",
+    response_model=List[StudentListResponse],
+)
+def get_top_performers(
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    return get_top_performers_service(db, limit)
+
+@router.get(
+    "/students/recent-joiners",
+    response_model=List[StudentListResponse],
+)
+def get_recent_joiners(
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    return get_recent_joiners_service(db, limit)
