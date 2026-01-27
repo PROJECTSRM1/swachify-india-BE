@@ -1,8 +1,78 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import text, cast, Float, desc
+from sqlalchemy import func,  text, cast, Float, desc
 from core.database import SessionLocal
 from models.user_registration import UserRegistration
 from models.student_qualification import StudentQualification
+###
+from datetime import datetime
+from models.generated_models import JobOpenings
+from models.user_registration import UserRegistration
+from fastapi import HTTPException, status
+
+
+
+#### ADDED
+
+
+def create_job_opening(db: Session, payload):
+    user = (
+        db.query(UserRegistration)
+        .filter(UserRegistration.id == payload.created_by)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid created_by: user does not exist"
+        )
+
+    job = JobOpenings(
+        job_id=payload.job_id,
+        company_name=payload.company_name,
+        company_address=payload.company_address,
+        location_type_id=payload.location_type_id,
+        work_type_id=payload.work_type_id,
+        role_description=payload.role_description,
+        requirements=payload.requirements,
+        sub_module_id=payload.sub_module_id,
+        category_id=payload.category_id,
+        internship_duration_id=payload.internship_duration_id,
+        stipend_type_id=payload.stipend_type_id,
+        internship_stipend=payload.internship_stipend,
+        # created_by=user_id,
+        created_by=payload.created_by,
+        created_date=datetime.utcnow(),
+        is_active=True
+    )
+
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+    return job
+
+
+def get_job_openings(
+    db: Session,
+    job_id: int | None = None,
+    category_id: int | None = None
+):
+    query = db.query(JobOpenings).filter(JobOpenings.is_active)
+
+    # 🔹 filter by job id (single job)
+    if job_id is not None:
+        return query.filter(JobOpenings.id == job_id).first()
+
+    # 🔹 filter by category
+    if category_id is not None:
+        query = query.filter(JobOpenings.category_id == category_id)
+
+    # 🔹 default → all jobs
+    return query.order_by(JobOpenings.created_date.desc()).all()
+
+
+
+
 
 def get_application_review(user_id: int):
     db: Session = SessionLocal()
@@ -138,7 +208,45 @@ def update_application(user_id: int, data):
 
 
 
+# def get_trending_students(db: Session):
+#     students = (
+#         db.query(
+#             UserRegistration.first_name,
+#             UserRegistration.last_name,
+#             UserRegistration.is_active,
+#             StudentQualification.institute,
+#             StudentQualification.degree,
+#             cast(StudentQualification.percentage, Float).label("percentage")
+#         )
+#         .join(StudentQualification, StudentQualification.user_id == UserRegistration.id)
+#         .filter(
+#             cast(StudentQualification.percentage, Float) >= 90,
+#             UserRegistration.is_active.is_(True),
+#             StudentQualification.is_active.is_(True)
+#         )
+#         .order_by(desc(cast(StudentQualification.percentage, Float)))
+#         .all()
+#     )
+
+#     return [
+#         {
+#             "full_name": f"{s.first_name} {s.last_name}",
+#             "institute": s.institute,
+#             "degree": s.degree,
+#             "attendnce_percentage": float(s.percentage),
+#             "active": bool(s.is_active)
+#         }
+#         for s in students
+#     ]
+ 
+
 def get_trending_students(db: Session):
+
+    percentage_clean = cast(
+        func.replace(StudentQualification.percentage, '%', ''),
+        Float
+    )
+
     students = (
         db.query(
             UserRegistration.first_name,
@@ -146,15 +254,16 @@ def get_trending_students(db: Session):
             UserRegistration.is_active,
             StudentQualification.institute,
             StudentQualification.degree,
-            cast(StudentQualification.percentage, Float).label("percentage")
+            percentage_clean.label("percentage")
         )
         .join(StudentQualification, StudentQualification.user_id == UserRegistration.id)
         .filter(
-            cast(StudentQualification.percentage, Float) >= 90,
+            percentage_clean.isnot(None),
+            percentage_clean >= 90,
             UserRegistration.is_active.is_(True),
             StudentQualification.is_active.is_(True)
         )
-        .order_by(desc(cast(StudentQualification.percentage, Float)))
+        .order_by(desc(percentage_clean))
         .all()
     )
 
@@ -163,8 +272,56 @@ def get_trending_students(db: Session):
             "full_name": f"{s.first_name} {s.last_name}",
             "institute": s.institute,
             "degree": s.degree,
-            "attendance_percentage": float(s.percentage),
+            "attendance_percentage": float(s.percentage) if s.percentage else 0,
             "active": bool(s.is_active)
         }
         for s in students
     ]
+
+
+
+    
+# def get_screenshot_application(user_id: int):
+#     db: Session = SessionLocal()
+
+#     query = """
+#     SELECT 
+#         CONCAT(ur.first_name, ' ', ur.last_name) AS full_name,
+#         jo.role_description AS internship_title,
+#         jo.company_name AS company,
+#         ja.application_code,
+#         ja.status
+
+#     FROM user_registration ur
+#     LEFT JOIN job_application ja 
+#         ON ja.user_id = ur.id
+#     LEFT JOIN job_openings jo 
+#         ON jo.job_id = ja.job_id
+
+#     WHERE ur.id = :user_id
+#     """
+
+#     row = db.execute(text(query), {"user_id": user_id}).fetchone()
+
+#     if not row:
+#         raise HTTPException(status_code=404, detail="User not found")
+
+#     data = dict(row._mapping)
+
+#     full_name = data.get("full_name") or "Applicant"
+#     internship = data.get("internship_title") or "UI/UX Design Intern"
+#     company = data.get("company") or "TechVision Studio"
+#     application_id = data.get("application_code") or f"INT-{user_id:04d}"
+#     status = data.get("status") or "RECEIVED"
+
+#     return {
+#         "success": True,
+#         "title": f"Congratulations, {full_name}!",
+#         "message": f"Your application for the {internship} has been submitted successfully.",
+#         "application_details": {
+#             "position": internship,
+#             "company": company,
+#             "application_id": application_id,
+#             "status": status.upper()
+#         }
+#     }
