@@ -1,14 +1,16 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func,  text, cast, Float, desc
 from core.database import SessionLocal
-from models.user_registration import UserRegistration
+from models.generated_models import UserRegistration
 from models.student_qualification import StudentQualification
 ###
 from datetime import datetime
 from models.generated_models import JobOpenings
-from models.user_registration import UserRegistration
+
 from fastapi import HTTPException, status
 
+from models.generated_models import JobOpenings
+from models.generated_models import MasterJob
 
 
 #### ADDED
@@ -208,36 +210,7 @@ def update_application(user_id: int, data):
 
 
 
-# def get_trending_students(db: Session):
-#     students = (
-#         db.query(
-#             UserRegistration.first_name,
-#             UserRegistration.last_name,
-#             UserRegistration.is_active,
-#             StudentQualification.institute,
-#             StudentQualification.degree,
-#             cast(StudentQualification.percentage, Float).label("percentage")
-#         )
-#         .join(StudentQualification, StudentQualification.user_id == UserRegistration.id)
-#         .filter(
-#             cast(StudentQualification.percentage, Float) >= 90,
-#             UserRegistration.is_active.is_(True),
-#             StudentQualification.is_active.is_(True)
-#         )
-#         .order_by(desc(cast(StudentQualification.percentage, Float)))
-#         .all()
-#     )
 
-#     return [
-#         {
-#             "full_name": f"{s.first_name} {s.last_name}",
-#             "institute": s.institute,
-#             "degree": s.degree,
-#             "attendnce_percentage": float(s.percentage),
-#             "active": bool(s.is_active)
-#         }
-#         for s in students
-#     ]
  
 
 def get_trending_students(db: Session):
@@ -280,48 +253,52 @@ def get_trending_students(db: Session):
 
 
 
-    
-# def get_screenshot_application(user_id: int):
-#     db: Session = SessionLocal()
 
-#     query = """
-#     SELECT 
-#         CONCAT(ur.first_name, ' ', ur.last_name) AS full_name,
-#         jo.role_description AS internship_title,
-#         jo.company_name AS company,
-#         ja.application_code,
-#         ja.status
 
-#     FROM user_registration ur
-#     LEFT JOIN job_application ja 
-#         ON ja.user_id = ur.id
-#     LEFT JOIN job_openings jo 
-#         ON jo.job_id = ja.job_id
+ 
+ # ✅ CONDITION 1 — FETCH MASTER JOB BY ID
+def fetch_master_job(db: Session, master_job_id: int):
+    return (
+        db.query(MasterJob)
+        .filter(MasterJob.id == master_job_id)
+        .first()
+    )
 
-#     WHERE ur.id = :user_id
-#     """
+ 
+ 
+def fetch_success_ui_by_job_id(db: Session, job_id: int):
+    # Join job_openings with master_job
+    data = (
+        db.query(
+            JobOpenings.id.label("job_opening_id"),
+            JobOpenings.company_name,
+            JobOpenings.is_active,
+            MasterJob.job_name
+        )
+        .join(MasterJob, JobOpenings.job_id == MasterJob.id)
+        .filter(JobOpenings.job_id == job_id)
+        .first()
+    )
 
-#     row = db.execute(text(query), {"user_id": user_id}).fetchone()
+    if not data:
+        return None
 
-#     if not row:
-#         raise HTTPException(status_code=404, detail="User not found")
+    job_opening_id = data.job_opening_id
+    position = data.job_name
+    company = data.company_name
+    status = "RECEIVED" if data.is_active else "INACTIVE"
 
-#     data = dict(row._mapping)
+     # ✅ Application ID is ONLY numeric
+    application_id = job_opening_id
 
-#     full_name = data.get("full_name") or "Applicant"
-#     internship = data.get("internship_title") or "UI/UX Design Intern"
-#     company = data.get("company") or "TechVision Studio"
-#     application_id = data.get("application_code") or f"INT-{user_id:04d}"
-#     status = data.get("status") or "RECEIVED"
-
-#     return {
-#         "success": True,
-#         "title": f"Congratulations, {full_name}!",
-#         "message": f"Your application for the {internship} has been submitted successfully.",
-#         "application_details": {
-#             "position": internship,
-#             "company": company,
-#             "application_id": application_id,
-#             "status": status.upper()
-#         }
-#     }
+    return {
+        # "success": True,
+        # "title": "Congratulations, Alex!",
+        "message": f"Your application for the {position} has been submitted successfully.",
+        "application_details": {
+            "position": position,
+            "company": company,
+            "application_id": application_id,
+            # "status": status.upper()
+        }
+    }
