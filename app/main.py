@@ -52,9 +52,6 @@ app.include_router(application_router)
 app.include_router(property_sell_listing_router)
 app.include_router(raw_material_router)
 app.include_router(payment_router)
-<<<<<<< HEAD
 app.include_router(application_router)
 
 app.include_router(healthcare_router)
-=======
->>>>>>> 32420a5572c7167eb1a003eb7322bed792aef628
