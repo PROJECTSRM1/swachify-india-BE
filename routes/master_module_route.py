@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,status
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -100,9 +100,17 @@ def read_home_services(db: Session = Depends(get_db)):
 def read_home_service_by_id(id: int, db: Session = Depends(get_db)):
     return get_home_service(db, id)
 
-@router.post("/home-service",response_model=HomeServiceResponse)
-def create_new_home_service(data: HomeServiceCreate,db: Session = Depends(get_db),current_user: UserRegistration = Depends(get_current_user)):
+@router.post(
+    "/home-service",
+    response_model=HomeServiceCreateResponse
+)
+def create_new_home_service(
+    data: HomeServiceCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     return create_home_service(db, data, current_user.id)
+
 
 @router.put("/home-service/{service_id}/rating")
 def update_rating(
