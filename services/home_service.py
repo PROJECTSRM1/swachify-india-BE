@@ -198,11 +198,11 @@ def delete_home_service(db: Session, service_id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Service not found"
         )
-
-    service.is_active = False
+    db.delete(service)
     db.commit()
+   
 
-    return {"message": "Service deactivated successfully"}
+    return {"message": "Service deleted successfully"}
 
 
 # =====================================================
@@ -212,7 +212,7 @@ def delete_home_service(db: Session, service_id: int):
 def update_home_service_rating(
     db: Session,
     service_id: int,
-    rating: int
+    rating: float
 ):
 
     service = (

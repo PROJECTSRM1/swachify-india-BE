@@ -133,6 +133,6 @@ def update_rating(
 #     return update_home_service(db, id, data)
 
 
-# @router.delete("/home-service/{id}")
-# def remove_home_service(id: int, db: Session = Depends(get_db)):
-#     return delete_home_service(db, id)
+@router.delete("/home-service/{id}")
+def remove_home_service(id: int, db: Session = Depends(get_db)):
+    return delete_home_service(db, id)

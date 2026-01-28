@@ -17,7 +17,7 @@ router = APIRouter(
 @router.get(
     "",
     response_model=List[CompanyListResponse],
-    summary="Get all companies (default: no filters)"
+    summary="Get all companies "
 )
 def get_companies_api(
     industry_id: Optional[int] = Query(None),
@@ -33,7 +33,6 @@ def get_companies_api(
     Default:
     - Returns ALL companies
     - No filters required
-    - Same behavior as Student list
     """
 
     return get_all_companies(

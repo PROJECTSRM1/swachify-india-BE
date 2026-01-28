@@ -148,6 +148,5 @@ class HomeServiceCreateResponse(BaseModel):
 # =====================================================
 # RATING UPDATE
 # =====================================================
-
 class HomeServiceRatingUpdate(BaseModel):
-    rating: int = Field(..., ge=1, le=5, description="Rating must be between 1 and 5")
+    rating: float = Field(..., ge=1, le=5, description="Rating must be between 1 and 5")
