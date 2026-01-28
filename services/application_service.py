@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func,  text, cast, Float, desc
 from core.database import SessionLocal
 from models.generated_models import UserRegistration
-from models.student_qualification import StudentQualification
+from models.generated_models import StudentQualification
 ###
 from datetime import datetime
 from models.generated_models import JobOpenings

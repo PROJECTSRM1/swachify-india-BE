@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from core.database import get_db
 from core.dependencies import get_current_user
-from models.user_registration import UserRegistration
+from models.generated_models import UserRegistration
 from schemas.healthcare_schema import (
     AmbulanceBookingCreateSchema,
     AmbulanceBookingResponseSchema,
