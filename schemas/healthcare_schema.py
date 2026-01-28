@@ -91,11 +91,14 @@ class AmbulanceBookingResponseSchema(BaseModel):
     id: int
     appointment_id: int
     ambulance_id: int
-    service_provider: Optional[str]
-    contact_number: Optional[str]
-    patient_name: Optional[str]
-    aadhar_number: Optional[str]
-    is_active: Optional[bool]
+
+    patient_name: Optional[str] = None
+    aadhar_number: Optional[str] = None
+    is_active: Optional[bool] = None
+
+    # From MasterAmbulance
+    service_provider: Optional[str] = None
+    contact_number: Optional[str] = None
 
     class Config:
         orm_mode = True

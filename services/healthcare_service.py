@@ -204,7 +204,16 @@ def create_ambulance_booking(
     db.commit()
     db.refresh(booking)
 
-    return booking
+    return {
+        "id": booking.id,
+        "appointment_id": booking.appointment_id,
+        "ambulance_id": booking.ambulance_id,
+        "patient_name": booking.patient_name,
+        "aadhar_number": booking.aadhar_number,
+        "is_active": booking.is_active,
+        "service_provider": ambulance.service_provider,
+        "contact_number": ambulance.contact_number
+    }
 
 def release_ambulance_booking(
     db: Session,
