@@ -311,10 +311,10 @@ class MasterHospital(Base):
     hospital_name: Mapped[str] = mapped_column(String(255), nullable=False)
     specialty_type: Mapped[Optional[str]] = mapped_column(String(50))
     location: Mapped[Optional[str]] = mapped_column(String(255))
-    distance_km: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(5, 2))
-    estimated_arrival_mins: Mapped[Optional[int]] = mapped_column(Integer)
     contact_number: Mapped[Optional[str]] = mapped_column(String(20))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    latitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
+    longitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
 
     master_ambulance: Mapped[list['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='hospital')
 
@@ -600,6 +600,19 @@ class MasterPreferredTenants(Base):
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='preferred_tenants')
 
 
+class MasterProductCategory(Base):
+    __tablename__ = 'master_product_category'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_product_category_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    category_name: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    product_registration: Mapped[list['ProductRegistration']] = relationship('ProductRegistration', back_populates='category')
+
+
 class MasterProject(Base):
     __tablename__ = 'master_project'
     __table_args__ = (
@@ -639,6 +652,19 @@ class MasterRawMaterialType(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     raw_material_details: Mapped[list['RawMaterialDetails']] = relationship('RawMaterialDetails', back_populates='raw_material_type')
+
+
+class MasterRelation(Base):
+    __tablename__ = 'master_relation'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_relation_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    relation_type: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    student_family_members: Mapped[list['StudentFamilyMembers']] = relationship('StudentFamilyMembers', back_populates='relation_type')
 
 
 class MasterRole(Base):
@@ -870,16 +896,19 @@ t_vw_company_list = Table(
 )
 
 
-t_vw_hospital_ambulance_list = Table(
-    'vw_hospital_ambulance_list', Base.metadata,
+t_vw_nearby_ambulance_list = Table(
+    'vw_nearby_ambulance_list', Base.metadata,
     Column('hospital_id', BigInteger),
     Column('hospital_name', String(255)),
     Column('specialty_type', String(50)),
     Column('location', String(255)),
-    Column('distance_km', Numeric(5, 2)),
-    Column('estimated_arrival_mins', Integer),
-    Column('contact_number', String(20)),
-    Column('ambulances_available', BigInteger)
+    Column('latitude', Numeric(9, 6)),
+    Column('longitude', Numeric(9, 6)),
+    Column('hospital_contact', String(20)),
+    Column('ambulance_id', BigInteger),
+    Column('service_provider', String(100)),
+    Column('ambulance_contact', String(20)),
+    Column('availability_status', String(20))
 )
 
 
@@ -1038,6 +1067,31 @@ class MasterSubModule(Base):
     master_service: Mapped[list['MasterService']] = relationship('MasterService', back_populates='sub_module')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='sub_module')
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='sub_module')
+
+
+class ProductRegistration(Base):
+    __tablename__ = 'product_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['category_id'], ['master_product_category.id'], name='pk_product_registration_category_id'),
+        PrimaryKeyConstraint('id', name='pk_product_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    category_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    company_name: Mapped[Optional[str]] = mapped_column(String(255))
+    product_name: Mapped[Optional[str]] = mapped_column(String(255))
+    address: Mapped[Optional[str]] = mapped_column(String(255))
+    product_price: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    description: Mapped[Optional[str]] = mapped_column(String(255))
+    product_image: Mapped[Optional[str]] = mapped_column(String(500))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    category: Mapped['MasterProductCategory'] = relationship('MasterProductCategory', back_populates='product_registration')
 
 
 class RawMaterialDetails(Base):
@@ -1208,6 +1262,7 @@ class UserRegistration(Base):
     student_certificate: Mapped[list['StudentCertificate']] = relationship('StudentCertificate', foreign_keys='[StudentCertificate.created_by]', back_populates='user_registration')
     student_certificate_: Mapped[list['StudentCertificate']] = relationship('StudentCertificate', foreign_keys='[StudentCertificate.modified_by]', back_populates='user_registration_')
     student_certificate1: Mapped[list['StudentCertificate']] = relationship('StudentCertificate', foreign_keys='[StudentCertificate.user_id]', back_populates='user')
+    student_family_members: Mapped[list['StudentFamilyMembers']] = relationship('StudentFamilyMembers', back_populates='user')
     student_qualification: Mapped[list['StudentQualification']] = relationship('StudentQualification', foreign_keys='[StudentQualification.created_by]', back_populates='user_registration')
     student_qualification_: Mapped[list['StudentQualification']] = relationship('StudentQualification', foreign_keys='[StudentQualification.modified_by]', back_populates='user_registration_')
     student_qualification1: Mapped[list['StudentQualification']] = relationship('StudentQualification', foreign_keys='[StudentQualification.user_id]', back_populates='user')
@@ -1485,6 +1540,7 @@ class PropertySellListing(Base):
     available_rooms: Mapped[Optional[int]] = mapped_column(Integer)
     food_included: Mapped[Optional[bool]] = mapped_column(Boolean)
     location: Mapped[Optional[int]] = mapped_column(Integer)
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
 
     approval_type: Mapped[Optional['MasterApprovalType']] = relationship('MasterApprovalType', back_populates='property_sell_listing')
     availability_status: Mapped[Optional['MasterAvailabilityStatus']] = relationship('MasterAvailabilityStatus', back_populates='property_sell_listing')
@@ -1553,6 +1609,30 @@ class StudentCertificate(Base):
     user_registration: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[created_by], back_populates='student_certificate')
     user_registration_: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[modified_by], back_populates='student_certificate_')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='student_certificate1')
+
+
+class StudentFamilyMembers(Base):
+    __tablename__ = 'student_family_members'
+    __table_args__ = (
+        ForeignKeyConstraint(['relation_type_id'], ['master_relation.id'], name='fk_student_family_members_relation_type_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_student_family_members_user_id'),
+        PrimaryKeyConstraint('id', name='pk_student_family_members_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    relation_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    first_name: Mapped[Optional[str]] = mapped_column(String(255))
+    last_name: Mapped[Optional[str]] = mapped_column(String(255))
+    phone_number: Mapped[Optional[str]] = mapped_column(String(255))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    relation_type: Mapped['MasterRelation'] = relationship('MasterRelation', back_populates='student_family_members')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='student_family_members')
 
 
 class StudentQualification(Base):
