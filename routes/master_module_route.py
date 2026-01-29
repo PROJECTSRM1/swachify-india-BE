@@ -155,7 +155,6 @@ def update_rating(
 #     return update_home_service(db, id, data)
 
 
-<<<<<<< HEAD
 # @router.delete("/home-service/{id}")
 # def remove_home_service(id: int, db: Session = Depends(get_db)):
 #     return delete_home_service(db, id)
@@ -195,8 +194,3 @@ def create_booking_service_mapping_api(payload: BookingServiceMappingCreateSchem
 @router.get("/booking-service-mapping", response_model=list[BookingServiceMappingResponseSchema])
 def get_booking_service_mapping_api(db: Session = Depends(get_db)):
     return get_all_booking_service_mapping(db)
-=======
-@router.delete("/home-service/{id}")
-def remove_home_service(id: int, db: Session = Depends(get_db)):
-    return delete_home_service(db, id)
->>>>>>> 808d3ee588134cd9146ba532de9a330fbbe7123e
