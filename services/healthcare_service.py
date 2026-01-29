@@ -132,12 +132,12 @@ def get_available_doctors(db):
 
 def get_hospital_ambulance_list(db: Session, hospital_id: int):
     if hospital_id == -1:
-        query = text("SELECT * FROM vw_hospital_ambulance_list")
+        query = text("SELECT * FROM vw_nearby_ambulance_list")
         return db.execute(query).mappings().all()
     else:
         query = text("""
             SELECT *
-            FROM vw_hospital_ambulance_list
+            FROM vw_nearby_ambulance_list
             WHERE hospital_id = :hospital_id
         """)
         return db.execute(

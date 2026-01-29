@@ -329,9 +329,9 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
 from models.generated_models import UserRegistration
-from models.master_module import MasterModule
-from models.user_services import UserServices
-from models.user_skill import UserSkill
+from models.generated_models import MasterModule
+from models.generated_models import UserServices
+from models.generated_models import UserSkill
 
 from schemas.user_schema import (
     RegisterUser,
