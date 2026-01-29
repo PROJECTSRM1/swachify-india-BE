@@ -46,8 +46,6 @@ class MasterApprovalType(Base):
     approval_type: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='approval_type')
-
 
 class MasterAssistants(Base):
     __tablename__ = 'master_assistants'
@@ -75,8 +73,6 @@ class MasterAvailabilityStatus(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     availability_status: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='availability_status')
 
 
 class MasterBathroom(Base):
@@ -128,8 +124,6 @@ class MasterBoundaryType(Base):
     boundary_type: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='boundary_type')
-
 
 class MasterBusinessType(Base):
     __tablename__ = 'master_business_type'
@@ -171,7 +165,6 @@ class MasterCity(Base):
 
     job_application: Mapped[list['JobApplication']] = relationship('JobApplication', foreign_keys='[JobApplication.city_id]', back_populates='city')
     job_application_: Mapped[list['JobApplication']] = relationship('JobApplication', foreign_keys='[JobApplication.company_city_id]', back_populates='company_city')
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='city')
 
 
 class MasterCompanySize(Base):
@@ -242,8 +235,6 @@ class MasterFacing(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     facing: Mapped[Optional[str]] = mapped_column(String(100))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='facing')
 
 
 class MasterFuelType(Base):
@@ -317,6 +308,17 @@ class MasterHospital(Base):
     longitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
 
     master_ambulance: Mapped[list['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='hospital')
+
+
+class MasterHostelServices(Base):
+    __tablename__ = 'master_hostel_services'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_hostel_services_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    service_name: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
 
 class MasterHostelType(Base):
@@ -446,8 +448,6 @@ class MasterLandType(Base):
     land_type: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='land_type')
-
 
 class MasterLeaseType(Base):
     __tablename__ = 'master_lease_type'
@@ -460,7 +460,18 @@ class MasterLeaseType(Base):
     lease_type: Mapped[Optional[str]] = mapped_column(String(100))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='lease_type')
+
+class MasterListingType(Base):
+    __tablename__ = 'master_listing_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_listing_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    listing_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='listing_type')
 
 
 class MasterLocationType(Base):
@@ -520,8 +531,6 @@ class MasterOwnershipType(Base):
     ownership_type: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='ownership_type')
-
 
 class MasterParking(Base):
     __tablename__ = 'master_parking'
@@ -533,8 +542,6 @@ class MasterParking(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     parking_type: Mapped[Optional[str]] = mapped_column(String(100))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='parking')
 
 
 class MasterPaymentType(Base):
@@ -583,8 +590,6 @@ class MasterPostedBy(Base):
     posted_by: Mapped[Optional[str]] = mapped_column(String(100))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='posted_by')
-
 
 class MasterPreferredTenants(Base):
     __tablename__ = 'master_preferred_tenants'
@@ -596,8 +601,6 @@ class MasterPreferredTenants(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     tenant_type: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='preferred_tenants')
 
 
 class MasterProductCategory(Base):
@@ -727,7 +730,6 @@ class MasterState(Base):
 
     master_district: Mapped[list['MasterDistrict']] = relationship('MasterDistrict', back_populates='state')
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='state')
-    property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='state')
 
 
 class MasterStatus(Base):
@@ -804,6 +806,20 @@ class MasterVehicleBrand(Base):
     vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='brand')
 
 
+class MasterVehicleType(Base):
+    __tablename__ = 'master_vehicle_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='master_vehicle_type_pkey'),
+        UniqueConstraint('vehicle_type_name', name='master_vehicle_type_vehicle_type_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    vehicle_type_name: Mapped[Optional[str]] = mapped_column(String(100))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    product_order: Mapped[list['ProductOrder']] = relationship('ProductOrder', back_populates='vehicle_type')
+
+
 class MasterWorkStatus(Base):
     __tablename__ = 'master_work_status'
     __table_args__ = (
@@ -831,6 +847,7 @@ class MasterWorkType(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='work_type')
+    user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='work_type')
 
 
 t_vw_active_job_openings = Table(
@@ -1090,8 +1107,12 @@ class ProductRegistration(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    latitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
+    longitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
 
     category: Mapped['MasterProductCategory'] = relationship('MasterProductCategory', back_populates='product_registration')
+    product_order: Mapped[list['ProductOrder']] = relationship('ProductOrder', back_populates='product')
+    product_rating: Mapped[list['ProductRating']] = relationship('ProductRating', back_populates='product')
 
 
 class RawMaterialDetails(Base):
@@ -1161,6 +1182,7 @@ class MasterService(Base):
     sub_module: Mapped['MasterSubModule'] = relationship('MasterSubModule', back_populates='master_service')
     master_sub_service: Mapped[list['MasterSubService']] = relationship('MasterSubService', back_populates='service')
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='service')
+    property_sell_listing_service: Mapped[list['PropertySellListingService']] = relationship('PropertySellListingService', back_populates='service')
 
 
 class MasterSubDistrict(Base):
@@ -1193,6 +1215,7 @@ class UserRegistration(Base):
         ForeignKeyConstraint(['role_id'], ['master_role.id'], name='fk_user_registration_role_id'),
         ForeignKeyConstraint(['state_id'], ['master_state.id'], name='fk_user_registration_state_id'),
         ForeignKeyConstraint(['status_id'], ['master_status.id'], name='fk_user_registration_status_id'),
+        ForeignKeyConstraint(['work_type_id'], ['master_work_type.id'], name='fk_user_registration_work_type_id'),
         PrimaryKeyConstraint('id', name='pk_user_registration_id'),
         UniqueConstraint('email', name='uk_user_registration_email'),
         UniqueConstraint('mobile', name='uk_user_registration_mobile'),
@@ -1245,6 +1268,17 @@ class UserRegistration(Base):
     org_name: Mapped[Optional[int]] = mapped_column(Integer)
     gst_number: Mapped[Optional[str]] = mapped_column(String(100))
     job_skill_id: Mapped[Optional[int]] = mapped_column(Integer)
+    vehicle_insurance: Mapped[Optional[str]] = mapped_column(String(255))
+    driver_license: Mapped[Optional[str]] = mapped_column(String(50))
+    vehicle_rc: Mapped[Optional[str]] = mapped_column(String(50))
+    pollution_certificate: Mapped[Optional[bool]] = mapped_column(Boolean)
+    upload_pollution_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    purchase_year: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    vehicle_model: Mapped[Optional[str]] = mapped_column(String(255))
+    work_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    hospital_name: Mapped[Optional[str]] = mapped_column(String(255))
+    upload_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    doctor_designation: Mapped[Optional[str]] = mapped_column(String(255))
 
     business_type: Mapped[Optional['MasterBusinessType']] = relationship('MasterBusinessType', back_populates='user_registration')
     district: Mapped[Optional['MasterDistrict']] = relationship('MasterDistrict', back_populates='user_registration')
@@ -1253,11 +1287,15 @@ class UserRegistration(Base):
     role: Mapped[Optional['MasterRole']] = relationship('MasterRole', back_populates='user_registration')
     state: Mapped[Optional['MasterState']] = relationship('MasterState', back_populates='user_registration')
     status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='user_registration')
+    work_type: Mapped[Optional['MasterWorkType']] = relationship('MasterWorkType', back_populates='user_registration')
     doctor_profile: Mapped['DoctorProfile'] = relationship('DoctorProfile', uselist=False, back_populates='user')
     job_application: Mapped[list['JobApplication']] = relationship('JobApplication', back_populates='user')
     master_internship_status: Mapped[list['MasterInternshipStatus']] = relationship('MasterInternshipStatus', back_populates='user')
+    product_order: Mapped[list['ProductOrder']] = relationship('ProductOrder', back_populates='user')
+    product_rating: Mapped[list['ProductRating']] = relationship('ProductRating', back_populates='user')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', foreign_keys='[PropertySellListing.created_by]', back_populates='user_registration')
     property_sell_listing_: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', foreign_keys='[PropertySellListing.modified_by]', back_populates='user_registration_')
+    property_sell_listing1: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', foreign_keys='[PropertySellListing.user_id]', back_populates='user')
     student_attendance: Mapped[list['StudentAttendance']] = relationship('StudentAttendance', back_populates='user')
     student_certificate: Mapped[list['StudentCertificate']] = relationship('StudentCertificate', foreign_keys='[StudentCertificate.created_by]', back_populates='user_registration')
     student_certificate_: Mapped[list['StudentCertificate']] = relationship('StudentCertificate', foreign_keys='[StudentCertificate.modified_by]', back_populates='user_registration_')
@@ -1433,49 +1471,79 @@ class MasterVillage(Base):
     sub_district: Mapped['MasterSubDistrict'] = relationship('MasterSubDistrict', back_populates='master_village')
 
 
+class ProductOrder(Base):
+    __tablename__ = 'product_order'
+    __table_args__ = (
+        ForeignKeyConstraint(['product_id'], ['product_registration.id'], name='fk_product_order_product_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_product_order_user_id'),
+        ForeignKeyConstraint(['vehicle_type_id'], ['master_vehicle_type.id'], name='fk_product_order_vehicle_type_id'),
+        PrimaryKeyConstraint('id', name='pk_product_order_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    product_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    phone_number: Mapped[str] = mapped_column(String(20), nullable=False)
+    delivery_address: Mapped[str] = mapped_column(Text, nullable=False)
+    quantity: Mapped[str] = mapped_column(String(50), nullable=False)
+    vehicle_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    order_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    status: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'Pending'::character varying"))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    product: Mapped['ProductRegistration'] = relationship('ProductRegistration', back_populates='product_order')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='product_order')
+    vehicle_type: Mapped[Optional['MasterVehicleType']] = relationship('MasterVehicleType', back_populates='product_order')
+
+
+class ProductRating(Base):
+    __tablename__ = 'product_rating'
+    __table_args__ = (
+        ForeignKeyConstraint(['product_id'], ['product_registration.id'], name='fk_product_rating_product_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_product_rating_user_id'),
+        PrimaryKeyConstraint('id', name='pk_product_rating_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    product_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    rating: Mapped[decimal.Decimal] = mapped_column(Numeric(2, 1), nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    product: Mapped['ProductRegistration'] = relationship('ProductRegistration', back_populates='product_rating')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='product_rating')
+
+
 class PropertySellListing(Base):
     __tablename__ = 'property_sell_listing'
     __table_args__ = (
-        ForeignKeyConstraint(['approval_type_id'], ['master_approval_type.id'], name='fk_property_sell_listing_approval_type_id'),
-        ForeignKeyConstraint(['availability_status_id'], ['master_availability_status.id'], name='fk_property_sell_listing_availability_status_id'),
         ForeignKeyConstraint(['bhk_type_id'], ['master_bhk_type.id'], name='fk_property_sell_listing_bhk_type_id'),
-        ForeignKeyConstraint(['boundary_type_id'], ['master_boundary_type.id'], name='fk_property_sell_listing_boundary_type_id'),
-        ForeignKeyConstraint(['city_id'], ['master_city.id'], name='fk_property_sell_listing_city_id'),
         ForeignKeyConstraint(['created_by'], ['user_registration.id'], name='fk_property_sell_listing_created_by'),
-        ForeignKeyConstraint(['facing_id'], ['master_facing.id'], name='fk_property_sell_listing_facing_id'),
         ForeignKeyConstraint(['furnishing_id'], ['master_furnishing.id'], name='fk_property_sell_listing_furnishing_id'),
         ForeignKeyConstraint(['hostel_type_id'], ['master_hostel_type.id'], name='fk_property_sell_listing_hostel_type_id'),
         ForeignKeyConstraint(['item_condition_id'], ['master_item_condition.id'], name='fk_property_sell_listing_item_condition_id'),
-        ForeignKeyConstraint(['land_type_id'], ['master_land_type.id'], name='fk_property_sell_listing_land_type_id'),
-        ForeignKeyConstraint(['lease_type_id'], ['master_lease_type.id'], name='fk_property_sell_listing_lease_type_id'),
+        ForeignKeyConstraint(['listing_type_id'], ['master_listing_type.id'], name='fk_property_sell_listing_listing_type_id'),
         ForeignKeyConstraint(['modified_by'], ['user_registration.id'], name='fk_property_sell_listing_modified_by'),
         ForeignKeyConstraint(['module_id'], ['master_module.id'], name='fk_property_sell_listing_module_id'),
-        ForeignKeyConstraint(['ownership_type_id'], ['master_ownership_type.id'], name='fk_property_sell_listing_ownership_type_id'),
-        ForeignKeyConstraint(['parking_id'], ['master_parking.id'], name='fk_property_sell_listing_parking_id'),
-        ForeignKeyConstraint(['posted_by_id'], ['master_posted_by.id'], name='fk_property_sell_listing_posted_by_id'),
-        ForeignKeyConstraint(['preferred_tenants_id'], ['master_preferred_tenants.id'], name='fk_property_sell_listing_preferred_tenants_id'),
         ForeignKeyConstraint(['property_type_id'], ['master_property_type.id'], name='fk_property_sell_listing_property_type_id'),
-        ForeignKeyConstraint(['state_id'], ['master_state.id'], name='fk_property_sell_listing_state_id'),
         ForeignKeyConstraint(['sub_module_id'], ['master_sub_module.id'], name='fk_property_sell_listing_sub_module_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_property_sell_listing_user_id'),
         PrimaryKeyConstraint('id', name='pk_property_sell_listing'),
-        Index('idx_property_sell_listing_approval_type_id', 'approval_type_id'),
-        Index('idx_property_sell_listing_availability_status_id', 'availability_status_id'),
         Index('idx_property_sell_listing_bhk_type_id', 'bhk_type_id'),
-        Index('idx_property_sell_listing_boundary_type_id', 'boundary_type_id'),
-        Index('idx_property_sell_listing_city_id', 'city_id'),
         Index('idx_property_sell_listing_created_by', 'created_by'),
-        Index('idx_property_sell_listing_facing_id', 'facing_id'),
         Index('idx_property_sell_listing_furnishing_id', 'furnishing_id'),
-        Index('idx_property_sell_listing_land_type_id', 'land_type_id'),
-        Index('idx_property_sell_listing_lease_type_id', 'lease_type_id'),
         Index('idx_property_sell_listing_modified_by', 'modified_by'),
         Index('idx_property_sell_listing_module_id', 'module_id'),
-        Index('idx_property_sell_listing_ownership_type_id', 'ownership_type_id'),
-        Index('idx_property_sell_listing_parking_id', 'parking_id'),
-        Index('idx_property_sell_listing_posted_by_id', 'posted_by_id'),
-        Index('idx_property_sell_listing_preferred_tenants_id', 'preferred_tenants_id'),
         Index('idx_property_sell_listing_property_type_id', 'property_type_id'),
-        Index('idx_property_sell_listing_state_id', 'state_id'),
         Index('idx_property_sell_listing_sub_module_id', 'sub_module_id')
     )
 
@@ -1484,51 +1552,12 @@ class PropertySellListing(Base):
     sub_module_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     bhk_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
     furnishing_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    parking_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    city_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     locality_area: Mapped[str] = mapped_column(String(255), nullable=False)
-    landmark: Mapped[str] = mapped_column(String(255), nullable=False)
-    pincode: Mapped[int] = mapped_column(Integer, nullable=False)
     upload_photos: Mapped[str] = mapped_column(String(500), nullable=False)
-    owner_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    mobile_number: Mapped[str] = mapped_column(String(255), nullable=False)
     property_type_id: Mapped[Optional[int]] = mapped_column(Integer)
-    land_type_id: Mapped[Optional[int]] = mapped_column(Integer)
-    plot_area: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    length_breadth: Mapped[Optional[str]] = mapped_column(String(255))
-    facing_id: Mapped[Optional[int]] = mapped_column(Integer)
-    road_width: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    boundary_type_id: Mapped[Optional[int]] = mapped_column(Integer)
-    water_availability: Mapped[Optional[bool]] = mapped_column(Boolean)
-    electricity_connection: Mapped[Optional[bool]] = mapped_column(Boolean)
-    approval_type_id: Mapped[Optional[int]] = mapped_column(Integer)
-    ownership_type_id: Mapped[Optional[int]] = mapped_column(Integer)
     expected_price: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    negotiable: Mapped[Optional[bool]] = mapped_column(Boolean)
-    road_access: Mapped[Optional[str]] = mapped_column(String(255))
-    suitable_for: Mapped[Optional[str]] = mapped_column(String(255))
-    warehouse: Mapped[Optional[str]] = mapped_column(String(255))
     monthly_rent: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    lease_duration: Mapped[Optional[str]] = mapped_column(String(255))
-    security_deposit: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    available_from: Mapped[Optional[datetime.date]] = mapped_column(Date)
-    built_up_area: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    carpet_area: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    floor_number: Mapped[Optional[int]] = mapped_column(Integer)
-    total_floors: Mapped[Optional[int]] = mapped_column(Integer)
-    property_age: Mapped[Optional[int]] = mapped_column(Integer)
-    preferred_tenants_id: Mapped[Optional[int]] = mapped_column(Integer)
-    bathrooms: Mapped[Optional[int]] = mapped_column(Integer)
-    maintenance_charges: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    balconies: Mapped[Optional[int]] = mapped_column(Integer)
-    lease_type_id: Mapped[Optional[int]] = mapped_column(Integer)
-    availability_status_id: Mapped[Optional[int]] = mapped_column(Integer)
-    state_id: Mapped[Optional[int]] = mapped_column(BigInteger)
-    upload_videos: Mapped[Optional[str]] = mapped_column(String(500))
     property_description: Mapped[Optional[str]] = mapped_column(String(255))
-    email: Mapped[Optional[str]] = mapped_column(String(255))
-    best_time_to_call: Mapped[Optional[str]] = mapped_column(String(255))
-    posted_by_id: Mapped[Optional[int]] = mapped_column(Integer)
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
@@ -1541,29 +1570,23 @@ class PropertySellListing(Base):
     food_included: Mapped[Optional[bool]] = mapped_column(Boolean)
     location: Mapped[Optional[int]] = mapped_column(Integer)
     rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    listing_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    property_sqft: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    user_id: Mapped[Optional[int]] = mapped_column(BigInteger)
 
-    approval_type: Mapped[Optional['MasterApprovalType']] = relationship('MasterApprovalType', back_populates='property_sell_listing')
-    availability_status: Mapped[Optional['MasterAvailabilityStatus']] = relationship('MasterAvailabilityStatus', back_populates='property_sell_listing')
     bhk_type: Mapped['MasterBhkType'] = relationship('MasterBhkType', back_populates='property_sell_listing')
-    boundary_type: Mapped[Optional['MasterBoundaryType']] = relationship('MasterBoundaryType', back_populates='property_sell_listing')
-    city: Mapped['MasterCity'] = relationship('MasterCity', back_populates='property_sell_listing')
     user_registration: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[created_by], back_populates='property_sell_listing')
-    facing: Mapped[Optional['MasterFacing']] = relationship('MasterFacing', back_populates='property_sell_listing')
     furnishing: Mapped['MasterFurnishing'] = relationship('MasterFurnishing', back_populates='property_sell_listing')
     hostel_type: Mapped[Optional['MasterHostelType']] = relationship('MasterHostelType', back_populates='property_sell_listing')
     item_condition: Mapped[Optional['MasterItemCondition']] = relationship('MasterItemCondition', back_populates='property_sell_listing')
-    land_type: Mapped[Optional['MasterLandType']] = relationship('MasterLandType', back_populates='property_sell_listing')
-    lease_type: Mapped[Optional['MasterLeaseType']] = relationship('MasterLeaseType', back_populates='property_sell_listing')
+    listing_type: Mapped[Optional['MasterListingType']] = relationship('MasterListingType', back_populates='property_sell_listing')
     user_registration_: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[modified_by], back_populates='property_sell_listing_')
     module: Mapped['MasterModule'] = relationship('MasterModule', back_populates='property_sell_listing')
-    ownership_type: Mapped[Optional['MasterOwnershipType']] = relationship('MasterOwnershipType', back_populates='property_sell_listing')
-    parking: Mapped['MasterParking'] = relationship('MasterParking', back_populates='property_sell_listing')
-    posted_by: Mapped[Optional['MasterPostedBy']] = relationship('MasterPostedBy', back_populates='property_sell_listing')
-    preferred_tenants: Mapped[Optional['MasterPreferredTenants']] = relationship('MasterPreferredTenants', back_populates='property_sell_listing')
     property_type: Mapped[Optional['MasterPropertyType']] = relationship('MasterPropertyType', back_populates='property_sell_listing')
-    state: Mapped[Optional['MasterState']] = relationship('MasterState', back_populates='property_sell_listing')
     sub_module: Mapped['MasterSubModule'] = relationship('MasterSubModule', back_populates='property_sell_listing')
+    user: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='property_sell_listing1')
     property_listing: Mapped[list['PropertyListing']] = relationship('PropertyListing', back_populates='property_sell_listing')
+    property_sell_listing_service: Mapped[list['PropertySellListingService']] = relationship('PropertySellListingService', back_populates='property_sell_listing')
 
 
 class StudentAttendance(Base):
@@ -1981,6 +2004,7 @@ class MasterSubGroup(Base):
 class PropertyListing(Base):
     __tablename__ = 'property_listing'
     __table_args__ = (
+        CheckConstraint('rating >= 1 AND rating <= 5', name='ck_property_listing_rating'),
         ForeignKeyConstraint(['created_by'], ['user_registration.id'], name='fk_property_listing_created_by'),
         ForeignKeyConstraint(['modified_by'], ['user_registration.id'], name='fk_property_listing_modified_by'),
         ForeignKeyConstraint(['property_sell_listing_id'], ['property_sell_listing.id'], name='fk_property_listing_property_sell_listing_id'),
@@ -2000,11 +2024,34 @@ class PropertyListing(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    full_name: Mapped[Optional[str]] = mapped_column(String(255))
+    mobile_number: Mapped[Optional[str]] = mapped_column(String(255))
+    address: Mapped[Optional[str]] = mapped_column(String(255))
+    rating: Mapped[Optional[int]] = mapped_column(Integer)
 
     user_registration: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[created_by], back_populates='property_listing')
     user_registration_: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[modified_by], back_populates='property_listing_')
     property_sell_listing: Mapped['PropertySellListing'] = relationship('PropertySellListing', back_populates='property_listing')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='property_listing1')
+
+
+class PropertySellListingService(Base):
+    __tablename__ = 'property_sell_listing_service'
+    __table_args__ = (
+        ForeignKeyConstraint(['property_sell_listing_id'], ['property_sell_listing.id'], name='fk_property_sell_listing_service_property_sell_listing_id'),
+        ForeignKeyConstraint(['service_id'], ['master_service.id'], name='fk_property_sell_listing_service_service_id'),
+        PrimaryKeyConstraint('id', name='pk_property_sell_listing_service_id'),
+        UniqueConstraint('property_sell_listing_id', 'service_id', name='uq_property_sell_listing_service')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    property_sell_listing_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    service_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+
+    property_sell_listing: Mapped['PropertySellListing'] = relationship('PropertySellListing', back_populates='property_sell_listing_service')
+    service: Mapped['MasterService'] = relationship('MasterService', back_populates='property_sell_listing_service')
 
 
 class TaskHistory(Base):
