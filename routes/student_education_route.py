@@ -23,6 +23,7 @@ from schemas.student_internship_status import (
 from services.student_education_service import (
     create_student_certificate,
     add_student_education_service,
+    get_internship_list_service,
     get_recent_joiners_service,
     update_student_noc,
     get_students_list_service,
@@ -228,3 +229,23 @@ def get_recent_joiners(
     db: Session = Depends(get_db)
 ):
     return get_recent_joiners_service(db, limit)
+
+
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from typing import List, Dict, Any
+
+from core.database import get_db
+
+@router.get("/", response_model=List[Dict[str, Any]])
+def get_internships(
+    category_id: int = Query(-1, description="Category ID (-1 = all)"),
+    work_type_id: int = Query(-1, description="Work Type ID (-1 = all)"),
+    db: Session = Depends(get_db)
+):
+    return get_internship_list_service(
+        db=db,
+        category_id=category_id,
+        work_type_id=work_type_id
+    )
