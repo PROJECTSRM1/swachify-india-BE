@@ -1,20 +1,44 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
-
+from typing import Optional
 from core.database import get_db
+from core.dependencies import get_current_user
+from models.user_registration import UserRegistration
 from schemas.healthcare_schema import (
+    AmbulanceBookingCreateSchema,
+    AmbulanceBookingResponseSchema,
     AppointmentCreateSchema,
-    AppointmentResponseSchema
+    AppointmentResponseSchema,
+    DoctorCreateSchema,
+    DoctorResponseSchema,
+    HospitalAmbulanceResponseSchema
+    
 )
 from services.healthcare_service import (
+    create_ambulance_booking,
     create_healthcare_appointment,
-    get_healthcare_appointments_by_user
+    get_healthcare_appointments_by_user,
+    create_doctor_profile,
+    get_available_doctors,
+    get_hospital_ambulance_list,
+    release_ambulance_booking
 )
 
 router = APIRouter(
     prefix="/healthcare",
     tags=["Healthcare"]
 )
+
+@router.post(
+    "/doctors",
+    response_model=DoctorResponseSchema,
+    status_code=201
+)
+def create_doctor(
+    data: DoctorCreateSchema,
+    db: Session = Depends(get_db)
+):
+    return create_doctor_profile(db, data)
 
 @router.post(
     "/appointments",
@@ -35,3 +59,39 @@ def get_user_appointments(
     db: Session = Depends(get_db)
 ):
     return get_healthcare_appointments_by_user(db, user_id)
+
+
+@router.get(
+    "/doctors/available",
+    response_model=list[DoctorResponseSchema]
+)
+def fetch_available_doctors(
+    db: Session = Depends(get_db)
+):
+    return get_available_doctors(db)
+
+
+@router.get("/ambulances")
+def fetch_hospital_ambulances(
+    hospital_id: int = -1,
+    db: Session = Depends(get_db)
+):
+    return get_hospital_ambulance_list(db, hospital_id)
+
+@router.post(
+    "/ambulance-booking",
+    response_model=AmbulanceBookingResponseSchema,
+    status_code=201
+)
+def book_ambulance(
+    data: AmbulanceBookingCreateSchema,
+    db: Session = Depends(get_db)
+):
+    return create_ambulance_booking(db, data)
+
+@router.put("/ambulance-booking/{booking_id}/release")
+def release_ambulance(
+    booking_id: int,
+    db: Session = Depends(get_db)
+):
+    return release_ambulance_booking(db, booking_id)
