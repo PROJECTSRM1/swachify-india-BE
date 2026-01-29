@@ -33,8 +33,8 @@ from services.student_attendance_service import upsert_student_attendance
 from services.student_internship_service import upsert_student_internship
 
 from models.generated_models import UserRegistration
-from models.student_certificate import StudentCertificate
-from models.student_qualification import StudentQualification
+from models.generated_models import StudentCertificate
+from models.generated_models import StudentQualification
 
 router = APIRouter(
     prefix="/api/education",
