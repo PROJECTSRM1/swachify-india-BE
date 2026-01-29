@@ -368,3 +368,29 @@ def get_active_job_openings(db: Session, category_id: int = -1):
         query,
         {"category_id": category_id}
     ).mappings().all()
+
+
+
+def get_internship_list_service(
+    db: Session,
+    category_id: int,
+    work_type_id: int
+):
+    query = text("""
+        SELECT *
+        FROM fn_get_internship_list(
+            :category_id,
+            :work_type_id
+        )
+    """)
+
+    result = db.execute(
+        query,
+        {
+            "category_id": category_id,
+            "work_type_id": work_type_id
+        }
+    )
+
+    # Return as list of dicts
+    return result.mappings().all()
