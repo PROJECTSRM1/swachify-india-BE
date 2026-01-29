@@ -319,10 +319,10 @@ def get_students_list_service(
 
     return students_list
 
-
 def get_top_performers_service(
     db: Session,
-    limit: int = 10
+    limit: int = 10,
+    min_attendance: float = 80.0
 ):
     """
     Top performers = students sorted by BOTH (rating + attendance)
@@ -332,7 +332,23 @@ def get_top_performers_service(
         sort_by="both"   # rating first, attendance second
     )
 
-    return students[:limit]
+    # ✅ FILTER: attendance >= 80%
+    filtered_students = [
+        s for s in students
+        if s["attendance_percentage"] is not None
+        and float(s["attendance_percentage"]) >= min_attendance
+    ]
+
+    # ✅ FINAL SORT (rating → attendance)
+    filtered_students.sort(
+        key=lambda s: (
+            float(s["rating"] or 0),
+            float(s["attendance_percentage"] or 0)
+        ),
+        reverse=True
+    )
+
+    return filtered_students[:limit]
 
 def get_recent_joiners_service(
     db: Session,
