@@ -27,6 +27,28 @@ from services.home_service import (
 
 from services.master_data_service import get_master_data
 
+from schemas.master_module_schema import (
+    VehicleServiceBookingCreateSchema,
+    VehicleServiceBookingResponseSchema
+)
+
+from services.master_module_service import (
+    create_vehicle_service_booking,
+    get_all_vehicle_service_bookings
+)
+
+
+from schemas.master_module_schema import VehicleBrandFuelCreateSchema, VehicleBrandFuelResponseSchema
+from services.master_module_service import create_vehicle_brand_fuel, get_all_vehicle_brand_fuel
+
+from schemas.master_module_schema import BookingServiceMappingCreateSchema, BookingServiceMappingResponseSchema
+from services.master_module_service import create_booking_service_mapping, get_all_booking_service_mapping
+
+
+
+
+
+
 router = APIRouter(prefix="/api/master", tags=["Master Data & Booking"])
 
 @router.get("/master-data", response_model=MasterDataResponse)
@@ -133,6 +155,42 @@ def update_rating(
 #     return update_home_service(db, id, data)
 
 
-@router.delete("/home-service/{id}")
-def remove_home_service(id: int, db: Session = Depends(get_db)):
-    return delete_home_service(db, id)
+# @router.delete("/home-service/{id}")
+# def remove_home_service(id: int, db: Session = Depends(get_db)):
+#     return delete_home_service(db, id)
+
+
+
+
+# ✅ VEHICLE SERVICE BOOKING — UNIQUE PATH
+
+@router.post("/vehicle-service-booking", response_model=VehicleServiceBookingResponseSchema)
+def create_booking(payload: VehicleServiceBookingCreateSchema, db: Session = Depends(get_db)):
+    return create_vehicle_service_booking(db, payload)
+
+
+@router.get("/vehicle-service-booking", response_model=list[VehicleServiceBookingResponseSchema])
+def fetch_all_bookings(db: Session = Depends(get_db)):
+    return get_all_vehicle_service_bookings(db)
+
+
+
+
+@router.post("/vehicle-brand-fuel", response_model=VehicleBrandFuelResponseSchema)
+def create_vehicle_brand_fuel_api(payload: VehicleBrandFuelCreateSchema, db: Session = Depends(get_db)):
+    return create_vehicle_brand_fuel(db, payload)
+
+
+@router.get("/vehicle-brand-fuel", response_model=list[VehicleBrandFuelResponseSchema])
+def get_vehicle_brand_fuel_api(db: Session = Depends(get_db)):
+    return get_all_vehicle_brand_fuel(db)
+
+
+@router.post("/booking-service-mapping", response_model=BookingServiceMappingResponseSchema)
+def create_booking_service_mapping_api(payload: BookingServiceMappingCreateSchema, db: Session = Depends(get_db)):
+    return create_booking_service_mapping(db, payload)
+
+
+@router.get("/booking-service-mapping", response_model=list[BookingServiceMappingResponseSchema])
+def get_booking_service_mapping_api(db: Session = Depends(get_db)):
+    return get_all_booking_service_mapping(db)
