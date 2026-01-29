@@ -178,7 +178,6 @@ def add_student_education_service(
         degree=payload.degree,
         institute=payload.institute,
         percentage=payload.percentage,
-        passing_year=payload.passing_year,
         is_active=True,
     )
 

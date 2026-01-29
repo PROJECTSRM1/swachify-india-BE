@@ -57,5 +57,3 @@ app.include_router(property_sell_listing_router)
 app.include_router(raw_material_router)
 app.include_router(payment_router)
 app.include_router(application_router)
-
-app.include_router(healthcare_router)

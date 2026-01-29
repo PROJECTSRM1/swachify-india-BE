@@ -21,7 +21,7 @@ class AppointmentCreateSchema(BaseModel):
     pickup_time: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class AppointmentResponseSchema(BaseModel):
     id: int
@@ -32,7 +32,7 @@ class AppointmentResponseSchema(BaseModel):
     ambulance_id: Optional[int]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 #doctor
@@ -48,7 +48,7 @@ class DoctorCreateSchema(BaseModel):
     is_available: Optional[bool] = True
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class DoctorResponseSchema(BaseModel):
@@ -63,7 +63,7 @@ class DoctorResponseSchema(BaseModel):
     is_available: Optional[bool]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class HospitalAmbulanceResponseSchema(BaseModel):
     hospital_id: int
@@ -74,7 +74,7 @@ class HospitalAmbulanceResponseSchema(BaseModel):
     contact_number: Optional[str]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class AmbulanceBookingCreateSchema(BaseModel):
@@ -85,7 +85,7 @@ class AmbulanceBookingCreateSchema(BaseModel):
     aadhar_number: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class AmbulanceBookingResponseSchema(BaseModel):
     id: int
@@ -101,4 +101,5 @@ class AmbulanceBookingResponseSchema(BaseModel):
     contact_number: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+ 
