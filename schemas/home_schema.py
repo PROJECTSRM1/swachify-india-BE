@@ -3,39 +3,35 @@ from datetime import date, datetime
 from typing import Optional
 
 # =====================================================
-# BASE
+# BASE (matches NON-DB fields used for create)
 # =====================================================
 
 class HomeServiceBase(BaseModel):
     module_id: int = Field(..., gt=0)
     sub_module_id: int = Field(..., gt=0)
     service_id: int = Field(..., gt=0)
-    sub_service_id: int = Field(..., gt=0)
 
     full_name: str
     email: EmailStr
     mobile: str = Field(..., pattern=r"^[6-9]\d{9}$")
 
     address: str
-    others_address: Optional[str] = None
 
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-
-    service_type_id: int = Field(..., gt=0)
+    # Optional in DB
+    sub_service_id: Optional[int] = None
+    service_type_id: Optional[int] = None
     issue_id: Optional[int] = None
-
     problem_description: Optional[str] = None
     property_size_sqft: Optional[str] = None
-
-    duration_id: int = Field(..., gt=0)
-
-    preferred_date: date
-    time_slot_id: int = Field(..., gt=0)
-
-    payment_type_id: int = Field(..., gt=0)
+    preferred_date: Optional[date] = None
+    time_slot_id: Optional[int] = None
+    special_instructions: Optional[str] = None
+    payment_type_id: Optional[int] = None
     service_price: Optional[float] = None
-    payment_done: bool = False
+    others_address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    duration_id: Optional[int] = None
 
     model_config = {"from_attributes": True}
 
@@ -45,14 +41,11 @@ class HomeServiceBase(BaseModel):
 # =====================================================
 
 class HomeServiceCreate(HomeServiceBase):
-    """
-    Used for booking a new home service
-    """
     pass
 
 
 # =====================================================
-# UPDATE
+# UPDATE (PATCH)
 # =====================================================
 
 class HomeServiceUpdate(BaseModel):
@@ -63,13 +56,15 @@ class HomeServiceUpdate(BaseModel):
     address: Optional[str] = None
     others_address: Optional[str] = None
 
+    sub_service_id: Optional[int] = None
+    service_type_id: Optional[int] = None
     issue_id: Optional[int] = None
     problem_description: Optional[str] = None
     property_size_sqft: Optional[str] = None
 
-    duration_id: Optional[int] = None
     preferred_date: Optional[date] = None
     time_slot_id: Optional[int] = None
+    duration_id: Optional[int] = None
 
     payment_type_id: Optional[int] = None
     service_price: Optional[float] = None
@@ -78,11 +73,12 @@ class HomeServiceUpdate(BaseModel):
     assigned_to: Optional[int] = None
     status_id: Optional[int] = None
     work_status_id: Optional[int] = None
+    rating: Optional[int] = None
     is_active: Optional[bool] = None
 
 
 # =====================================================
-# DB RESPONSE (INTERNAL USE / GET APIs)
+# RESPONSE (STRICT – matches DB exactly)
 # =====================================================
 
 class HomeServiceResponse(BaseModel):
@@ -91,62 +87,52 @@ class HomeServiceResponse(BaseModel):
     module_id: int
     sub_module_id: int
     service_id: int
-    sub_service_id: int
-
     full_name: str
-    email: str
+    email: EmailStr
     mobile: str
-
     address: str
-    others_address: Optional[str] = None
 
-    service_type_id: int
+    # Optional in DB
+    sub_service_id: Optional[int] = None
+    service_type_id: Optional[int] = None
     issue_id: Optional[int] = None
     problem_description: Optional[str] = None
     property_size_sqft: Optional[str] = None
-
-    duration_id: int
+    preferred_date: Optional[date] = None
+    time_slot_id: Optional[int] = None
+    special_instructions: Optional[str] = None
+    payment_type_id: Optional[int] = None
+    service_price: Optional[float] = None
+    payment_done: Optional[bool] = None
+    assigned_to: Optional[int] = None
+    status_id: Optional[int] = None
+    rating: Optional[int] = None
+    duration_id: Optional[int] = None
+    others_address: Optional[str] = None
+    work_status_id: Optional[int] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
-
-    preferred_date: date
-    time_slot_id: int
-
-    payment_type_id: int
-    service_price: Optional[float] = None
-    payment_done: bool
-
-    created_by: int
-    assigned_to: Optional[int] = None
-
-    status_id: int
-    work_status_id: int
-    is_active: bool
-
-    created_date: datetime
+    created_by: Optional[int] = None
+    created_date: Optional[datetime] = None
     modified_date: Optional[datetime] = None
+    is_active: Optional[bool] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 # =====================================================
-# CREATE RESPONSE (SAFE API RESPONSE)
+# CREATE RESPONSE
 # =====================================================
-
-# schemas/home_schema.py
 
 class HomeServiceCreateResponse(BaseModel):
     success: bool
     message: str
     service_id: Optional[int] = None
-    status_id: Optional[int] = None
-    work_status_id: Optional[int] = None
-    created_by: Optional[int] = None
 
 
 # =====================================================
 # RATING UPDATE
 # =====================================================
+
 class HomeServiceRatingUpdate(BaseModel):
-    rating: float = Field(..., ge=1, le=5, description="Rating must be between 1 and 5")
+    rating: int = Field(..., ge=1, le=5)
