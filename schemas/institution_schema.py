@@ -77,3 +77,31 @@ class InstitutionBranchResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class StudentAcademicDetailsSchema(BaseModel):
+    # DB returns this as string (CSE2024_044)
+    student_id: str
+
+    # Make everything OPTIONAL unless DB guarantees it
+    roll_number: Optional[str] = None
+
+    institution_id: Optional[int] = None
+    institution_name: Optional[str] = None
+
+    course_id: Optional[int] = None
+    course_name: Optional[str] = None
+
+    department_id: Optional[int] = None
+    department_name: Optional[str] = None
+
+    academic_year: Optional[str] = None
+    semester: Optional[str] = None
+
+    status: Optional[str] = None
+
+    # Any extra DB columns you saw in error
+    paid_date: Optional[date] = None
+
+    class Config:
+        from_attributes = True
