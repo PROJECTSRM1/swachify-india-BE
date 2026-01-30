@@ -30,6 +30,19 @@ from services.student_education_service import (
     get_top_performers_service,
 )
 
+from schemas.student_profile_schema import (
+    StudentProfileCreate,
+    StudentProfileUpdate,
+    StudentProfileResponse
+)
+from services.student_profile_service import (
+    create_student_profile,
+    get_all_students,
+    get_student_by_id,
+    update_student_profile,
+    delete_student_profile
+)
+
 from services.student_attendance_service import upsert_student_attendance
 from services.student_family_service import add_family_member_service, hard_delete_family_member_service, list_family_members_service, update_family_member_service
 from services.student_internship_service import upsert_student_internship
@@ -382,3 +395,50 @@ def get_internships(
         category_id=category_id,
         work_type_id=work_type_id
     )
+
+
+
+
+
+@router.post(
+    "/",
+    response_model=StudentProfileResponse
+)
+def create_student_profile(
+    payload: StudentProfileCreate,
+    db: Session = Depends(get_db)
+):
+    return create_student_profile(db, payload)
+
+
+@router.get(
+    "/",
+    response_model=list[StudentProfileResponse]
+)
+def get_students(db: Session = Depends(get_db)):
+    return get_all_students(db)
+
+
+@router.get(
+    "/{student_id}",
+    response_model=StudentProfileResponse
+)
+def get_student(student_id: int, db: Session = Depends(get_db)):
+    return get_student_by_id(db, student_id)
+
+
+@router.put(
+    "/{student_id}",
+    response_model=StudentProfileResponse
+)
+def update_student(
+    student_id: int,
+    payload: StudentProfileUpdate,
+    db: Session = Depends(get_db)
+):
+    return update_student_profile(db, student_id, payload)
+
+
+@router.delete("/{student_id}")
+def delete_student(student_id: int, db: Session = Depends(get_db)):
+    return delete_student_profile(db, student_id)
