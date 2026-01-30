@@ -195,3 +195,25 @@ def fetch_students_by_branch(db, branch_id: int):
     """)
     result = db.execute(query, {"branch_id": branch_id})
     return result.mappings().all()   
+
+#management
+
+def get_management_overview(
+    db: Session,
+    institution_id: int,
+    academic_year: str
+):
+    query = text("""
+        SELECT * 
+        FROM fn_get_management_overview(:institution_id, :academic_year)
+    """)
+
+    result = db.execute(
+        query,
+        {
+            "institution_id": institution_id,
+            "academic_year": academic_year
+        }
+    )
+
+    return result.mappings().all()
