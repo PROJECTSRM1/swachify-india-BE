@@ -1017,6 +1017,7 @@ class InstitutionRegistration(Base):
     identity_type: Mapped['MasterIdentityType'] = relationship('MasterIdentityType', back_populates='institution_registration')
     institution_type: Mapped['MasterInstituteType'] = relationship('MasterInstituteType', back_populates='institution_registration')
     institution_branch: Mapped[list['InstitutionBranch']] = relationship('InstitutionBranch', back_populates='institution')
+    otp_verification: Mapped[list['OtpVerification']] = relationship('OtpVerification', back_populates='institution')
 
 
 class JobOpenings(Base):
@@ -1293,6 +1294,30 @@ class MasterSubDistrict(Base):
 
     district: Mapped['MasterDistrict'] = relationship('MasterDistrict', back_populates='master_sub_district')
     master_village: Mapped[list['MasterVillage']] = relationship('MasterVillage', back_populates='sub_district')
+
+
+class OtpVerification(Base):
+    __tablename__ = 'otp_verification'
+    __table_args__ = (
+        ForeignKeyConstraint(['institution_id'], ['institution_registration.id'], name='fk_otp_verification_institution_id'),
+        PrimaryKeyConstraint('id', name='pk_otp_verification_id'),
+        UniqueConstraint('identity_number', 'email', 'otp_code', name='uk_otp_verification')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    institution_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    identity_number: Mapped[str] = mapped_column(String(100), nullable=False)
+    email: Mapped[str] = mapped_column(String(150), nullable=False)
+    otp_code: Mapped[str] = mapped_column(String(10), nullable=False)
+    expires_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)
+    is_verified: Mapped[Optional[bool]] = mapped_column(Boolean)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    institution: Mapped['InstitutionRegistration'] = relationship('InstitutionRegistration', back_populates='otp_verification')
 
 
 class UserRegistration(Base):
