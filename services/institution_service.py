@@ -196,7 +196,6 @@ def fetch_students_by_branch(db, branch_id: int):
     result = db.execute(query, {"branch_id": branch_id})
     return result.mappings().all()   
 
-<<<<<<< HEAD
 #ExamSchedule service
 
 def create_exam_schedule(db, data):
@@ -249,7 +248,6 @@ def fetch_exam_schedule(db, branch_id: int, exam_type: str):
 
 
 
-=======
 #management
 
 def get_management_overview(
@@ -271,4 +269,3 @@ def get_management_overview(
     )
 
     return result.mappings().all()
->>>>>>> 6a05462bdf85010a70ff6b6c8e5eba9c3007be38
