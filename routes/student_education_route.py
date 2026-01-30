@@ -8,6 +8,7 @@ from schemas.student_education_schema import (
     StudentListResponse,
     StudentProfileResponse,
     StudentEducationFullCreate,
+    StudentResponse,
 )
 from schemas.student_family_schema import StudentFamilyMemberCreate, StudentFamilyMemberResponse, StudentFamilyMemberUpdate
 from schemas.student_attendance_schema import (
@@ -23,6 +24,7 @@ from schemas.student_internship_status import (
 from services.student_education_service import (
     create_student_certificate,
     add_student_education_service,
+    fetch_students_by_branch,
     get_internship_list_service,
     get_recent_joiners_service,
     update_student_noc,
@@ -382,3 +384,12 @@ def get_internships(
         category_id=category_id,
         work_type_id=work_type_id
     )
+
+# get_students_by_branch route 
+
+@router.get("/students/by_branch_id")
+def get_students_by_branch(
+    branch_id: int,
+    db: Session = Depends(get_db)
+):
+     return fetch_students_by_branch(db, branch_id)
