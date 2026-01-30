@@ -6,6 +6,8 @@ from typing import List
 from core.database import get_db
 
 from schemas.institution_schema import (
+    ExamScheduleCreate,
+    ExamScheduleListResponse,
     InstitutionRegistrationCreate,
     InstitutionRegistrationResponse,
     InstitutionBranchCreate,
@@ -17,7 +19,9 @@ from schemas.institution_schema import (
 )
 
 from services.institution_service import (
+    create_exam_schedule,
     create_institution,
+    fetch_exam_schedule,
     get_institution_by_id,
     create_institution_branch,
     get_branches_by_institution,
@@ -163,15 +167,6 @@ def get_students_api(
     return get_all_students(db)
 
 
-@router.get(
-    "/{student_id}",
-    response_model=StudentProfileResponse
-)
-def get_student_api(
-    student_id: int = Path(..., gt=0),
-    db: Session = Depends(get_db)
-):
-    return get_student_by_id(db, student_id)
 
 
 @router.get("/by-branch")
@@ -200,3 +195,39 @@ def get_students_by_branch_api(
 #     db: Session = Depends(get_db)
 # ):
 #     return delete_student_profile(db, student_id)
+
+@router.post("/exam-schedule")
+def create_exam(
+    payload: ExamScheduleCreate,
+    db: Session = Depends(get_db)
+):
+    exam_id = create_exam_schedule(db, payload)
+    return {
+        "message": "Exam schedule created successfully",
+        "exam_schedule_id": exam_id
+    }
+
+#ExamList
+
+@router.get(
+    "/exam-schedule",
+    response_model=List[ExamScheduleListResponse]
+)
+def get_exam_schedule(
+    branch_id: int = -1,
+    exam_type: str = "-1",
+    db: Session = Depends(get_db)
+):
+    return fetch_exam_schedule(db, branch_id, exam_type)
+
+#student profile
+
+@router.get(
+    "/{student_id}",
+    response_model=StudentProfileResponse
+)
+def get_student_api(
+    student_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_student_by_id(db, student_id)
