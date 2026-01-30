@@ -152,3 +152,18 @@ class StudentResponse(BaseModel):
     student_name: str
     year: int
     profile_image: str | None
+
+#ExamSchedule
+class ExamScheduleCreate(BaseModel):
+    branch_id: int
+    exam_type: str
+    subject_name: str
+    exam_date: date
+    created_by: int
+
+#ExamList 
+
+class ExamScheduleListResponse(BaseModel):
+    subject_name: str
+    exam_date: date
+
