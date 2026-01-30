@@ -69,7 +69,6 @@ def register_institution_api(
 ):
     return create_institution(db, payload)
 
-
 @router.post("/login")
 def institution_login(payload: InstitutionLoginRequest, db: Session = Depends(get_db)):
     user = None
@@ -83,7 +82,7 @@ def institution_login(payload: InstitutionLoginRequest, db: Session = Depends(ge
             InstitutionRegistration.is_active == True,
             InstitutionRegistration.phone_number == payload.phone_number
         ).first()
-    if not user or not user.password_hash == payload.password:  # Replace with your password check
+    if not user or not user.password_hash == payload.password:  
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return {"status": "Login successful", "institution_id": user.id}
 
