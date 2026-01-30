@@ -8,9 +8,12 @@ from models.generated_models import (
     InstitutionBranch,
     StudentProfile
 )
+from sqlalchemy import text
+from typing import List
 from schemas.institution_schema import (
     InstitutionRegistrationCreate,
     InstitutionBranchCreate,
+    StudentAcademicDetailsSchema,
     StudentProfileCreate,
     StudentProfileUpdate
 )
@@ -83,6 +86,36 @@ def get_branches_by_institution(
         InstitutionBranch.is_active == True
     ).all()
 
+# ======================================================
+# STUDENT ACADEMIC DETAILS
+# ======================================================
+
+def get_student_full_academic_details(
+    db: Session,
+    student_id: str = "-1",
+    institution_id: int = -1
+) -> List[StudentAcademicDetailsSchema]:
+    """
+    Fetch full student academic details using DB function
+    fn_get_student_full_details
+    """
+
+    query = text("""
+        SELECT *
+        FROM fn_get_student_full_details(:student_id, :institution_id)
+    """)
+
+    result = db.execute(
+        query,
+        {
+            "student_id": student_id,
+            "institution_id": institution_id
+        }
+    )
+
+    rows = result.mappings().all()
+
+    return [StudentAcademicDetailsSchema(**row) for row in rows]
 
 
 def create_student_profile(db: Session, payload: StudentProfileCreate):
