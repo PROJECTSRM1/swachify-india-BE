@@ -1,30 +1,55 @@
 from typing import List
 from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
+from typing import List
+
 
 from core.database import get_db
+
 from schemas.institution_schema import (
     ExamScheduleCreate,
     ExamScheduleListResponse,
     InstitutionRegistrationCreate,
     InstitutionRegistrationResponse,
     InstitutionBranchCreate,
-    InstitutionBranchResponse
+    InstitutionBranchResponse,
+    StudentAcademicDetailsSchema,
+    StudentProfileCreate,
+    StudentProfileUpdate,
+    StudentProfileResponse
 )
+
 from services.institution_service import (
     create_exam_schedule,
     create_institution,
+    create_institution_branch,
+    fetch_exam_schedule,
+    fetch_students_by_branch,
+    get_all_branches,
+    get_branches_by_institution,
+    get_institution_by_id,
+    get_student_full_academic_details,
     fetch_exam_schedule,
     fetch_students_by_branch,
     get_all_branches,
     get_institution_by_id,
     create_institution_branch,
-    get_branches_by_institution
+    get_branches_by_institution,
+    get_student_full_academic_details,
+    get_all_branches,
+    get_branches_by_institution,
+    create_student_profile,
+    get_all_students,
+    get_student_by_id,
+    update_student_profile,
+    delete_student_profile,
+    get_active_branch_directory,
+    fetch_students_by_branch
 )
 
-
 router = APIRouter(
-    prefix="/institution",
+    prefix="/institution/student",
     tags=["Institution"]
 )
 
@@ -69,13 +94,15 @@ def create_branch_api(
     return create_institution_branch(db, payload)
 
 
-# ✅ GET ALL branches (STATIC)
 @router.get("/all/branches")
-def get_all_branches_api(db: Session = Depends(get_db)):
+def get_all_branches_api(
+    db: Session = Depends(get_db)
+):
     return get_all_branches(db)
 
-# get by id 
-@router.get("/institutions/{institution_id}/branches",
+
+@router.get(
+    "/institution/{institution_id}/branches",
     response_model=list[InstitutionBranchResponse]
 )
 def get_branches_by_institution_api(
@@ -84,22 +111,32 @@ def get_branches_by_institution_api(
 ):
     return get_branches_by_institution(db, institution_id)
 
-# # ✅ GET ALL branches (STATIC)
-# @router.get(
-#     "/branches",
-#     response_model=list[InstitutionBranchResponse]
-# )
-# def get_all_branches_api(
-#     db: Session = Depends(get_db)
-# ):
-#     return get_all_branches(db)
 
 
+@router.get(
+    "/academic-details",
+    response_model=List[StudentAcademicDetailsSchema]
+)
+def fetch_student_full_academic_details(
+    student_id: str = "-1",
+    institution_id: int = -1,
+    db: Session = Depends(get_db)
+):
+    """
+    Get full student academic details.
+    - student_id = -1 → all students
+    - institution_id = -1 → all institutions
+    """
+    return get_student_full_academic_details(
+        db=db,
+        student_id=student_id,
+        institution_id=institution_id
+    )
 
 
 # get_students_by_branch route 
 
-@router.get("/students/by_branch_id")
+@router.get("/by_branch_id")
 def get_students_by_branch(
     branch_id: int,
     db: Session = Depends(get_db)
