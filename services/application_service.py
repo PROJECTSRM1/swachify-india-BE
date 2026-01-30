@@ -232,7 +232,7 @@ def get_trending_students(db: Session):
         .join(StudentQualification, StudentQualification.user_id == UserRegistration.id)
         .filter(
             percentage_clean.isnot(None),
-            percentage_clean >= 90,
+            percentage_clean >= 80,
             UserRegistration.is_active.is_(True),
             StudentQualification.is_active.is_(True)
         )

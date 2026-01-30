@@ -334,6 +334,19 @@ class MasterHostelType(Base):
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='hostel_type')
 
 
+class MasterIdentityType(Base):
+    __tablename__ = 'master_identity_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_identity_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    identity_type_name: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    institution_registration: Mapped[list['InstitutionRegistration']] = relationship('InstitutionRegistration', back_populates='identity_type')
+
+
 class MasterIndustry(Base):
     __tablename__ = 'master_industry'
     __table_args__ = (
@@ -346,6 +359,19 @@ class MasterIndustry(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='industry')
+
+
+class MasterInstituteType(Base):
+    __tablename__ = 'master_institute_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_institute_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    institute_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    institution_registration: Mapped[list['InstitutionRegistration']] = relationship('InstitutionRegistration', back_populates='institution_type')
 
 
 class MasterInternshipDuration(Base):
@@ -958,6 +984,41 @@ t_vw_students_get_list = Table(
 )
 
 
+class InstitutionRegistration(Base):
+    __tablename__ = 'institution_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['identity_type_id'], ['master_identity_type.id'], name='fk_institution_registration_identity_type_id'),
+        ForeignKeyConstraint(['institution_type_id'], ['master_institute_type.id'], name='fk_institution_registration_institution_type_id'),
+        PrimaryKeyConstraint('id', name='pk_institution_registration_id'),
+        UniqueConstraint('institution_name', 'identity_number', name='uk_institution_registration')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    institution_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    institution_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    identity_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    identity_number: Mapped[str] = mapped_column(String(100), nullable=False)
+    location: Mapped[str] = mapped_column(String(500), nullable=False)
+    representative_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(150), nullable=False)
+    phone_number: Mapped[str] = mapped_column(String(100), nullable=False)
+    upload_id_proof: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_address_proof: Mapped[Optional[str]] = mapped_column(String(500))
+    institute_website: Mapped[Optional[str]] = mapped_column(String(500))
+    total_branches: Mapped[Optional[int]] = mapped_column(Integer)
+    academic_year_start: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    academic_year_end: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    identity_type: Mapped['MasterIdentityType'] = relationship('MasterIdentityType', back_populates='institution_registration')
+    institution_type: Mapped['MasterInstituteType'] = relationship('MasterInstituteType', back_populates='institution_registration')
+    institution_branch: Mapped[list['InstitutionBranch']] = relationship('InstitutionBranch', back_populates='institution')
+
+
 class JobOpenings(Base):
     __tablename__ = 'job_openings'
     __table_args__ = (
@@ -1140,6 +1201,28 @@ class RawMaterialDetails(Base):
 
     module: Mapped['MasterModule'] = relationship('MasterModule', back_populates='raw_material_details')
     raw_material_type: Mapped['MasterRawMaterialType'] = relationship('MasterRawMaterialType', back_populates='raw_material_details')
+
+
+class InstitutionBranch(Base):
+    __tablename__ = 'institution_branch'
+    __table_args__ = (
+        ForeignKeyConstraint(['institution_id'], ['institution_registration.id'], name='fk_institution_branch_institution_institution_id'),
+        PrimaryKeyConstraint('id', name='pk_institution_branch_id'),
+        UniqueConstraint('institution_id', 'branch_code', name='uk_institution_branch')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    institution_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    branch_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    city: Mapped[str] = mapped_column(String(255), nullable=False)
+    branch_code: Mapped[str] = mapped_column(String(100), nullable=False)
+    branch_head: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    institution: Mapped['InstitutionRegistration'] = relationship('InstitutionRegistration', back_populates='institution_branch')
 
 
 class JobSkill(Base):

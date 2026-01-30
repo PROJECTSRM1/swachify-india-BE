@@ -14,12 +14,12 @@ from routes.master_module_route import router as master_module_router
 from routes.payment_routes import router as payment_router
 from routes.task_router import router as task_router
 from routes.student_education_route import router as student_education_router
-from routes.companies_route import router as componoies_router
 from routes.job_application_openings_route import router as job_application_openings_router
 from routes.property_sell_listing_router import router as property_sell_listing_router
 from routes.raw_material_routes import router as raw_material_router
 from routes.application_routes import router as application_router
 from routes.swachify_products_route import router as swachify_products_router
+from routes.institution_route import router as institution_router
 
 from routes.healthcare_route import router as healthcare_router
 
@@ -49,9 +49,9 @@ app.include_router(freelancer_router)
 app.include_router(master_module_router)
 app.include_router(task_router)
 app.include_router(student_education_router)
-app.include_router(componoies_router)
 app.include_router(job_application_openings_router)
 app.include_router(application_router)
+app.include_router(institution_router)
 app.include_router(healthcare_router)
 app.include_router(property_sell_listing_router)
 app.include_router(raw_material_router)
