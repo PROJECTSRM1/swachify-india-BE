@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Path, Query, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-
+from datetime import datetime, timedelta
+import random
+from models.generated_models import InstitutionRegistration
 
 from core.database import get_db
 
@@ -34,6 +36,20 @@ from services.institution_service import (
     get_management_overview
 )
 
+from pydantic import BaseModel, model_validator
+from fastapi import HTTPException
+from models.generated_models import InstitutionRegistration
+
+class InstitutionLoginRequest(BaseModel):
+    email_or_phone: str
+    password: str
+
+    @model_validator(mode="after")
+    def check_email_or_phone(self):
+        if not self.email and not self.phone_number:
+            raise ValueError('Either email or phone_number must be provided')
+        return self
+
 router = APIRouter(
     prefix="/institution/student",
     tags=["Institution"]
@@ -53,6 +69,22 @@ def register_institution_api(
 ):
     return create_institution(db, payload)
 
+@router.post("/login")
+def institution_login(payload: InstitutionLoginRequest, db: Session = Depends(get_db)):
+    user = None
+    if payload.email:
+        user = db.query(InstitutionRegistration).filter(
+            InstitutionRegistration.is_active == True,
+            InstitutionRegistration.email == payload.email
+        ).first()
+    elif payload.phone_number:
+        user = db.query(InstitutionRegistration).filter(
+            InstitutionRegistration.is_active == True,
+            InstitutionRegistration.phone_number == payload.phone_number
+        ).first()
+    if not user or not user.password_hash == payload.password:  
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return {"status": "Login successful", "institution_id": user.id}
 
 @router.get(
     "/institution/{institution_id}",
@@ -78,6 +110,7 @@ def create_branch_api(
     db: Session = Depends(get_db)
 ):
     return create_institution_branch(db, payload)
+
 
 
 @router.get("/all/branches")
@@ -218,26 +251,3 @@ def get_students_by_branch_api(
 #     db: Session = Depends(get_db)
 # ):
 #     return delete_student_profile(db, student_id)
-
-
-# ======================================================
-# MANAGEMENT OVERVIEW (PREVIEW / DASHBOARD)
-# ======================================================
-
-# @router.get("/management-overview")
-# def management_overview_api(
-#     institution_id: int = Query(
-#         -1,
-#         description="Pass institution_id or -1 for all institutions"
-#     ),
-#     academic_year: str = Query(
-#         "-1",
-#         description="Pass academic year (e.g. 2023-2024) or -1 for all"
-#     ),
-#     db: Session = Depends(get_db)
-# ):
-#     return get_management_overview(
-#         db,
-#         institution_id,
-#         academic_year
-#     )
