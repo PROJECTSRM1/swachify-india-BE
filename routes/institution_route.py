@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
+from typing import List
+
 
 from core.database import get_db
 
@@ -8,6 +10,7 @@ from schemas.institution_schema import (
     InstitutionRegistrationResponse,
     InstitutionBranchCreate,
     InstitutionBranchResponse,
+    StudentAcademicDetailsSchema,
     StudentProfileCreate,
     StudentProfileUpdate,
     StudentProfileResponse
@@ -17,6 +20,8 @@ from services.institution_service import (
     create_institution,
     get_institution_by_id,
     create_institution_branch,
+    get_branches_by_institution,
+    get_student_full_academic_details,
     get_all_branches,
     get_branches_by_institution,
     create_student_profile,
@@ -92,6 +97,36 @@ def get_branches_by_institution_api(
     return get_branches_by_institution(db, institution_id)
 
 
+
+@router.get(
+    "/academic-details",
+    response_model=List[StudentAcademicDetailsSchema]
+)
+def fetch_student_full_academic_details(
+    student_id: str = "-1",
+    institution_id: int = -1,
+    db: Session = Depends(get_db)
+):
+    """
+    Get full student academic details.
+    - student_id = -1 → all students
+    - institution_id = -1 → all institutions
+    """
+    return get_student_full_academic_details(
+        db=db,
+        student_id=student_id,
+        institution_id=institution_id
+    )
+
+
+# get_students_by_branch route 
+
+@router.get("/by_branch_id")
+def get_students_by_branch(
+    branch_id: int,
+    db: Session = Depends(get_db)
+):
+     return fetch_students_by_branch(db, branch_id)
 @router.get("/branch-directory")
 def preview_branch_directory(
     branch_id: int = Query(
@@ -129,7 +164,7 @@ def get_students_api(
 
 
 @router.get(
-    "/student/{student_id}",
+    "/{student_id}",
     response_model=StudentProfileResponse
 )
 def get_student_api(
@@ -139,7 +174,7 @@ def get_student_api(
     return get_student_by_id(db, student_id)
 
 
-@router.get("/students/by-branch")
+@router.get("/by-branch")
 def get_students_by_branch_api(
     branch_id: int = Query(..., gt=0),
     db: Session = Depends(get_db)
