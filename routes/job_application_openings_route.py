@@ -1,15 +1,18 @@
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.security import HTTPBearer
 from core.database import get_db
 from core.dependencies import get_current_user
 from models.generated_models import UserRegistration,JobApplication
+from schemas.companies_schema import CompanyListResponse
 from schemas.student_education_schema import (
     JobOpeningCreate,
     JobOpeningResponse,
     JobApplicationCreate,
     JobApplicationResponse
 )
+from services.companies_service import get_all_companies
 from services.student_education_service import (
     create_job_openings,
     get_active_job_openings,
@@ -20,7 +23,7 @@ from services.student_education_service import (
 )
 
 # Router
-router = APIRouter( prefix="/api/jobs",tags=["Jobs Module"])
+router = APIRouter( prefix="/api/jobs",tags=["Companies Module"])
 
 bearer_scheme = HTTPBearer()
 
@@ -84,4 +87,34 @@ def get_my_job_applications(db: Session = Depends(get_db),current_user: UserRegi
         )
         .order_by(JobApplication.created_date.desc())
         .all()
+    )
+
+
+@router.get(
+    "",
+    response_model=List[CompanyListResponse],
+    summary="Get all companies "
+)
+def get_companies_api(
+    industry_id: Optional[int] = Query(None),
+    company_size_id: Optional[int] = Query(None),
+    location: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query(
+        None,
+        description="latest | jobs | internships"
+    ),
+    db: Session = Depends(get_db)
+):
+    """
+    Default:
+    - Returns ALL companies
+    - No filters required
+    """
+
+    return get_all_companies(
+        db=db,
+        industry_id=industry_id,
+        company_size_id=company_size_id,
+        location=location,
+        sort_by=sort_by
     )
