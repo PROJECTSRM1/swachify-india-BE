@@ -8,6 +8,7 @@ from schemas.student_education_schema import (
     StudentListResponse,
     StudentProfileResponse,
     StudentEducationFullCreate,
+    
 )
 from schemas.student_family_schema import StudentFamilyMemberCreate, StudentFamilyMemberResponse, StudentFamilyMemberUpdate
 from schemas.student_attendance_schema import (

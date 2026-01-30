@@ -2,37 +2,34 @@ from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
 
 from core.database import get_db
+
 from schemas.institution_schema import (
     InstitutionRegistrationCreate,
     InstitutionRegistrationResponse,
     InstitutionBranchCreate,
-    InstitutionBranchResponse
-)
-from services.institution_service import (
-    create_institution,
-    get_all_branches,
-    get_institution_by_id,
-    create_institution_branch,
-    get_branches_by_institution
-)
-
-from schemas.institution_schema import (
+    InstitutionBranchResponse,
     StudentProfileCreate,
     StudentProfileUpdate,
     StudentProfileResponse
 )
+
 from services.institution_service import (
+    create_institution,
+    get_institution_by_id,
+    create_institution_branch,
+    get_all_branches,
+    get_branches_by_institution,
     create_student_profile,
     get_all_students,
     get_student_by_id,
     update_student_profile,
-    delete_student_profile
+    delete_student_profile,
+    get_active_branch_directory,
+    fetch_students_by_branch
 )
-from services.institution_service import get_active_branch_directory
-
 
 router = APIRouter(
-    prefix="/institution",
+    prefix="/institution/student",
     tags=["Institution"]
 )
 
@@ -52,7 +49,7 @@ def register_institution_api(
 
 
 @router.get(
-    "/{institution_id}",
+    "/institution/{institution_id}",
     response_model=InstitutionRegistrationResponse
 )
 def get_institution_api(
@@ -77,13 +74,15 @@ def create_branch_api(
     return create_institution_branch(db, payload)
 
 
-# ✅ GET ALL branches (STATIC)
 @router.get("/all/branches")
-def get_all_branches_api(db: Session = Depends(get_db)):
+def get_all_branches_api(
+    db: Session = Depends(get_db)
+):
     return get_all_branches(db)
 
-# get by id 
-@router.get("/institutions/{institution_id}/branches",
+
+@router.get(
+    "/institution/{institution_id}/branches",
     response_model=list[InstitutionBranchResponse]
 )
 def get_branches_by_institution_api(
@@ -92,34 +91,6 @@ def get_branches_by_institution_api(
 ):
     return get_branches_by_institution(db, institution_id)
 
-# # ✅ GET ALL branches (STATIC)
-# @router.get(
-#     "/branches",
-#     response_model=list[InstitutionBranchResponse]
-# )
-# def get_all_branches_api(
-#     db: Session = Depends(get_db)
-# ):
-#     return get_all_branches(db)
-
-
-@router.post(
-    "/",
-    response_model=StudentProfileResponse
-)
-def create_student(
-    payload: StudentProfileCreate,
-    db: Session = Depends(get_db)
-):
-    return create_student_profile(db, payload)
-
-
-@router.get(
-    "/",
-    response_model=list[StudentProfileResponse]
-)
-def get_students(db: Session = Depends(get_db)):
-    return get_all_students(db)
 
 @router.get("/branch-directory")
 def preview_branch_directory(
@@ -131,27 +102,66 @@ def preview_branch_directory(
 ):
     return get_active_branch_directory(db, branch_id)
 
-@router.get(
-    "/{student_id}",
+
+# ======================================================
+# STUDENT PROFILE
+# ======================================================
+
+@router.post(
+    "/student",
     response_model=StudentProfileResponse
 )
-def get_student(student_id: int, db: Session = Depends(get_db)):
+def create_student_api(
+    payload: StudentProfileCreate,
+    db: Session = Depends(get_db)
+):
+    return create_student_profile(db, payload)
+
+
+@router.get(
+    "/students",
+    response_model=list[StudentProfileResponse]
+)
+def get_students_api(
+    db: Session = Depends(get_db)
+):
+    return get_all_students(db)
+
+
+@router.get(
+    "/student/{student_id}",
+    response_model=StudentProfileResponse
+)
+def get_student_api(
+    student_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
     return get_student_by_id(db, student_id)
 
 
-@router.put(
-    "/{student_id}",
-    response_model=StudentProfileResponse
-)
-def update_student(
-    student_id: int,
-    payload: StudentProfileUpdate,
+@router.get("/students/by-branch")
+def get_students_by_branch_api(
+    branch_id: int = Query(..., gt=0),
     db: Session = Depends(get_db)
 ):
-    return update_student_profile(db, student_id, payload)
+    return fetch_students_by_branch(db, branch_id)
 
 
-@router.delete("/{student_id}")
-def delete_student(student_id: int, db: Session = Depends(get_db)):
-    return delete_student_profile(db, student_id)
+# @router.put(
+#     "/student/{student_id}",
+#     response_model=StudentProfileResponse
+# )
+# def update_student_api(
+#     student_id: int = Path(..., gt=0),
+#     payload: StudentProfileUpdate = Depends(),
+#     db: Session = Depends(get_db)
+# ):
+#     return update_student_profile(db, student_id, payload)
 
+
+# @router.delete("/student/{student_id}")
+# def delete_student_api(
+#     student_id: int = Path(..., gt=0),
+#     db: Session = Depends(get_db)
+# ):
+#     return delete_student_profile(db, student_id)

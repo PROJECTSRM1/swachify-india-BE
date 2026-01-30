@@ -154,3 +154,11 @@ def delete_student_profile(db: Session, student_id: int):
     return {"message": "Student profile deactivated successfully"}
 
 
+# get_students_by_branch service
+
+def fetch_students_by_branch(db, branch_id: int):
+    query = text("""
+        SELECT * FROM fn_get_students_by_branch(:branch_id)
+    """)
+    result = db.execute(query, {"branch_id": branch_id})
+    return result.mappings().all()   
