@@ -193,6 +193,7 @@ def management_overview_api(
         academic_year
     )
 
+
 # ======================================================
 # STUDENT PROFILE
 # ======================================================
@@ -282,3 +283,4 @@ def get_student_api(
     db: Session = Depends(get_db)
 ):
     return get_student_by_id(db, student_id)
+
