@@ -44,9 +44,10 @@ def add_job_opening(
 def get_internships(
     create_job_id: int | None = Query(None, description="Fetch single internship by job id"),
     category_id: int | None = Query(None, description="Filter internships by category id"),
+    location_type_id: int | None = Query(None, description="Filter internships by location type id"),
     db: Session = Depends(get_db)
 ):
-    data = get_job_openings(db=db, job_id=create_job_id, category_id=category_id)
+    data = get_job_openings(db=db, job_id=create_job_id, category_id=category_id, location_type_id=location_type_id)
 
     return {
         "status": True,
