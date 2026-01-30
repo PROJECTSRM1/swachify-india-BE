@@ -1227,6 +1227,7 @@ class InstitutionBranch(Base):
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
 
     institution: Mapped['InstitutionRegistration'] = relationship('InstitutionRegistration', back_populates='institution_branch')
+    exam_schedule: Mapped[list['ExamSchedule']] = relationship('ExamSchedule', back_populates='branch')
     student_profile: Mapped[list['StudentProfile']] = relationship('StudentProfile', foreign_keys='[StudentProfile.branch_id]', back_populates='branch')
     student_profile_: Mapped[list['StudentProfile']] = relationship('StudentProfile', foreign_keys='[StudentProfile.branch_name]', back_populates='institution_branch')
 
@@ -1451,6 +1452,28 @@ class DoctorProfile(Base):
     specialization: Mapped['MasterDoctorSpecialization'] = relationship('MasterDoctorSpecialization', back_populates='doctor_profile')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='doctor_profile')
     appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='doctor')
+
+
+class ExamSchedule(Base):
+    __tablename__ = 'exam_schedule'
+    __table_args__ = (
+        ForeignKeyConstraint(['branch_id'], ['institution_branch.id'], name='fk_exam_schedule_branch_branch_id'),
+        PrimaryKeyConstraint('id', name='pk_exam_schedule_id'),
+        UniqueConstraint('branch_id', 'exam_type', 'subject_name', 'exam_date', name='uk_exam_schedule')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    branch_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    exam_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    subject_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    exam_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    branch: Mapped['InstitutionBranch'] = relationship('InstitutionBranch', back_populates='exam_schedule')
 
 
 class JobApplication(Base):
@@ -1768,6 +1791,7 @@ class StudentProfile(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    parent_mobile: Mapped[Optional[str]] = mapped_column(String(100))
 
     branch: Mapped['InstitutionBranch'] = relationship('InstitutionBranch', foreign_keys=[branch_id], back_populates='student_profile')
     institution_branch: Mapped['InstitutionBranch'] = relationship('InstitutionBranch', foreign_keys=[branch_name], back_populates='student_profile_')
