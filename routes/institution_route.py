@@ -15,6 +15,7 @@ from services.institution_service import (
     create_institution_branch,
     get_branches_by_institution
 )
+from services.student_education_service import fetch_students_by_branch
 
 router = APIRouter(
     prefix="/institution",
@@ -87,3 +88,14 @@ def get_branches_by_institution_api(
 # ):
 #     return get_all_branches(db)
 
+
+
+
+# get_students_by_branch route 
+
+@router.get("/students/by_branch_id")
+def get_students_by_branch(
+    branch_id: int,
+    db: Session = Depends(get_db)
+):
+     return fetch_students_by_branch(db, branch_id)
