@@ -340,7 +340,7 @@ class MasterIdentityType(Base):
         PrimaryKeyConstraint('id', name='pk_master_identity_type_id'),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     identity_type_name: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
@@ -367,7 +367,7 @@ class MasterInstituteType(Base):
         PrimaryKeyConstraint('id', name='pk_master_institute_type_id'),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     institute_type: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
@@ -993,10 +993,10 @@ class InstitutionRegistration(Base):
         UniqueConstraint('institution_name', 'identity_number', name='uk_institution_registration')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     institution_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    institution_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    identity_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    institution_type_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    identity_type_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     identity_number: Mapped[str] = mapped_column(String(100), nullable=False)
     location: Mapped[str] = mapped_column(String(500), nullable=False)
     representative_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -1005,7 +1005,7 @@ class InstitutionRegistration(Base):
     upload_id_proof: Mapped[Optional[str]] = mapped_column(String(500))
     upload_address_proof: Mapped[Optional[str]] = mapped_column(String(500))
     institute_website: Mapped[Optional[str]] = mapped_column(String(500))
-    total_branches: Mapped[Optional[int]] = mapped_column(Integer)
+    total_branches: Mapped[Optional[int]] = mapped_column(BigInteger)
     academic_year_start: Mapped[Optional[datetime.date]] = mapped_column(Date)
     academic_year_end: Mapped[Optional[datetime.date]] = mapped_column(Date)
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
@@ -1208,10 +1208,11 @@ class InstitutionBranch(Base):
     __table_args__ = (
         ForeignKeyConstraint(['institution_id'], ['institution_registration.id'], name='fk_institution_branch_institution_institution_id'),
         PrimaryKeyConstraint('id', name='pk_institution_branch_id'),
+        UniqueConstraint('branch_name', name='uq_institution_branch_branch_name'),
         UniqueConstraint('institution_id', 'branch_code', name='uk_institution_branch')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     institution_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     branch_name: Mapped[str] = mapped_column(String(255), nullable=False)
     city: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -1221,8 +1222,13 @@ class InstitutionBranch(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    student_count: Mapped[Optional[int]] = mapped_column(Integer)
+    status: Mapped[Optional[str]] = mapped_column(String(20), server_default=text("'ACTIVE'::character varying"))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
 
     institution: Mapped['InstitutionRegistration'] = relationship('InstitutionRegistration', back_populates='institution_branch')
+    student_profile: Mapped[list['StudentProfile']] = relationship('StudentProfile', foreign_keys='[StudentProfile.branch_id]', back_populates='branch')
+    student_profile_: Mapped[list['StudentProfile']] = relationship('StudentProfile', foreign_keys='[StudentProfile.branch_name]', back_populates='institution_branch')
 
 
 class JobSkill(Base):
@@ -1741,6 +1747,34 @@ class StudentFamilyMembers(Base):
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='student_family_members')
 
 
+class StudentProfile(Base):
+    __tablename__ = 'student_profile'
+    __table_args__ = (
+        ForeignKeyConstraint(['branch_id'], ['institution_branch.id'], name='fk_student_profile_branch_id'),
+        ForeignKeyConstraint(['branch_name'], ['institution_branch.branch_name'], name='fk_student_profile_branch_name'),
+        PrimaryKeyConstraint('id', name='pk_student_profile_id'),
+        UniqueConstraint('student_id', name='uk_student_profile_student_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    branch_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    branch_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    student_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    student_id: Mapped[str] = mapped_column(String(150), nullable=False)
+    academic_year: Mapped[str] = mapped_column(String(100), nullable=False)
+    profile_image_url: Mapped[Optional[str]] = mapped_column(String(500))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    branch: Mapped['InstitutionBranch'] = relationship('InstitutionBranch', foreign_keys=[branch_id], back_populates='student_profile')
+    institution_branch: Mapped['InstitutionBranch'] = relationship('InstitutionBranch', foreign_keys=[branch_name], back_populates='student_profile_')
+    student_academic_finance: Mapped['StudentAcademicFinance'] = relationship('StudentAcademicFinance', uselist=False, back_populates='student')
+    student_fee_installments: Mapped[list['StudentFeeInstallments']] = relationship('StudentFeeInstallments', back_populates='student')
+
+
 class StudentQualification(Base):
     __tablename__ = 'student_qualification'
     __table_args__ = (
@@ -2135,6 +2169,58 @@ class PropertySellListingService(Base):
 
     property_sell_listing: Mapped['PropertySellListing'] = relationship('PropertySellListing', back_populates='property_sell_listing_service')
     service: Mapped['MasterService'] = relationship('MasterService', back_populates='property_sell_listing_service')
+
+
+class StudentAcademicFinance(Base):
+    __tablename__ = 'student_academic_finance'
+    __table_args__ = (
+        ForeignKeyConstraint(['student_id'], ['student_profile.student_id'], name='fk_student_academic_finance_student_id'),
+        PrimaryKeyConstraint('id', name='pk_student_academic_finance_id'),
+        UniqueConstraint('student_id', name='uk_student_academic_finance_student_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    student_id: Mapped[str] = mapped_column(String(150), nullable=False)
+    father_name: Mapped[Optional[str]] = mapped_column(String(255))
+    background: Mapped[Optional[str]] = mapped_column(String(255))
+    admission_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    aadhaar_number: Mapped[Optional[str]] = mapped_column(String(150))
+    pan_number: Mapped[Optional[str]] = mapped_column(String(150))
+    scholarship_amount: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    scholarship_disbursed_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    sgpa: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    attendance_percent: Mapped[Optional[int]] = mapped_column(Integer)
+    backlogs: Mapped[Optional[int]] = mapped_column(Integer)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    student: Mapped['StudentProfile'] = relationship('StudentProfile', back_populates='student_academic_finance')
+
+
+class StudentFeeInstallments(Base):
+    __tablename__ = 'student_fee_installments'
+    __table_args__ = (
+        ForeignKeyConstraint(['student_id'], ['student_profile.student_id'], name='fk_student_fee_installments_student_id'),
+        PrimaryKeyConstraint('id', name='pk_student_fee_installments_id'),
+        UniqueConstraint('student_id', 'installment_no', name='uk_student_fee_installments')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    student_id: Mapped[str] = mapped_column(String(150), nullable=False)
+    installment_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    installment_amount: Mapped[decimal.Decimal] = mapped_column(Numeric, nullable=False)
+    due_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    paid_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    student: Mapped['StudentProfile'] = relationship('StudentProfile', back_populates='student_fee_installments')
 
 
 class TaskHistory(Base):

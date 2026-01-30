@@ -10,6 +10,7 @@ from schemas.institution_schema import (
 )
 from services.institution_service import (
     create_institution,
+    get_all_branches,
     get_institution_by_id,
     create_institution_branch,
     get_branches_by_institution
@@ -61,12 +62,28 @@ def create_branch_api(
     return create_institution_branch(db, payload)
 
 
-@router.get(
-    "/{institution_id}/branches",
+# ✅ GET ALL branches (STATIC)
+@router.get("/all/branches")
+def get_all_branches_api(db: Session = Depends(get_db)):
+    return get_all_branches(db)
+
+# get by id 
+@router.get("/institutions/{institution_id}/branches",
     response_model=list[InstitutionBranchResponse]
 )
-def get_branches_api(
+def get_branches_by_institution_api(
     institution_id: int = Path(..., gt=0),
     db: Session = Depends(get_db)
 ):
     return get_branches_by_institution(db, institution_id)
+
+# # ✅ GET ALL branches (STATIC)
+# @router.get(
+#     "/branches",
+#     response_model=list[InstitutionBranchResponse]
+# )
+# def get_all_branches_api(
+#     db: Session = Depends(get_db)
+# ):
+#     return get_all_branches(db)
+
