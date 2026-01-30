@@ -30,7 +30,8 @@ from services.institution_service import (
     update_student_profile,
     delete_student_profile,
     get_active_branch_directory,
-    fetch_students_by_branch
+    fetch_students_by_branch,
+    get_management_overview
 )
 
 router = APIRouter(
@@ -137,6 +138,23 @@ def preview_branch_directory(
 ):
     return get_active_branch_directory(db, branch_id)
 
+@router.get("/management-overview")
+def management_overview_api(
+    institution_id: int = Query(
+        -1,
+        description="Pass institution_id or -1 for all institutions"
+    ),
+    academic_year: str = Query(
+        "-1",
+        description="Pass academic year (e.g. 2023-2024) or -1 for all"
+    ),
+    db: Session = Depends(get_db)
+):
+    return get_management_overview(
+        db,
+        institution_id,
+        academic_year
+    )
 
 # ======================================================
 # STUDENT PROFILE
@@ -200,3 +218,26 @@ def get_students_by_branch_api(
 #     db: Session = Depends(get_db)
 # ):
 #     return delete_student_profile(db, student_id)
+
+
+# ======================================================
+# MANAGEMENT OVERVIEW (PREVIEW / DASHBOARD)
+# ======================================================
+
+# @router.get("/management-overview")
+# def management_overview_api(
+#     institution_id: int = Query(
+#         -1,
+#         description="Pass institution_id or -1 for all institutions"
+#     ),
+#     academic_year: str = Query(
+#         "-1",
+#         description="Pass academic year (e.g. 2023-2024) or -1 for all"
+#     ),
+#     db: Session = Depends(get_db)
+# ):
+#     return get_management_overview(
+#         db,
+#         institution_id,
+#         academic_year
+#     )
