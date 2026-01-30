@@ -19,6 +19,7 @@ from routes.property_sell_listing_router import router as property_sell_listing_
 from routes.raw_material_routes import router as raw_material_router
 from routes.application_routes import router as application_router
 from routes.swachify_products_route import router as swachify_products_router
+from routes.institution_route import router as institution_router
 
 from routes.healthcare_route import router as healthcare_router
 
@@ -50,6 +51,7 @@ app.include_router(task_router)
 app.include_router(student_education_router)
 app.include_router(job_application_openings_router)
 app.include_router(application_router)
+app.include_router(institution_router)
 app.include_router(healthcare_router)
 app.include_router(property_sell_listing_router)
 app.include_router(raw_material_router)
