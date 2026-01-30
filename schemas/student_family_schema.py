@@ -10,14 +10,22 @@ class StudentFamilyMemberCreate(BaseModel):
     relation_type_id: int = Field(..., gt=0)
     first_name: str
     last_name: Optional[str] = None
-    phone_number: Optional[str] = None
+    phone_number: Optional[str] = Field(
+        None,
+        pattern=r"^\d{10}$",
+        description="Phone number must be a 10-digit number"
+    )
 
 
 class StudentFamilyMemberUpdate(BaseModel):
     relation_type_id: Optional[int] = Field(None, gt=0)
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    phone_number: Optional[str] = None
+    phone_number: Optional[str] = Field(
+        None,
+        pattern=r"^\d{10}$",
+        description="Phone number must be a 10-digit number"
+    )
 
 
 # =============================
@@ -33,7 +41,7 @@ class StudentFamilyMemberResponse(BaseModel):
 
     first_name: Optional[str]
     last_name: Optional[str]
-    phone_number: Optional[str]
+    phone_number: Optional[str]  # 10-digit phone number
 
     created_date: Optional[datetime]
     is_active: bool
