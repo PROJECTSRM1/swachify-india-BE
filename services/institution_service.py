@@ -28,6 +28,8 @@ def create_institution(
     db.refresh(institution)
     return institution
 
+def get_all_branches(db: Session):
+    return db.query(InstitutionBranch).all()
 
 def get_institution_by_id(
     db: Session,
@@ -42,6 +44,10 @@ def get_institution_by_id(
         raise HTTPException(status_code=404, detail="Institution not found")
 
     return institution
+
+
+# def get_all_branches(db: Session):
+#     return db.query(InstitutionBranch).all()
 
 
 # ======================================================
