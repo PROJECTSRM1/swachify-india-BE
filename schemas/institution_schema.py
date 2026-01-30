@@ -152,3 +152,32 @@ class StudentResponse(BaseModel):
     student_name: str
     year: int
     profile_image: str | None
+
+class OtpCreateSchema(BaseModel):
+    institution_id: int
+    identity_number: str
+    email: EmailStr
+    otp_code: str
+    expires_at: datetime
+    created_by: Optional[int] = None
+
+
+class OtpVerifySchema(BaseModel):
+    identity_number: str
+    email: EmailStr
+    otp_code: str
+
+
+class OtpResponseSchema(BaseModel):
+    id: int
+    institution_id: int
+    identity_number: str
+    email: EmailStr
+    otp_code: str
+    expires_at: datetime
+    is_verified: Optional[bool]
+    is_active: Optional[bool]
+    created_date: Optional[datetime]
+
+    class Config:
+        from_attributes = True

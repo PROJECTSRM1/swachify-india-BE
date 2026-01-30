@@ -15,6 +15,17 @@ from schemas.institution_schema import (
     StudentProfileUpdate,
     StudentProfileResponse
 )
+from schemas.institution_schema import (
+    OtpCreateSchema,
+    OtpVerifySchema,
+    OtpResponseSchema
+)
+
+from services.institution_service import (
+    create_otp,
+    verify_otp
+)
+
 
 from services.institution_service import (
     create_institution,
@@ -241,3 +252,34 @@ def get_students_by_branch_api(
 #         institution_id,
 #         academic_year
 #     )
+
+
+# ======================================================
+# OTP VERIFICATION
+# ======================================================
+
+@router.post(
+    "/otp/send",
+    response_model=OtpResponseSchema
+)
+def send_otp_api(
+    payload: OtpCreateSchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Create and store OTP
+    """
+    return create_otp(db, payload)
+
+
+@router.post("/otp/verify")
+def verify_otp_api(
+    payload: OtpVerifySchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify OTP
+    """
+    return verify_otp(db, payload)
+ 
+

@@ -2,6 +2,12 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from datetime import datetime
 from fastapi import HTTPException,status
+from models.generated_models import OtpVerification
+from schemas.institution_schema import (
+    OtpCreateSchema,
+    OtpVerifySchema
+)
+
 
 from models.generated_models import (
     InstitutionRegistration,
@@ -217,3 +223,60 @@ def get_management_overview(
     )
 
     return result.mappings().all()
+
+
+    # ======================================================
+# OTP SERVICES
+# ======================================================
+
+def create_otp(
+    db: Session,
+    payload: OtpCreateSchema
+):
+    otp = OtpVerification(
+        institution_id=payload.institution_id,
+        identity_number=payload.identity_number,
+        email=payload.email,
+        otp_code=payload.otp_code,
+        expires_at=payload.expires_at,
+        is_verified=False,
+        created_by=payload.created_by,
+        created_date=datetime.utcnow(),
+        is_active=True
+    )
+
+    db.add(otp)
+    db.commit()
+    db.refresh(otp)
+    return otp
+
+def verify_otp(
+    db: Session,
+    payload: OtpVerifySchema
+):
+    otp_record = db.query(OtpVerification).filter(
+        OtpVerification.identity_number == payload.identity_number,
+        OtpVerification.email == payload.email,
+        OtpVerification.otp_code == payload.otp_code,
+        OtpVerification.is_active == True
+    ).order_by(OtpVerification.created_date.desc()).first()
+
+    if not otp_record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid OTP"
+        )
+
+    if otp_record.expires_at < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OTP expired"
+        )
+
+    otp_record.is_verified = True
+    otp_record.modified_date = datetime.utcnow()
+
+    db.commit()
+    db.refresh(otp_record)
+
+    return {"message": "OTP verified successfully"}
