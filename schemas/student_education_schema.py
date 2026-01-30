@@ -265,3 +265,11 @@ class StudentListResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# get_students_by_branch Schema
+class StudentResponse(BaseModel):
+    student_id: int
+    student_code: str
+    student_name: str
+    year: int
+    profile_image: str | None
