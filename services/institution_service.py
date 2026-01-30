@@ -86,3 +86,51 @@ def fetch_students_by_branch(db, branch_id: int):
     """)
     result = db.execute(query, {"branch_id": branch_id})
     return result.mappings().all()   
+
+#ExamSchedule service
+
+def create_exam_schedule(db, data):
+    query = text("""
+        INSERT INTO exam_schedule (
+            branch_id,
+            exam_type,
+            subject_name,
+            exam_date,
+            created_by,
+            is_active
+        )
+        VALUES (
+            :branch_id,
+            :exam_type,
+            :subject_name,
+            :exam_date,
+            :created_by,
+            true
+        )
+        RETURNING id
+    """)
+
+    result = db.execute(query, {
+        "branch_id": data.branch_id,
+        "exam_type": data.exam_type,
+        "subject_name": data.subject_name,
+        "exam_date": data.exam_date,
+        "created_by": data.created_by
+    })
+
+    db.commit()
+    return result.fetchone()[0]
+
+#ExamList Service
+
+def fetch_exam_schedule(db, branch_id: int, exam_type: str):
+    query = text("""
+        SELECT * FROM fn_get_exam_schedule(:branch_id, :exam_type)
+    """)
+
+    result = db.execute(query, {
+        "branch_id": branch_id,
+        "exam_type": exam_type
+    })
+
+    return result.mappings().all()  

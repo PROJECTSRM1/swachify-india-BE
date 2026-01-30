@@ -1,15 +1,20 @@
+from typing import List
 from fastapi import APIRouter, Depends, Path
 from sqlalchemy.orm import Session
 
 from core.database import get_db
 from schemas.institution_schema import (
+    ExamScheduleCreate,
+    ExamScheduleListResponse,
     InstitutionRegistrationCreate,
     InstitutionRegistrationResponse,
     InstitutionBranchCreate,
     InstitutionBranchResponse
 )
 from services.institution_service import (
+    create_exam_schedule,
     create_institution,
+    fetch_exam_schedule,
     fetch_students_by_branch,
     get_all_branches,
     get_institution_by_id,
@@ -39,7 +44,7 @@ def register_institution_api(
 
 
 @router.get(
-    "/{institution_id}",
+    "/institution/{institution_id}",
     response_model=InstitutionRegistrationResponse
 )
 def get_institution_api(
@@ -100,3 +105,29 @@ def get_students_by_branch(
     db: Session = Depends(get_db)
 ):
      return fetch_students_by_branch(db, branch_id)
+
+#ExamSchedule route 
+
+@router.post("/exam-schedule")
+def create_exam(
+    payload: ExamScheduleCreate,
+    db: Session = Depends(get_db)
+):
+    exam_id = create_exam_schedule(db, payload)
+    return {
+        "message": "Exam schedule created successfully",
+        "exam_schedule_id": exam_id
+    }
+
+#ExamList
+
+@router.get(
+    "/exam-schedule",
+    response_model=List[ExamScheduleListResponse]
+)
+def get_exam_schedule(
+    branch_id: int = -1,
+    exam_type: str = "-1",
+    db: Session = Depends(get_db)
+):
+    return fetch_exam_schedule(db, branch_id, exam_type)
