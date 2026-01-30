@@ -411,11 +411,11 @@ def get_internship_list_service(
     # Return as list of dicts
     return result.mappings().all()
 
-# get_students_by_branch service
+# # get_students_by_branch service
 
-def fetch_students_by_branch(db, branch_id: int):
-    query = text("""
-        SELECT * FROM fn_get_students_by_branch(:branch_id)
-    """)
-    result = db.execute(query, {"branch_id": branch_id})
-    return result.mappings().all()   
+# def fetch_students_by_branch(db, branch_id: int):
+#     query = text("""
+#         SELECT * FROM fn_get_students_by_branch(:branch_id)
+#     """)
+#     result = db.execute(query, {"branch_id": branch_id})
+#     return result.mappings().all()   

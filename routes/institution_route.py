@@ -13,12 +13,14 @@ from schemas.institution_schema import (
 )
 from services.institution_service import (
     create_institution,
+    fetch_students_by_branch,
     get_all_branches,
     get_institution_by_id,
     create_institution_branch,
     get_branches_by_institution,
   get_student_full_academic_details 
 )
+
 
 router = APIRouter(
     prefix="/institution",
@@ -111,3 +113,13 @@ def fetch_student_full_academic_details(
         student_id=student_id,
         institution_id=institution_id
     )
+
+
+# get_students_by_branch route 
+
+@router.get("/students/by_branch_id")
+def get_students_by_branch(
+    branch_id: int,
+    db: Session = Depends(get_db)
+):
+     return fetch_students_by_branch(db, branch_id)

@@ -1,3 +1,4 @@
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from datetime import datetime
 from fastapi import HTTPException
@@ -110,3 +111,11 @@ def get_student_full_academic_details(
     rows = result.mappings().all()
 
     return [StudentAcademicDetailsSchema(**row) for row in rows]
+# get_students_by_branch service
+
+def fetch_students_by_branch(db, branch_id: int):
+    query = text("""
+        SELECT * FROM fn_get_students_by_branch(:branch_id)
+    """)
+    result = db.execute(query, {"branch_id": branch_id})
+    return result.mappings().all()   
