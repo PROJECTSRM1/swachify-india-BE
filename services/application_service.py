@@ -57,7 +57,8 @@ def create_job_opening(db: Session, payload):
 def get_job_openings(
     db: Session,
     job_id: int | None = None,
-    category_id: int | None = None
+    category_id: int | None = None,
+    location_type_id: int | None = None
 ):
     query = db.query(JobOpenings).filter(JobOpenings.is_active)
 
@@ -69,11 +70,12 @@ def get_job_openings(
     if category_id is not None:
         query = query.filter(JobOpenings.category_id == category_id)
 
+    # 🔹 filter by location_type_id
+    if location_type_id is not None:
+        query = query.filter(JobOpenings.location_type_id == location_type_id)
+
     # 🔹 default → all jobs
     return query.order_by(JobOpenings.created_date.desc()).all()
-
-
-
 
 
 def get_application_review(user_id: int):
