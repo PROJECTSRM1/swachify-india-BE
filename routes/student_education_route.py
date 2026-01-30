@@ -292,7 +292,6 @@ def add_family_member(
         "is_active": record.is_active,
     }
 
-
 # =============================
 # UPDATE FAMILY MEMBER
 # =============================
@@ -324,20 +323,20 @@ def update_family_member(
         "is_active": record.is_active,
     }
 
-@router.delete(
-    "/family-members/{member_id}/hard",
-)
-def hard_delete_family_member(
-    member_id: int,
-    db: Session = Depends(get_db),
-):
-    """
-    Permanently delete a student family member
-    """
-    return hard_delete_family_member_service(
-        db=db,
-        member_id=member_id
-    )
+# @router.delete(
+#     "/family-members/{member_id}/hard",
+# )
+# def hard_delete_family_member(
+#     member_id: int,
+#     db: Session = Depends(get_db),
+# ):
+#     """
+#     Permanently delete a student family member
+#     """
+#     return hard_delete_family_member_service(
+#         db=db,
+#         member_id=member_id
+#     )
 
 # =============================
 # LIST FAMILY MEMBERS
