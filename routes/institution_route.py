@@ -10,12 +10,13 @@ from schemas.institution_schema import (
 )
 from services.institution_service import (
     create_institution,
+    fetch_students_by_branch,
     get_all_branches,
     get_institution_by_id,
     create_institution_branch,
     get_branches_by_institution
 )
-from services.student_education_service import fetch_students_by_branch
+
 
 router = APIRouter(
     prefix="/institution",
