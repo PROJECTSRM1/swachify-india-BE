@@ -181,3 +181,17 @@ class OtpResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+#ExamSchedule
+class ExamScheduleCreate(BaseModel):
+    branch_id: int
+    exam_type: str
+    subject_name: str
+    exam_date: date
+    created_by: int
+
+#ExamList 
+
+class ExamScheduleListResponse(BaseModel):
+    subject_name: str
+    exam_date: date
+
