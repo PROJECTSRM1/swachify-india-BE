@@ -21,15 +21,9 @@ DLT_ENTITY_ID = os.getenv("ADWINGS_DLT_ENTITY_ID")
 
 
 def send_welcome_sms(mobile: str, firstname: str) -> bool:
-    """
-    Send SMS via AdWings using DLT-approved template.
-    Returns True if SMS is accepted/sent successfully, False otherwise.
-    """
-
 
     try:
         message = WELCOME_SMS_TEXT.replace("*", firstname)
-
 
         payload = {
             "apiver": "1.0",
