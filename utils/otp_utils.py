@@ -1,4 +1,3 @@
-# app/utils/otp_utils.py
 import random
 
 def generate_otp(length: int = 6) -> str:

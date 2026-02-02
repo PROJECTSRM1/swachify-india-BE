@@ -1,57 +1,31 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-
 from core.database import get_db
-
-from schemas.student_education_schema import (
-    StudentListResponse,
-    StudentProfileResponse,
-    StudentEducationFullCreate,
-)
-
-from schemas.student_attendance_schema import (
-    StudentAttendanceCreate,
-    StudentAttendanceResponse,
-)
-
-from schemas.student_internship_status import (
-    StudentInternshipStatusCreate,
-    StudentInternshipStatusResponse,
-)
-
+from schemas.student_education_schema import (StudentListResponse,StudentProfileResponse,StudentEducationFullCreate,)
+from schemas.student_family_schema import StudentFamilyMemberCreate, StudentFamilyMemberResponse, StudentFamilyMemberUpdate
+from schemas.student_attendance_schema import (StudentAttendanceCreate,StudentAttendanceResponse,)
+from schemas.student_internship_status import (StudentInternshipStatusCreate,StudentInternshipStatusResponse,)
 from services.student_education_service import (
     create_student_certificate,
     add_student_education_service,
+    get_internship_list_service,
     get_recent_joiners_service,
     update_student_noc,
     get_students_list_service,
     get_top_performers_service,
 )
-
 from services.student_attendance_service import upsert_student_attendance
+from services.student_family_service import add_family_member_service, hard_delete_family_member_service, list_family_members_service, update_family_member_service
 from services.student_internship_service import upsert_student_internship
-
-from models.generated_models import UserRegistration
+from models.generated_models import StudentFamilyMembers, UserRegistration
 from models.generated_models import StudentCertificate
 from models.generated_models import StudentQualification
 
-router = APIRouter(
-    prefix="/api/education",
-    tags=["Student Education"]
-)
-
-# =====================================================
-# STUDENT LIST (NO DUPLICATES)
-# =====================================================
+router = APIRouter(prefix="/api/education",tags=["Student Education"])
 
 @router.get("/students-list")
-def get_students_list(
-    skill_id: int | None = None,
-    aggregate: str | None = None,
-    internship_status: str | None = None,
-    db: Session = Depends(get_db),
-):
+def get_students_list(skill_id: int | None = None,aggregate: str | None = None,internship_status: str | None = None,db: Session = Depends(get_db)):
     return get_students_list_service(
         db=db,
         skill_id=skill_id,
@@ -59,17 +33,8 @@ def get_students_list(
         internship_status=internship_status
     )
 
-# =====================================================
-# STUDENT FULL PROFILE
-# =====================================================
-
-@router.get(
-    "/students/{student_id}/full-profile",
-)
-def get_full_student_profile(
-    student_id: int,
-    db: Session = Depends(get_db)
-):
+@router.get("/students/{student_id}/full-profile",)
+def get_full_student_profile(student_id: int,db: Session = Depends(get_db)):
     student = (
         db.query(UserRegistration)
         .filter(
@@ -100,6 +65,15 @@ def get_full_student_profile(
         .all()
     )
 
+    family_members = (
+        db.query(StudentFamilyMembers)
+        .filter(
+            StudentFamilyMembers.user_id == student_id,
+            StudentFamilyMembers.is_active == True
+        )
+        .all()
+    )
+
     return {
         "profile": StudentProfileResponse(
             user_id=student.id,
@@ -107,9 +81,26 @@ def get_full_student_profile(
             last_name=student.last_name,
             email=student.email,
             mobile_number=student.mobile,
-            government_id=student.government_id,
+            government_id=student.government_id or [],
+            gst_number=student.gst_number,
             location=student.address,
-            service_name="Education"
+            service_name="Education",
+
+            # ✅ FAMILY MERGE
+            family_members=[
+                StudentFamilyMemberResponse(
+                    id=fm.id,
+                    user_id=fm.user_id,
+                    relation_type_id=fm.relation_type_id,
+                    relation_type=fm.relation_type.relation_type,
+                    first_name=fm.first_name,
+                    last_name=fm.last_name,
+                    phone_number=fm.phone_number,
+                    created_date=fm.created_date,
+                    is_active=fm.is_active,
+                )
+                for fm in family_members
+            ],
         ),
         "education": education,
         "certificates": certificates,
@@ -171,9 +162,6 @@ def add_full_student_profile(
         "data": results
     }
 
-# =====================================================
-# ATTENDANCE
-# =====================================================
 
 @router.post(
     "/students/{student_id}/attendance",
@@ -189,10 +177,6 @@ def update_student_attendance(
         user_id=student_id,
         attendance_percentage=payload.attendance_percentage,
     )
-
-# =====================================================
-# INTERNSHIP STATUS
-# =====================================================
 
 @router.post(
     "/students/{student_id}/internship-status",
@@ -228,3 +212,132 @@ def get_recent_joiners(
     db: Session = Depends(get_db)
 ):
     return get_recent_joiners_service(db, limit)
+
+# =============================
+# ADD FAMILY MEMBER
+# =============================
+
+@router.post(
+    "/{student_id}/family-members",
+    response_model=StudentFamilyMemberResponse
+)
+def add_family_member(
+    student_id: int,
+    payload: StudentFamilyMemberCreate,
+    db: Session = Depends(get_db),
+):
+    record = add_family_member_service(
+        db=db,
+        student_id=student_id,
+        payload=payload,
+    )
+
+    return {
+        "id": record.id,
+        "user_id": record.user_id,
+        "relation_type_id": record.relation_type_id,
+        "relation_type": record.relation_type.relation_type,  # ✅ FIX
+        "first_name": record.first_name,
+        "last_name": record.last_name,
+        "phone_number": record.phone_number,
+        "created_date": record.created_date,
+        "is_active": record.is_active,
+    }
+
+# =============================
+# UPDATE FAMILY MEMBER
+# =============================
+
+@router.put(
+    "/family-members/{member_id}",
+    response_model=StudentFamilyMemberResponse
+)
+def update_family_member(
+    member_id: int,
+    payload: StudentFamilyMemberUpdate,
+    db: Session = Depends(get_db),
+):
+    record = update_family_member_service(
+        db=db,
+        member_id=member_id,
+        payload=payload,
+    )
+
+    return {
+        "id": record.id,
+        "user_id": record.user_id,
+        "relation_type_id": record.relation_type_id,
+        "relation_type": record.relation_type.relation_type,
+        "first_name": record.first_name,
+        "last_name": record.last_name,
+        "phone_number": record.phone_number,
+        "created_date": record.created_date,
+        "is_active": record.is_active,
+    }
+
+# @router.delete(
+#     "/family-members/{member_id}/hard",
+# )
+# def hard_delete_family_member(
+#     member_id: int,
+#     db: Session = Depends(get_db),
+# ):
+#     """
+#     Permanently delete a student family member
+#     """
+#     return hard_delete_family_member_service(
+#         db=db,
+#         member_id=member_id
+#     )
+
+# =============================
+# LIST FAMILY MEMBERS
+# =============================
+
+@router.get(
+    "/{student_id}/family-members",
+    response_model=List[StudentFamilyMemberResponse]
+)
+def list_family_members(
+    student_id: int,
+    db: Session = Depends(get_db),
+):
+    records = list_family_members_service(db, student_id)
+
+    return [
+        {
+            "id": r.id,
+            "user_id": r.user_id,
+            "relation_type_id": r.relation_type_id,
+            "relation_type": r.relation_type.relation_type,
+            "first_name": r.first_name,
+            "last_name": r.last_name,
+            "phone_number": r.phone_number,
+            "created_date": r.created_date,
+            "is_active": r.is_active,
+        }
+        for r in records
+    ]
+
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from typing import List, Dict, Any
+
+from core.database import get_db
+
+@router.get("/", response_model=List[Dict[str, Any]])
+def get_internships(
+    category_id: int = Query(-1, description="Category ID (-1 = all)"),
+    work_type_id: int = Query(-1, description="Work Type ID (-1 = all)"),
+    db: Session = Depends(get_db)
+):
+    return get_internship_list_service(
+        db=db,
+        category_id=category_id,
+        work_type_id=work_type_id
+    )
+
+
+
+

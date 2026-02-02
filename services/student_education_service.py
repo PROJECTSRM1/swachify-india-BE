@@ -178,7 +178,6 @@ def add_student_education_service(
         degree=payload.degree,
         institute=payload.institute,
         percentage=payload.percentage,
-        passing_year=payload.passing_year,
         is_active=True,
     )
 
@@ -320,20 +319,34 @@ def get_students_list_service(
 
     return students_list
 
-
 def get_top_performers_service(
     db: Session,
-    limit: int = 10
+    limit: int = 10,
+    min_attendance: float = 80.0
 ):
     """
     Top performers = students sorted by BOTH (rating + attendance)
     """
     students = get_students_list_service(
         db=db,
-        sort_by="both"   # rating first, attendance second
+        sort_by="both"   
     )
 
-    return students[:limit]
+    filtered_students = [
+        s for s in students
+        if s["attendance_percentage"] is not None
+        and float(s["attendance_percentage"]) >= min_attendance
+    ]
+
+    filtered_students.sort(
+        key=lambda s: (
+            float(s["rating"] or 0),
+            float(s["attendance_percentage"] or 0)
+        ),
+        reverse=True
+    )
+
+    return filtered_students[:limit]
 
 def get_recent_joiners_service(
     db: Session,
@@ -342,14 +355,12 @@ def get_recent_joiners_service(
 ):
     students = get_students_list_service(db=db)
 
-    # ✅ rating filter
     if min_rating is not None:
         students = [
             s for s in students
             if s["rating"] is not None and float(s["rating"]) >= min_rating
         ]
 
-    # ✅ recent joiners
     students.sort(
         key=lambda s: s["joined_date"] or 0,
         reverse=True
@@ -359,13 +370,39 @@ def get_recent_joiners_service(
 
 
 def get_active_job_openings(db: Session, category_id: int = -1):
-    query = text("""
-        SELECT *
-        FROM vw_active_job_openings
-        WHERE (:category_id = -1 OR category_id = :category_id)
-    """)
-
+    query = text("""SELECT * FROM vw_active_job_openings WHERE (:category_id = -1 OR category_id = :category_id)""")
     return db.execute(
         query,
         {"category_id": category_id}
     ).mappings().all()
+
+
+
+def get_internship_list_service(db: Session,category_id: int,work_type_id: int):
+    query = text("""
+        SELECT *
+        FROM fn_get_internship_list(
+            :category_id,
+            :work_type_id
+        )
+    """)
+
+    result = db.execute(
+        query,
+        {
+            "category_id": category_id,
+            "work_type_id": work_type_id
+        }
+    )
+
+    # Return as list of dicts
+    return result.mappings().all()
+
+# # get_students_by_branch service
+
+# def fetch_students_by_branch(db, branch_id: int):
+#     query = text("""
+#         SELECT * FROM fn_get_students_by_branch(:branch_id)
+#     """)
+#     result = db.execute(query, {"branch_id": branch_id})
+#     return result.mappings().all()   
