@@ -8,14 +8,7 @@ from schemas.swachify_products_schema import (
     ProductRegistrationUpdate
 )
 
-# ======================
-# CREATE
-# ======================
-
-def create_product_registration(
-    db: Session,
-    payload: ProductRegistrationCreate
-):
+def create_product_registration(db: Session,payload: ProductRegistrationCreate):
     product = ProductRegistration(
         **payload.dict(),
         created_date=datetime.utcnow()
@@ -27,14 +20,7 @@ def create_product_registration(
     return product
 
 
-# ======================
-# GET BY ID
-# ======================
-
-def get_product_registration_by_id(
-    db: Session,
-    product_id: int
-):
+def get_product_registration_by_id(db: Session,product_id: int):
     product = db.query(ProductRegistration).filter(
         ProductRegistration.id == product_id,
         ProductRegistration.is_active == True
@@ -45,52 +31,24 @@ def get_product_registration_by_id(
 
     return product
 
-
-# ======================
-# GET ALL
-# ======================
-
 def get_all_product_registrations(db: Session):
     return db.query(ProductRegistration).filter(
         ProductRegistration.is_active == True
     ).all()
 
-
-# ======================
-# UPDATE
-# ======================
-
-def update_product_registration(
-    db: Session,
-    product_id: int,
-    payload: ProductRegistrationUpdate
-):
+def update_product_registration(db: Session,product_id: int,payload: ProductRegistrationUpdate):
     product = get_product_registration_by_id(db, product_id)
-
     for key, value in payload.dict(exclude_unset=True).items():
         setattr(product, key, value)
-
     product.modified_date = datetime.utcnow()
-
     db.commit()
     db.refresh(product)
     return product
 
-
-# ======================
-# SOFT DELETE
-# ======================
-
-def delete_product_registration(
-    db: Session,
-    product_id: int,
-    modified_by: int
-):
+def delete_product_registration(db: Session,product_id: int,modified_by: int):
     product = get_product_registration_by_id(db, product_id)
-
     product.is_active = False
     product.modified_by = modified_by
     product.modified_date = datetime.utcnow()
-
     db.commit()
     return {"message": "Product deleted successfully"}

@@ -1,6 +1,8 @@
+from pydantic import BaseModel
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import date, datetime
+from decimal import Decimal
 
 # ======================================================
 # INSTITUTION REGISTRATION
@@ -167,3 +169,184 @@ class ExamScheduleListResponse(BaseModel):
     subject_name: str
     exam_date: date
 
+class EnrollmentStatusCreate(BaseModel):
+    institute_id: int
+    total_capacity: int
+    approved_seats: int
+    created_by: Optional[int] = None
+    is_active: Optional[bool] = True
+
+class EnrollmentStatusResponse(BaseModel):
+    id: int
+    institute_id: int
+    total_capacity: int
+    approved_seats: int
+    last_updated: datetime
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class BusFleetCreate(BaseModel):
+    bus_id: int 
+    bus_name: Optional[str] = None
+    driver_name: Optional[str] = None
+    created_by: Optional[int] = None
+    is_active: Optional[bool] = True
+
+class BusFleetResponse(BaseModel):
+    id: int
+    bus_id: str
+    bus_name: Optional[str]
+    driver_name: Optional[str]
+    created_date: datetime
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+class BusAlertCreate(BaseModel):
+    bus_id: int
+    alert_type: Optional[str] = None
+    alert_message: Optional[str] = None
+    created_by: Optional[int] = None
+    is_active: Optional[bool] = True
+
+class BusAlertUpdate(BaseModel):
+    alert_type: Optional[str] = None
+    alert_message: Optional[str] = None
+    resolved: Optional[bool] = None
+    modified_by: Optional[int] = None
+    is_active: Optional[bool] = None
+
+class BusAlertResponse(BaseModel):
+    id: int
+    bus_id: int
+    alert_type: Optional[str]
+    alert_message: Optional[str]
+    alert_time: datetime
+    resolved: bool
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+
+class StaffProfileCreate(BaseModel):
+    staff_id: int
+    staff_name: str
+    job_title: Optional[str] = None
+    department: Optional[str] = None
+    created_by: Optional[int] = None
+    is_active: Optional[bool] = True
+
+
+class StaffProfileResponse(BaseModel):
+    id: int
+    staff_id: str
+    staff_name: str
+    job_title: Optional[str]
+    department: Optional[str]
+    created_date: datetime
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+class StaffPayslipCreate(BaseModel):
+    staff_id: int
+    payroll_month: str
+    payment_date: Optional[date] = None
+
+    basic_pay: Optional[Decimal] = None
+    hra: Optional[Decimal] = None
+    medical_allowance: Optional[Decimal] = None
+    conveyance: Optional[Decimal] = None
+    performance_bonus: Optional[Decimal] = None
+
+    gross_earnings: Optional[Decimal] = None
+    pf_deduction: Optional[Decimal] = None
+    income_tax: Optional[Decimal] = None
+    professional_tax: Optional[Decimal] = None
+    health_insurance: Optional[Decimal] = None
+
+    total_deductions: Optional[Decimal] = None
+    net_salary: Optional[Decimal] = None
+
+    created_by: Optional[int] = None
+    is_active: Optional[bool] = True
+
+
+class StaffPayslipResponse(BaseModel):
+    id: int
+    staff_id: str
+    payroll_month: str
+    payment_date: Optional[date]
+
+    basic_pay: Optional[Decimal]
+    hra: Optional[Decimal]
+    medical_allowance: Optional[Decimal]
+    conveyance: Optional[Decimal]
+    performance_bonus: Optional[Decimal]
+
+    gross_earnings: Optional[Decimal]
+    pf_deduction: Optional[Decimal]
+    income_tax: Optional[Decimal]
+    professional_tax: Optional[Decimal]
+    health_insurance: Optional[Decimal]
+
+    total_deductions: Optional[Decimal]
+    net_salary: Optional[Decimal]
+
+    status: Optional[str]
+    created_by: Optional[int]
+    created_date: datetime
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class PayrollSummaryCreate(BaseModel):
+    payroll_month: str
+    total_net_disbursement: Optional[Decimal] = None
+    staff_count: Optional[int] = None
+    status: Optional[str] = "DISBURSED"
+    created_by: Optional[int] = None
+    is_active: Optional[bool] = True
+
+
+class PayrollSummaryResponse(BaseModel):
+    id: int
+    payroll_month: str
+    total_net_disbursement: Optional[Decimal]
+    staff_count: Optional[int]
+    status: Optional[str]
+    created_by: Optional[int]
+    created_date: datetime
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class MaintenanceBudgetCreate(BaseModel):
+    institute_id: int
+    budget_limit: Optional[Decimal] = None
+    budget_used: Optional[Decimal] = None
+    status: Optional[str] = None
+    created_by: Optional[int] = None
+
+class MaintenanceBudgetResponse(BaseModel):
+    id: int
+    institute_id: int
+    budget_limit: Optional[Decimal]
+    budget_used: Optional[Decimal]
+    status: Optional[str]
+    created_by: Optional[int]
+    created_date: Optional[datetime]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attributes = True
