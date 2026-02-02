@@ -351,6 +351,19 @@ class MaintenanceBudgetResponse(BaseModel):
         from_attributes = True
 
 
+class BusFleetResponse(BaseModel):
+    id: int
+    bus_id: str
+    bus_name: Optional[str]
+    driver_name: Optional[str]
+    created_by: Optional[int]
+    created_date: Optional[datetime]
+    modified_by: Optional[int]
+    modified_date: Optional[datetime]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attributes = True
 
 class ExamNotificationCreate(BaseModel):
     exam_schedule_id: int

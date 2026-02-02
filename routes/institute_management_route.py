@@ -43,6 +43,9 @@ from services.institution_service import (
     get_all_alerts,
     get_all_staff,
     get_all_staff,
+    get_bus_fleet,
+    get_staff_payslip_summary,
+    get_bus_fleet,
     get_exam_notification_by_id,
     get_management_overview,
     get_payslips_by_staff,
@@ -169,11 +172,8 @@ def create_exam_notification_api(
 
 
 @router.get(
-    "/exam-notification/id/{notification_id}",
-    response_model=ExamNotificationResponse
+    "/bus-fleet/get-all-buses",
+    response_model=list[BusFleetResponse]
 )
-def get_exam_notification_by_id_api(
-    notification_id: int = Path(..., gt=0),
-    db: Session = Depends(get_db)
-):
-    return get_exam_notification_by_id(db, notification_id)
+def get_bus_fleet_api(db: Session = Depends(get_db)):
+    return get_bus_fleet(db)
