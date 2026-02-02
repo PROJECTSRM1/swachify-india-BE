@@ -130,4 +130,5 @@ class AmbulanceBookingResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
- 
+
+
