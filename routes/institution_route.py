@@ -18,7 +18,6 @@ from schemas.institution_schema import (
     EnrollmentStatusCreate,
     EnrollmentStatusResponse,
     ExamScheduleCreate,
-    ExamScheduleListResponse,
     InstitutionRegistrationCreate,
     InstitutionRegistrationResponse,
     InstitutionBranchCreate,
@@ -220,16 +219,14 @@ def create_exam(payload: ExamScheduleCreate,db: Session = Depends(get_db)):
     }
 
 
-@router.get(
-    "/exam-schedule",
-    response_model=list[ExamScheduleListResponse]
-)
+@router.get("/exam-schedule")
 def get_exam_schedule(
     exam_type: str = "-1",
     institution_id: int = -1,
     db: Session = Depends(get_db)
 ):
     return fetch_exam_schedule(db, exam_type, institution_id)
+
 
 
 
