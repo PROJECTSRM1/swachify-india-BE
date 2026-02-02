@@ -421,6 +421,23 @@ class PayrollPeriodResponse(BaseModel):
     year: int
     start_date: Optional[datetime]
     end_date: Optional[datetime]
+
+
+class ExamReminderCreate(BaseModel):
+    exam_schedule_id: int
+    enable_notifications: Optional[bool] = True
+    trigger_time: Optional[str] = None
+    notification_sound: Optional[str] = None
+    created_by: Optional[int] = None
+    is_active: Optional[bool] = True
+
+
+class ExamReminderResponse(BaseModel):
+    id: int
+    exam_schedule_id: int
+    enable_notifications: Optional[bool]
+    trigger_time: Optional[str]
+    notification_sound: Optional[str]
     created_by: Optional[int]
     created_date: Optional[datetime]
     modified_by: Optional[int]
@@ -453,6 +470,26 @@ class SalaryOverviewResponse(BaseModel):
     total_deductions: Decimal
     staff_count: Optional[int]
     status: Optional[str]
+
+class ExamInvigilationAssignmentBase(BaseModel):
+    exam_schedule_id: int
+    staff_id: int
+    duty_notes: Optional[str] = None
+    is_active: Optional[bool] = True
+
+
+class ExamInvigilationAssignmentCreate(ExamInvigilationAssignmentBase):
+    created_by: Optional[int] = None
+
+
+class ExamInvigilationAssignmentUpdate(BaseModel):
+    duty_notes: Optional[str] = None
+    modified_by: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class ExamInvigilationAssignmentResponse(ExamInvigilationAssignmentBase):
+    id: int
     created_by: Optional[int]
     created_date: Optional[datetime]
     modified_by: Optional[int]

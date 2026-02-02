@@ -8,7 +8,9 @@ from models.generated_models import (
     BusFleet,
     EnrollmentStatus,
     EnrollmentStatus,
+    ExamInvigilationAssignment,
     ExamNotificationLog,
+    ExamReminderSettings,
     InstitutionRegistration,
     InstitutionBranch,
     MaintenanceBudget,
@@ -25,8 +27,11 @@ from schemas.institution_schema import (
     BusAlertCreate,
     BusAlertUpdate,
     EnrollmentStatusCreate,
+    ExamInvigilationAssignmentCreate,
+    ExamInvigilationAssignmentUpdate,
     ExamNotificationCreate,
     ExamNotificationUpdate,
+    ExamReminderCreate,
     InstitutionRegistrationCreate,
     InstitutionBranchCreate,
     MaintenanceBudgetCreate,
@@ -565,3 +570,92 @@ def get_salary_overviews(db: Session):
         .order_by(SalaryOverview.created_date.desc())
         .all()
     )
+
+
+def create_exam_reminder_service(db: Session, payload: ExamReminderCreate):
+
+    reminder = ExamReminderSettings(
+        exam_schedule_id=payload.exam_schedule_id,
+        enable_notifications=payload.enable_notifications,
+        trigger_time=payload.trigger_time,
+        notification_sound=payload.notification_sound,
+        created_by=payload.created_by,
+        is_active=payload.is_active,
+    )
+
+    db.add(reminder)
+    db.commit()
+    db.refresh(reminder)
+
+    return reminder
+
+
+def get_all_exam_reminders_service(db: Session):
+
+    reminders = db.query(ExamReminderSettings).filter(
+        ExamReminderSettings.is_active == True
+    ).all()
+
+    if not reminders:
+        raise HTTPException(status_code=404, detail="No reminders found")
+
+    return reminders
+
+
+
+def create_exam_invigilation_assignment(
+    db: Session,
+    payload: ExamInvigilationAssignmentCreate
+):
+    assignment = ExamInvigilationAssignment(**payload.dict())
+    db.add(assignment)
+    db.commit()
+    db.refresh(assignment)
+    return assignment
+
+
+def get_all_exam_invigilation_assignments(db: Session):
+    return db.query(ExamInvigilationAssignment).filter(
+        ExamInvigilationAssignment.is_active == True
+    ).all()
+
+
+def get_exam_invigilation_assignment_by_id(
+    db: Session,
+    assignment_id: int
+):
+    assignment = db.query(ExamInvigilationAssignment).filter(
+        ExamInvigilationAssignment.id == assignment_id
+    ).first()
+
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Invigilation assignment not found")
+
+    return assignment
+
+
+def update_exam_invigilation_assignment(
+    db: Session,
+    assignment_id: int,
+    payload: ExamInvigilationAssignmentUpdate
+):
+    assignment = get_exam_invigilation_assignment_by_id(db, assignment_id)
+
+    for key, value in payload.dict(exclude_unset=True).items():
+        setattr(assignment, key, value)
+
+    assignment.modified_date = datetime.utcnow()
+    db.commit()
+    db.refresh(assignment)
+    return assignment
+
+
+def delete_exam_invigilation_assignment(
+    db: Session,
+    assignment_id: int
+):
+    assignment = get_exam_invigilation_assignment_by_id(db, assignment_id)
+    assignment.is_active = False
+    assignment.modified_date = datetime.utcnow()
+    db.commit()
+    return {"message": "Exam invigilation assignment deactivated"}

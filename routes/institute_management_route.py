@@ -16,8 +16,12 @@ from schemas.institution_schema import (
     BusAlertUpdate,
     EnrollmentStatusCreate,
     EnrollmentStatusResponse,
+    ExamInvigilationAssignmentCreate,
+    ExamInvigilationAssignmentResponse,
     ExamNotificationCreate,
     ExamNotificationResponse,
+    ExamReminderCreate,
+    ExamReminderResponse,
     ExamScheduleCreate,
     MaintenanceBudgetCreate,
     MaintenanceBudgetResponse,
@@ -36,7 +40,9 @@ from services.institution_service import (
     create_bus,
     create_bus_alert,
     create_enrollment_status,
+    create_exam_invigilation_assignment,
     create_exam_notification,
+    create_exam_reminder_service,
     create_exam_schedule,
     create_maintenance_budget_service,
     create_maintenance_budget_service,
@@ -47,10 +53,12 @@ from services.institution_service import (
     create_staff_profile,
     fetch_exam_schedule,
     get_all_alerts,
+    get_all_exam_reminders_service,
     get_all_staff,
     get_all_staff,
     get_bus_fleet,
     get_salary_overviews,
+    get_exam_invigilation_assignment_by_id,
     get_staff_payslip_summary,
     get_bus_fleet,
     get_exam_notification_by_id,
@@ -176,6 +184,54 @@ def create_exam_notification_api(
     db: Session = Depends(get_db)
 ):
     return create_exam_notification(db, payload)
+
+@router.get(
+    "/exam-notification/id/{notification_id}",
+    response_model=ExamNotificationResponse
+)
+def get_exam_notification_by_id_api(
+    notification_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_exam_notification_by_id(db, notification_id)
+
+
+
+
+@router.post("/ Create-Exam-Reminder", response_model=ExamReminderResponse)
+def create_exam_reminder(
+    payload: ExamReminderCreate,
+    db: Session = Depends(get_db)
+):
+    return create_exam_reminder_service(db, payload)
+
+
+@router.get("/Get-All-Exam-Reminder", response_model=list[ExamReminderResponse])
+def get_all_exam_reminders(
+    db: Session = Depends(get_db)
+):
+    return get_all_exam_reminders_service(db)
+
+
+@router.post(
+    "/exam-invigilation",
+    response_model=ExamInvigilationAssignmentResponse
+)
+def create_exam_invigilation_api(
+    payload: ExamInvigilationAssignmentCreate,
+    db: Session = Depends(get_db)
+):
+    return create_exam_invigilation_assignment(db, payload)
+
+@router.get(
+    "exam-invigilation/{assignment_id}",
+    response_model=ExamInvigilationAssignmentResponse
+)
+def get_assignment(
+    assignment_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_exam_invigilation_assignment_by_id(db, assignment_id)
 
 
 @router.get(
