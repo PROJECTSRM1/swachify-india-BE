@@ -232,21 +232,29 @@ def fetch_students_by_branch(db, branch_id: int):
 
 #ExamSchedule service
 
+from sqlalchemy import text
+
 def create_exam_schedule(db, data):
     query = text("""
         INSERT INTO exam_schedule (
-            branch_id,
+            institution_id,
             exam_type,
             subject_name,
             exam_date,
+            start_time,
+            end_time,
+            location,
             created_by,
             is_active
         )
         VALUES (
-            :branch_id,
+            :institution_id,
             :exam_type,
             :subject_name,
             :exam_date,
+            :start_time,
+            :end_time,
+            :location,
             :created_by,
             true
         )
@@ -254,29 +262,37 @@ def create_exam_schedule(db, data):
     """)
 
     result = db.execute(query, {
-        "branch_id": data.branch_id,
+        "institution_id": data.institution_id,
         "exam_type": data.exam_type,
         "subject_name": data.subject_name,
         "exam_date": data.exam_date,
+        "start_time": data.start_time,
+        "end_time": data.end_time,
+        "location": data.location,
         "created_by": data.created_by
     })
 
     db.commit()
     return result.fetchone()[0]
 
-#ExamList Service
 
-def fetch_exam_schedule(db, branch_id: int, exam_type: str):
+
+# Exam List Service
+def fetch_exam_schedule(db, exam_type: str, institution_id: int):
     query = text("""
-        SELECT * FROM fn_get_exam_schedule(:branch_id, :exam_type)
+        SELECT * 
+        FROM fn_get_exam_schedule(:exam_type, :institution_id)
     """)
 
-    result = db.execute(query, {
-        "branch_id": branch_id,
-        "exam_type": exam_type
-    })
+    result = db.execute(
+        query,
+        {
+            "exam_type": exam_type,
+            "institution_id": institution_id
+        }
+    )
 
-    return result.mappings().all()  
+    return result.mappings().all()
 
 
 
