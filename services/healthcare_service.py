@@ -256,3 +256,15 @@ def release_ambulance_booking(
         "ambulance_id": ambulance.id,
         "booking_id": booking.id
     }
+
+def get_available_labs(db: Session):
+    query = text("""
+        SELECT *
+        FROM public.vw_available_labs
+    """)
+    return db.execute(query).mappings().all()
+
+
+def get_available_pharmacies(db: Session):
+    query = text("SELECT * FROM public.vw_available_pharmacies")
+    return db.execute(query).mappings().all()
