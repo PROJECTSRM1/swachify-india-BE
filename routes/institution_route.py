@@ -58,13 +58,14 @@ from services.institution_service import (
     get_bus_tracking_summary
 )
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, EmailStr, model_validator
 from fastapi import HTTPException
 from models.generated_models import InstitutionRegistration
+from utils.jwt_utils import create_access_token 
 
 class InstitutionLoginRequest(BaseModel):
-    email_or_phone: str
-    password: str
+    email: EmailStr
+    identity_number: str
 
     @model_validator(mode="after")
     def check_email_or_phone(self):
@@ -78,22 +79,50 @@ router = APIRouter(prefix="/institution/student",tags=["Institution student"])
 def register_institution_api(payload: InstitutionRegistrationCreate,db: Session = Depends(get_db)):
     return create_institution(db, payload)
 
+# @router.post("/institution/student/login")
+# def institution_login(payload: InstitutionLoginRequest, db: Session = Depends(get_db)):
+
+#     user = db.query(InstitutionRegistration).filter(
+#         InstitutionRegistration.email == payload.email,
+#         InstitutionRegistration.identity_number == payload.identity_number,
+#         InstitutionRegistration.is_active == True
+#     ).first()
+
+#     if not user:
+#         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+#     return {
+#         "status": "Login successful",
+#         "institution_id": user.id
+#     }
+
 @router.post("/login")
-def institution_login(payload: InstitutionLoginRequest, db: Session = Depends(get_db)):
-    user = None
-    if payload.email:
-        user = db.query(InstitutionRegistration).filter(
-            InstitutionRegistration.is_active == True,
-            InstitutionRegistration.email == payload.email
-        ).first()
-    elif payload.phone_number:
-        user = db.query(InstitutionRegistration).filter(
-            InstitutionRegistration.is_active == True,
-            InstitutionRegistration.phone_number == payload.phone_number
-        ).first()
-    if not user or not user.password_hash == payload.password:  
+def institution_login(
+    payload: InstitutionLoginRequest,
+    db: Session = Depends(get_db)
+):
+
+    user = db.query(InstitutionRegistration).filter(
+        InstitutionRegistration.email == payload.email,
+        InstitutionRegistration.identity_number == payload.identity_number,
+        InstitutionRegistration.is_active == True
+    ).first()
+
+    if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return {"status": "Login successful", "institution_id": user.id}
+
+    # ✅ Generate JWT using YOUR existing function
+    access_token = create_access_token({
+        "user_id": user.id,
+        "email": user.email,
+        "role_id": getattr(user, "role_id", None)
+    })
+
+    return {
+        "status": "Login successful",
+        "institution_id": user.id,
+        "access_token": access_token
+    }
 
 @router.get("/institution/{institution_id}",response_model=InstitutionRegistrationResponse)
 def get_institution_api(institution_id: int = Path(..., gt=0),db: Session = Depends(get_db)):
