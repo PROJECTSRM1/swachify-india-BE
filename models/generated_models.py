@@ -59,6 +59,7 @@ class AvailableLabs(Base):
     special_instructions: Mapped[Optional[str]] = mapped_column(String(255))
 
     appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='labs')
+    service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='lab')
 
 
 class AvailablePharmacies(Base):
@@ -88,6 +89,7 @@ class AvailablePharmacies(Base):
     special_instructions: Mapped[Optional[str]] = mapped_column(String(255))
 
     appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='pharmacies')
+    service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='pharmacy')
 
 
 class BusFleet(Base):
@@ -1021,28 +1023,38 @@ t_vw_active_job_openings = Table(
 )
 
 
-t_vw_available_doctors = Table(
-    'vw_available_doctors', Base.metadata,
-    Column('doctor_id', BigInteger),
-    Column('doctor_name', Text),
-    Column('specialization_name', String(255)),
-    Column('experience_years', Integer),
+t_vw_available_labs = Table(
+    'vw_available_labs', Base.metadata,
+    Column('lab_id', BigInteger),
+    Column('lab_name', String(255)),
+    Column('services', String(255)),
     Column('rating', Integer),
-    Column('fees_per_hour', Numeric(10, 2)),
-    Column('available_from', Time),
-    Column('available_to', Time)
+    Column('home_collection', Boolean),
+    Column('is_active', Boolean),
+    Column('latitude', Numeric(9, 6)),
+    Column('longitude', Numeric(9, 6)),
+    Column('upload_prescription', String(500)),
+    Column('proceed_type', String(255)),
+    Column('delivery_address', String(255)),
+    Column('special_instructions', String(255))
 )
 
 
-t_vw_available_hospitals = Table(
-    'vw_available_hospitals', Base.metadata,
-    Column('hospital_id', BigInteger),
-    Column('hospital_name', String(255)),
-    Column('specialty_type', String(50)),
-    Column('location', String(255)),
-    Column('contact_number', String(20)),
-    Column('rating', Numeric(3, 2)),
-    Column('hospital_status', Text)
+t_vw_available_pharmacies = Table(
+    'vw_available_pharmacies', Base.metadata,
+    Column('pharmacy_id', BigInteger),
+    Column('pharmacy_name', String(255)),
+    Column('pharmacy_type', String(100)),
+    Column('services', String(255)),
+    Column('rating', Integer),
+    Column('delivery_time', String(50)),
+    Column('is_active', Boolean),
+    Column('latitude', Numeric(9, 6)),
+    Column('longitude', Numeric(9, 6)),
+    Column('upload_prescription', String(500)),
+    Column('proceed_type', String(255)),
+    Column('delivery_address', String(255)),
+    Column('special_instructions', String(255))
 )
 
 
@@ -1399,8 +1411,8 @@ class InstitutionBranch(Base):
     __table_args__ = (
         ForeignKeyConstraint(['institution_id'], ['institution_registration.id'], name='fk_institution_branch_institution_id'),
         PrimaryKeyConstraint('id', name='pk_institution_branch_id'),
-        UniqueConstraint('branch_name', name='uq_institution_branch_branch_name'),
-        UniqueConstraint('institution_id', 'branch_code', name='uk_institution_branch')
+        UniqueConstraint('institution_id', 'branch_code', name='uk_institution_branch'),
+        UniqueConstraint('institution_id', 'branch_name', name='uq_branch_name_per_institution')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -1421,8 +1433,7 @@ class InstitutionBranch(Base):
     enrollment_status: Mapped[list['EnrollmentStatus']] = relationship('EnrollmentStatus', back_populates='institute')
     exam_schedule: Mapped[list['ExamSchedule']] = relationship('ExamSchedule', back_populates='institution')
     maintenance_budget: Mapped[list['MaintenanceBudget']] = relationship('MaintenanceBudget', back_populates='institute')
-    student_profile: Mapped[list['StudentProfile']] = relationship('StudentProfile', foreign_keys='[StudentProfile.branch_id]', back_populates='branch')
-    student_profile_: Mapped[list['StudentProfile']] = relationship('StudentProfile', foreign_keys='[StudentProfile.branch_name]', back_populates='institution_branch')
+    student_profile: Mapped[list['StudentProfile']] = relationship('StudentProfile', back_populates='branch')
 
 
 class JobSkill(Base):
@@ -1628,6 +1639,7 @@ class UserRegistration(Base):
     property_listing: Mapped[list['PropertyListing']] = relationship('PropertyListing', foreign_keys='[PropertyListing.created_by]', back_populates='user_registration')
     property_listing_: Mapped[list['PropertyListing']] = relationship('PropertyListing', foreign_keys='[PropertyListing.modified_by]', back_populates='user_registration_')
     property_listing1: Mapped[list['PropertyListing']] = relationship('PropertyListing', foreign_keys='[PropertyListing.user_id]', back_populates='user')
+    service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='user')
     task_history: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.from_assignee_id]', back_populates='from_assignee')
     task_history_: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.reporting_manager_id]', back_populates='reporting_manager')
     task_history1: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.to_assignee_id]', back_populates='to_assignee')
@@ -1675,6 +1687,7 @@ class DoctorProfile(Base):
     specialization: Mapped['MasterDoctorSpecialization'] = relationship('MasterDoctorSpecialization', back_populates='doctor_profile')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='doctor_profile')
     appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='doctor')
+    service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='doctor')
 
 
 class EnrollmentStatus(Base):
@@ -2044,7 +2057,6 @@ class StudentProfile(Base):
     __tablename__ = 'student_profile'
     __table_args__ = (
         ForeignKeyConstraint(['branch_id'], ['institution_branch.id'], name='fk_student_profile_branch_id'),
-        ForeignKeyConstraint(['branch_name'], ['institution_branch.branch_name'], name='fk_student_profile_branch_name'),
         PrimaryKeyConstraint('id', name='pk_student_profile_id'),
         UniqueConstraint('student_id', name='uk_student_profile_student_id')
     )
@@ -2063,8 +2075,7 @@ class StudentProfile(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
     parent_mobile: Mapped[Optional[str]] = mapped_column(String(100))
 
-    branch: Mapped['InstitutionBranch'] = relationship('InstitutionBranch', foreign_keys=[branch_id], back_populates='student_profile')
-    institution_branch: Mapped['InstitutionBranch'] = relationship('InstitutionBranch', foreign_keys=[branch_name], back_populates='student_profile_')
+    branch: Mapped['InstitutionBranch'] = relationship('InstitutionBranch', back_populates='student_profile')
     student_academic_finance: Mapped['StudentAcademicFinance'] = relationship('StudentAcademicFinance', uselist=False, back_populates='student')
     student_fee_installments: Mapped[list['StudentFeeInstallments']] = relationship('StudentFeeInstallments', back_populates='student')
     student_sem_academic_progress: Mapped[list['StudentSemAcademicProgress']] = relationship('StudentSemAcademicProgress', back_populates='student')
@@ -2531,6 +2542,36 @@ class PropertySellListingService(Base):
 
     property_sell_listing: Mapped['PropertySellListing'] = relationship('PropertySellListing', back_populates='property_sell_listing_service')
     service: Mapped['MasterService'] = relationship('MasterService', back_populates='property_sell_listing_service')
+
+
+class ServiceRequests(Base):
+    __tablename__ = 'service_requests'
+    __table_args__ = (
+        CheckConstraint('doctor_id IS NOT NULL AND lab_id IS NULL AND pharmacy_id IS NULL OR doctor_id IS NULL AND lab_id IS NOT NULL AND pharmacy_id IS NULL OR doctor_id IS NULL AND lab_id IS NULL AND pharmacy_id IS NOT NULL', name='ck_service_requests_one_service_only'),
+        CheckConstraint("service_type::text = ANY (ARRAY['DOCTOR'::character varying, 'LAB'::character varying, 'PHARMACY'::character varying]::text[])", name='ck_service_requests_service_type'),
+        ForeignKeyConstraint(['doctor_id'], ['doctor_profile.id'], name='fk_service_requests_doctor_id'),
+        ForeignKeyConstraint(['lab_id'], ['available_labs.id'], name='fk_service_requests_lab_id'),
+        ForeignKeyConstraint(['pharmacy_id'], ['available_pharmacies.id'], name='fk_service_requests_pharmacy_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_service_requests_user_id'),
+        PrimaryKeyConstraint('id', name='pk_service_requests_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    service_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    doctor_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    lab_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    pharmacy_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    upload_prescription: Mapped[Optional[str]] = mapped_column(String(500))
+    delivery_address: Mapped[Optional[str]] = mapped_column(String(255))
+    special_instructions: Mapped[Optional[str]] = mapped_column(String(255))
+    status: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'PENDING'::character varying"))
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+
+    doctor: Mapped[Optional['DoctorProfile']] = relationship('DoctorProfile', back_populates='service_requests')
+    lab: Mapped[Optional['AvailableLabs']] = relationship('AvailableLabs', back_populates='service_requests')
+    pharmacy: Mapped[Optional['AvailablePharmacies']] = relationship('AvailablePharmacies', back_populates='service_requests')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='service_requests')
 
 
 class StudentAcademicFinance(Base):
