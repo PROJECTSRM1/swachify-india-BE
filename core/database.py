@@ -46,10 +46,6 @@ SessionLocal = sessionmaker(
 Base = declarative_base()
 
 def get_db():
-    """
-    Dependency that provides a SQLAlchemy session
-    and guarantees connection cleanup.
-    """
     db = SessionLocal()
     try:
         yield db

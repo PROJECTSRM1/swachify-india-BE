@@ -2,10 +2,7 @@ from fastapi import APIRouter, Depends, Request, Response, Header, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from core.database import get_db
 from core.constants import ADMIN_ROLE_ID, CUSTOMER_ROLE_ID, FREELANCER_ROLE_ID
-from schemas.admin_schema import (
-    RegisterAdmin, UserBase, AdminLogin, AdminLogout,
-    AdminRegisterResponse, AdminUpdateResponse
-)
+from schemas.admin_schema import (RegisterAdmin, UserBase, AdminLogin, AdminLogout,AdminRegisterResponse, AdminUpdateResponse)
 from services.admin_service import (
     register_admin_service, admin_login_service, admin_update_service,
     admin_delete_service, admin_hard_delete_service, get_pending_freelancers_service,
@@ -14,11 +11,6 @@ from services.admin_service import (
 )
 from utils.jwt_utils import verify_admin_token, verify_token
 import json
-# from models.master.master_gender import MasterGender
-# from models.master.master_skill import MasterSkill
-# from models.master.master_state import MasterState
-# from models.master.master_district import MasterDistrict
-# from models.user_registration import UserRegistration
 from models.generated_models import MasterGender,MasterSkill, MasterState, MasterDistrict,UserRegistration
 
 
@@ -52,9 +44,7 @@ def hard_delete_admin(admin_id: int, db: Session = Depends(get_db)):
     return admin_hard_delete_service(db, admin_id)
 
 def get_current_admin(token: str) -> dict:
-  
     payload = verify_token(token)
-    
     if payload.get("role_id") != ADMIN_ROLE_ID:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -82,16 +72,12 @@ def approve_freelancer(freelancer_id: int, token: str, db: Session = Depends(get
 def reject_freelancer(freelancer_id: int, token: str, db: Session = Depends(get_db)):
     """Reject a PENDING freelancer (status: PENDING → REJECTED)."""
     admin = get_current_admin(token)
-    admin_id = int(admin["user_id"])  # Extract from JWT token
+    admin_id = int(admin["user_id"]) 
     return reject_freelancer_service(db, freelancer_id, admin_id)
 
 
 @router.get("/freelancer/{freelancer_id}")
 def get_freelancer_full_details(freelancer_id: int, db: Session = Depends(get_db)):
-    """
-    Fetch complete freelancer profile details including skills, location, and documents.
-    Masks sensitive government ID numbers for privacy.
-    """
     freelancer = db.query(UserRegistration).options(joinedload(UserRegistration.user_skill1)).filter(
         UserRegistration.id == freelancer_id,
         UserRegistration.role_id == FREELANCER_ROLE_ID
@@ -108,7 +94,6 @@ def get_freelancer_full_details(freelancer_id: int, db: Session = Depends(get_db
         MasterDistrict.id == freelancer.district_id
     ).scalar() if freelancer.district_id else None
     
-    # Get skills from the relationship (UserSkill junction table)
     skills_list = []
     if freelancer.user_skill1:
         for user_skill in freelancer.user_skill1:
@@ -180,25 +165,9 @@ def get_freelancer_list(db: Session = Depends(get_db)):
 
 @router.get("/customers")
 def get_all_customers(db: Session = Depends(get_db)):
-    """
-    Fetch all active customers.
-    
-    Returns:
-        List of all active customer records
-    """
     return get_all_customers_service(db)
 
 
 @router.get("/customer/{customer_id}")
 def get_customer_full_details(customer_id: int, db: Session = Depends(get_db)):
-    """
-    Fetch complete customer profile details including location and contact information.
-    
-    Args:
-        customer_id: Customer user ID
-        db: Database session
-    
-    Returns:
-        Dictionary with customer details including name, contact, location, and account status
-    """
     return get_customer_details_service(db, customer_id)

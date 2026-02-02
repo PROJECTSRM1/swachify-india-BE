@@ -7,12 +7,7 @@ from models.generated_models import (
 )
 
 
-def upsert_student_internship(
-    db: Session,
-    user_id: int,
-    internship_status: str
-) -> MasterInternshipStatus:
-    # Validate student
+def upsert_student_internship(db: Session,user_id: int,internship_status: str) -> MasterInternshipStatus:
     student = (
         db.query(UserRegistration)
         .filter(
@@ -27,8 +22,6 @@ def upsert_student_internship(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Student not found"
         )
-
-    # Check existing internship status
     record = (
         db.query(MasterInternshipStatus)
         .filter(

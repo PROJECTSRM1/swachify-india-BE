@@ -45,17 +45,10 @@ from schemas.master_module_schema import BookingServiceMappingCreateSchema, Book
 from services.master_module_service import create_booking_service_mapping, get_all_booking_service_mapping
 
 
-
-
-
-
 router = APIRouter(prefix="/api/master", tags=["Master Data & Booking"])
 
 @router.get("/master-data", response_model=MasterDataResponse)
 def get_all_master_data(db: Session = Depends(get_db)):
-  
-    """Get all master data (modules, services, etc.)"""
-
     return get_master_data(db)
 
 
@@ -122,10 +115,7 @@ def read_home_services(db: Session = Depends(get_db)):
 def read_home_service_by_id(id: int, db: Session = Depends(get_db)):
     return get_home_service(db, id)
 
-@router.post(
-    "/home-service",
-    response_model=HomeServiceCreateResponse
-)
+@router.post("/home-service",response_model=HomeServiceCreateResponse)
 def create_new_home_service(
     data: HomeServiceCreate,
     db: Session = Depends(get_db),
@@ -135,11 +125,7 @@ def create_new_home_service(
 
 
 @router.put("/home-service/{service_id}/rating")
-def update_rating(
-    service_id: int,
-    payload: HomeServiceRatingUpdate,
-    db: Session = Depends(get_db)
-):
+def update_rating(service_id: int,payload: HomeServiceRatingUpdate,db: Session = Depends(get_db)):
     return update_home_service_rating(
         db=db,
         service_id=service_id,
@@ -172,9 +158,6 @@ def create_booking(payload: VehicleServiceBookingCreateSchema, db: Session = Dep
 @router.get("/vehicle-service-booking", response_model=list[VehicleServiceBookingResponseSchema])
 def fetch_all_bookings(db: Session = Depends(get_db)):
     return get_all_vehicle_service_bookings(db)
-
-
-
 
 @router.post("/vehicle-brand-fuel", response_model=VehicleBrandFuelResponseSchema)
 def create_vehicle_brand_fuel_api(payload: VehicleBrandFuelCreateSchema, db: Session = Depends(get_db)):

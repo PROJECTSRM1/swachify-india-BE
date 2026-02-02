@@ -329,17 +329,15 @@ def get_top_performers_service(
     """
     students = get_students_list_service(
         db=db,
-        sort_by="both"   # rating first, attendance second
+        sort_by="both"   
     )
 
-    # ✅ FILTER: attendance >= 80%
     filtered_students = [
         s for s in students
         if s["attendance_percentage"] is not None
         and float(s["attendance_percentage"]) >= min_attendance
     ]
 
-    # ✅ FINAL SORT (rating → attendance)
     filtered_students.sort(
         key=lambda s: (
             float(s["rating"] or 0),
@@ -357,14 +355,12 @@ def get_recent_joiners_service(
 ):
     students = get_students_list_service(db=db)
 
-    # ✅ rating filter
     if min_rating is not None:
         students = [
             s for s in students
             if s["rating"] is not None and float(s["rating"]) >= min_rating
         ]
 
-    # ✅ recent joiners
     students.sort(
         key=lambda s: s["joined_date"] or 0,
         reverse=True
@@ -374,12 +370,7 @@ def get_recent_joiners_service(
 
 
 def get_active_job_openings(db: Session, category_id: int = -1):
-    query = text("""
-        SELECT *
-        FROM vw_active_job_openings
-        WHERE (:category_id = -1 OR category_id = :category_id)
-    """)
-
+    query = text("""SELECT * FROM vw_active_job_openings WHERE (:category_id = -1 OR category_id = :category_id)""")
     return db.execute(
         query,
         {"category_id": category_id}
@@ -387,11 +378,7 @@ def get_active_job_openings(db: Session, category_id: int = -1):
 
 
 
-def get_internship_list_service(
-    db: Session,
-    category_id: int,
-    work_type_id: int
-):
+def get_internship_list_service(db: Session,category_id: int,work_type_id: int):
     query = text("""
         SELECT *
         FROM fn_get_internship_list(
