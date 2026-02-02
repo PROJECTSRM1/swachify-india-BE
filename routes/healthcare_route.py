@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import List, Optional
 from core.database import get_db
 from core.dependencies import get_current_user
 from models.generated_models import UserRegistration
@@ -9,6 +9,7 @@ from schemas.healthcare_schema import (
     AmbulanceBookingResponseSchema,
     AppointmentCreateSchema,
     AppointmentResponseSchema,
+    AvailableLabsResponseSchema,
     DoctorCreateSchema,
     DoctorResponseSchema,
     HospitalAmbulanceResponseSchema
@@ -25,6 +26,7 @@ from services.healthcare_service import (
     get_available_hospitals
 
 )
+from services.home_service import get_available_labs
 
 router = APIRouter(prefix="/healthcare",tags=["Healthcare"])
 
@@ -58,6 +60,11 @@ def book_ambulance(data: AmbulanceBookingCreateSchema,db: Session = Depends(get_
 def release_ambulance(booking_id: int,db: Session = Depends(get_db)):
     return release_ambulance_booking(db, booking_id)
 
- @router.get("/hospitals/available")
-def fetch_available_hospitals(db: Session = Depends(get_db)):
-    return get_available_hospitals(db)
+@router.get(
+    "/available-labs",
+    response_model=List[AvailableLabsResponseSchema]
+)
+def fetch_available_labs(
+    db: Session = Depends(get_db)
+):
+    return get_available_labs(db)

@@ -102,4 +102,20 @@ class AmbulanceBookingResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
- 
+
+
+from pydantic import BaseModel
+from typing import Optional
+
+class AvailableLabsResponseSchema(BaseModel):
+    lab_id: int
+    lab_name: str
+    services: Optional[str]
+    rating: Optional[int]
+    home_collection: Optional[bool]
+    is_active: Optional[bool]
+    latitude: Optional[float]
+    longitude: Optional[float]
+
+    class Config:
+        orm_mode = True
