@@ -58,6 +58,19 @@ from services.institution_service import (
     get_bus_tracking_summary
 )
 
+from schemas.institution_schema import (
+    ExamInvigilationAssignmentCreate,
+    ExamInvigilationAssignmentUpdate,
+    ExamInvigilationAssignmentResponse
+)
+from services.institution_service import (
+    create_exam_invigilation_assignment,
+    get_all_exam_invigilation_assignments,
+    get_exam_invigilation_assignment_by_id,
+    update_exam_invigilation_assignment,
+    delete_exam_invigilation_assignment
+)
+
 from pydantic import BaseModel, EmailStr, model_validator
 from fastapi import HTTPException
 from models.generated_models import InstitutionRegistration
@@ -225,3 +238,32 @@ def get_exam_schedule(
 @router.get("/{student_id}",response_model=StudentProfileResponse)
 def get_student_api(student_id: int = Path(..., gt=0),db: Session = Depends(get_db)):
     return get_student_by_id(db, student_id)
+
+#exam_invigilation
+
+# router = APIRouter(
+#     prefix="/exam/invigilation",
+#     tags=["Exam Invigilation"]
+# )
+
+
+# @router.post(
+#     "/",
+#     response_model=ExamInvigilationAssignmentResponse
+# )
+# def create_assignment(
+#     payload: ExamInvigilationAssignmentCreate,
+#     db: Session = Depends(get_db)
+# ):
+#     return create_exam_invigilation_assignment(db, payload)
+
+# @router.get(
+#     "/{assignment_id}",
+#     response_model=ExamInvigilationAssignmentResponse
+# )
+# def get_assignment(
+#     assignment_id: int = Path(..., gt=0),
+#     db: Session = Depends(get_db)
+# ):
+#     return get_exam_invigilation_assignment_by_id(db, assignment_id)
+

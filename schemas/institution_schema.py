@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from pydantic import BaseModel, EmailStr
+from pydantic import EmailStr
 from typing import Optional
 from datetime import date, datetime, time
 from decimal import Decimal
@@ -353,3 +353,33 @@ class MaintenanceBudgetResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+
+class ExamInvigilationAssignmentBase(BaseModel):
+    exam_schedule_id: int
+    staff_id: int
+    duty_notes: Optional[str] = None
+    is_active: Optional[bool] = True
+
+
+class ExamInvigilationAssignmentCreate(ExamInvigilationAssignmentBase):
+    created_by: Optional[int] = None
+
+
+class ExamInvigilationAssignmentUpdate(BaseModel):
+    duty_notes: Optional[str] = None
+    modified_by: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class ExamInvigilationAssignmentResponse(ExamInvigilationAssignmentBase):
+    id: int
+    created_by: Optional[int]
+    created_date: Optional[datetime]
+    modified_by: Optional[int]
+    modified_date: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+     

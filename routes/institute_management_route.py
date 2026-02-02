@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Path
 from fastapi.params import Query
 from sqlalchemy.orm import Session
 
+
 from core.database import get_db
 from schemas.institution_schema import (
     BusFleetCreate,
@@ -25,6 +26,7 @@ from schemas.institution_schema import (
     StaffProfileCreate,
     StaffProfileResponse
 )
+
 from services.institution_service import (
     create_bus,
     create_bus_alert,
@@ -44,6 +46,16 @@ from services.institution_service import (
     get_bus_tracking_overview,
     get_bus_tracking_summary
 )
+
+from schemas.institution_schema import (
+    ExamInvigilationAssignmentCreate,
+    ExamInvigilationAssignmentResponse
+)
+from services.institution_service import (
+    create_exam_invigilation_assignment,
+    get_exam_invigilation_assignment_by_id
+)
+
 
 router = APIRouter(prefix="/institution/management",tags=["Institution Management"])
 
@@ -127,3 +139,47 @@ def fetch_staff_payslip_summary(db: Session = Depends(get_db)):
 @router.post("/maintenance_budget", response_model=MaintenanceBudgetResponse)
 def create_maintenance_budget(payload: MaintenanceBudgetCreate,db: Session = Depends(get_db)):
     return create_maintenance_budget_service(payload, db)
+
+@router.post(
+    "/",
+    response_model=ExamInvigilationAssignmentResponse
+)
+def create_assignment(
+    payload: ExamInvigilationAssignmentCreate,
+    db: Session = Depends(get_db)
+):
+    return create_exam_invigilation_assignment(db, payload)
+
+
+# @router.get(
+#     "/",
+#     response_model=list[ExamInvigilationAssignmentResponse]
+# )
+# def get_assignments(db: Session = Depends(get_db)):
+#     return get_all_exam_invigilation_assignments(db)
+
+
+# ======================================================
+# EXAM INVIGILATION (MANAGEMENT)
+# ======================================================
+
+@router.post(
+    "/exam/invigilation",
+    response_model=ExamInvigilationAssignmentResponse
+)
+def create_exam_invigilation_api(
+    payload: ExamInvigilationAssignmentCreate,
+    db: Session = Depends(get_db)
+):
+    return create_exam_invigilation_assignment(db, payload)
+
+
+@router.get(
+    "/exam/invigilation/{assignment_id}",
+    response_model=ExamInvigilationAssignmentResponse
+)
+def get_exam_invigilation_api(
+    assignment_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_exam_invigilation_assignment_by_id(db, assignment_id)
