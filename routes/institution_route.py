@@ -57,6 +57,19 @@ from services.institution_service import (
     get_bus_tracking_overview,
     get_bus_tracking_summary
 )
+from schemas.institution_schema import (
+    ExamNotificationCreate,
+    ExamNotificationUpdate,
+    ExamNotificationResponse
+
+)
+from services.institution_service import (
+    create_exam_notification,
+    get_exam_notifications_by_schedule,
+    update_exam_notification,
+     get_exam_notification_by_id 
+)
+
 
 from pydantic import BaseModel, EmailStr, model_validator
 from fastapi import HTTPException
@@ -216,3 +229,42 @@ def get_exam_schedule(branch_id: int = -1,exam_type: str = "-1",db: Session = De
 @router.get("/{student_id}",response_model=StudentProfileResponse)
 def get_student_api(student_id: int = Path(..., gt=0),db: Session = Depends(get_db)):
     return get_student_by_id(db, student_id)
+
+
+# ==============================
+# EXAM NOTIFICATION ROUTES
+# ==============================
+
+@router.post(
+    "/exam-notification",
+    response_model=ExamNotificationResponse
+)
+def create_exam_notification_api(
+    payload: ExamNotificationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_exam_notification(db, payload)
+
+
+@router.get(
+    "/exam-notification/id/{notification_id}",
+    response_model=ExamNotificationResponse
+)
+def get_exam_notification_by_id_api(
+    notification_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_exam_notification_by_id(db, notification_id)
+
+
+
+# @router.put(
+#     "/exam-notification/{notification_id}",
+#     response_model=ExamNotificationResponse
+# )
+# def update_exam_notification_api(
+#     notification_id: int = Path(..., gt=0),
+#     payload: ExamNotificationUpdate = Depends(),
+#     db: Session = Depends(get_db)
+# ):
+#     return update_exam_notification(db, notification_id, payload)
