@@ -3,9 +3,8 @@ from fastapi import HTTPException
 from datetime import datetime
 
 from sqlalchemy import text
-from models.generated_models import AmbulanceBooking, Appointments, DoctorProfile,UserRegistration,MasterAmbulance, MasterDoctorSpecialization
+from models.generated_models import AmbulanceBooking, Appointments, DoctorProfile, MasterConsultationType, MasterHospital,UserRegistration,MasterAmbulance, MasterDoctorSpecialization
 from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema,DoctorCreateSchema
-
 
 
 def create_healthcare_appointment(
@@ -21,7 +20,8 @@ def create_healthcare_appointment(
     if not user:
         raise HTTPException(status_code=400, detail="Invalid user")
 
-    # 2️⃣ Ambulance validation
+    # 2️⃣ Validate Ambulance
+    ambulance = None
     if data.required_ambulance:
         if not data.ambulance_id:
             raise HTTPException(status_code=400, detail="Ambulance ID is required")
@@ -35,18 +35,32 @@ def create_healthcare_appointment(
         if not ambulance:
             raise HTTPException(status_code=400, detail="Ambulance not available")
 
-    # 3️⃣ Save appointment
+    # 3️⃣ Validate Assistant
+    if data.required_assistant and not data.assistant_id:
+        raise HTTPException(status_code=400, detail="Assistant ID is required")
+
+    # 4️⃣ Create Appointment
     appointment = Appointments(
         user_id=data.user_id,
-        consultation_type=data.consultation_type,
+        consultation_type_id=data.consultation_type_id,
         appointment_time=data.appointment_time,
+
         doctor_id=data.doctor_id,
         doctor_specialization_id=data.doctor_specialization_id,
         description=data.description,
         days_of_suffering=data.days_of_suffering,
+        health_insurance=data.health_insurance,
+
         required_ambulance=data.required_ambulance,
         ambulance_id=data.ambulance_id if data.required_ambulance else None,
         pickup_time=data.pickup_time if data.required_ambulance else None,
+
+        required_assistant=data.required_assistant,
+        assistant_id=data.assistant_id if data.required_assistant else None,
+
+        labs_id=data.labs_id,
+        pharmacies_id=data.pharmacies_id,
+
         created_by=data.user_id,
         created_date=datetime.utcnow(),
         is_active=True
@@ -54,8 +68,8 @@ def create_healthcare_appointment(
 
     db.add(appointment)
 
-    # 4️⃣ Update ambulance status
-    if data.required_ambulance:
+    # 5️⃣ Update Ambulance Status
+    if ambulance:
         ambulance.availability_status = "Booked"
 
     db.commit()
@@ -86,9 +100,20 @@ def create_doctor_profile(
     ).first()
 
     if not user:
-        raise HTTPException(status_code=400, detail="User not found")
+        raise HTTPException(status_code=400, detail="Invalid user")
 
-    # 2️⃣ Validate specialization
+    # 2️⃣ Check doctor profile already exists
+    existing = db.query(DoctorProfile).filter(
+        DoctorProfile.user_id == data.user_id
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Doctor profile already exists for this user"
+        )
+
+    # 3️⃣ Validate specialization
     specialization = db.query(MasterDoctorSpecialization).filter(
         MasterDoctorSpecialization.id == data.specialization_id,
         MasterDoctorSpecialization.is_active == True
@@ -97,15 +122,35 @@ def create_doctor_profile(
     if not specialization:
         raise HTTPException(status_code=400, detail="Invalid specialization")
 
-    # 3️⃣ Check doctor already exists
-    existing_doctor = db.query(DoctorProfile).filter(
-        DoctorProfile.user_id == data.user_id
-    ).first()
+    # 4️⃣ Validate hospital (optional)
+    if data.hospital_id:
+        hospital = db.query(MasterHospital).filter(
+            MasterHospital.id == data.hospital_id,
+            MasterHospital.is_active == True
+        ).first()
 
-    if existing_doctor:
-        raise HTTPException(status_code=400, detail="Doctor profile already exists")
+        if not hospital:
+            raise HTTPException(status_code=400, detail="Invalid hospital")
 
-    # 4️⃣ Create doctor profile
+    # 5️⃣ Validate consultation type (optional)
+    if data.consultation_type_id:
+        consultation_type = db.query(MasterConsultationType).filter(
+            MasterConsultationType.id == data.consultation_type_id,
+            MasterConsultationType.is_active == True
+        ).first()
+
+        if not consultation_type:
+            raise HTTPException(status_code=400, detail="Invalid consultation type")
+
+    # 6️⃣ Validate availability time
+    if data.available_from and data.available_to:
+        if data.available_to <= data.available_from:
+            raise HTTPException(
+                status_code=400,
+                detail="available_to must be after available_from"
+            )
+
+    # 7️⃣ Create doctor profile
     doctor = DoctorProfile(
         user_id=data.user_id,
         specialization_id=data.specialization_id,
@@ -115,6 +160,8 @@ def create_doctor_profile(
         available_from=data.available_from,
         available_to=data.available_to,
         is_available=data.is_available,
+        hospital_id=data.hospital_id,
+        consultation_type_id=data.consultation_type_id,
         created_by=data.user_id
     )
 
