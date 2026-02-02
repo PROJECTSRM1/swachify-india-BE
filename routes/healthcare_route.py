@@ -68,10 +68,11 @@ def fetch_available_hospitals(db: Session = Depends(get_db)):
 def fetch_available_labs(db: Session = Depends(get_db)):
     return get_available_labs(db)
 
-@router.get("/available-labs")
-def available_labs_api(db: Session = Depends(get_db)):
-    return get_available_labs(db)
-
+@router.get("/available-doctors")
+def fetch_available_doctors(
+    db: Session = Depends(get_db)
+):
+    return get_available_doctors(db)
 
 @router.get("/available-pharmacies")
 def fetch_available_pharmacies(db: Session = Depends(get_db)):

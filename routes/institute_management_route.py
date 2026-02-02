@@ -18,6 +18,7 @@ from schemas.institution_schema import (
     EnrollmentStatusResponse,
     ExamNotificationCreate,
     ExamNotificationResponse,
+    ExamScheduleCreate,
     MaintenanceBudgetCreate,
     MaintenanceBudgetResponse,
     PayrollSummaryCreate,
@@ -32,11 +33,13 @@ from services.institution_service import (
     create_bus_alert,
     create_enrollment_status,
     create_exam_notification,
+    create_exam_schedule,
     create_maintenance_budget_service,
     create_maintenance_budget_service,
     create_payroll_summary,
     create_staff_payslip,
     create_staff_profile,
+    fetch_exam_schedule,
     get_all_alerts,
     get_all_staff,
     get_all_staff,
@@ -131,6 +134,28 @@ def fetch_staff_payslip_summary(db: Session = Depends(get_db)):
 @router.post("/maintenance_budget", response_model=MaintenanceBudgetResponse)
 def create_maintenance_budget(payload: MaintenanceBudgetCreate,db: Session = Depends(get_db)):
     return create_maintenance_budget_service(payload, db)
+
+
+#exam schedule route
+@router.post("/exam-schedule")
+def create_exam(payload: ExamScheduleCreate,db: Session = Depends(get_db)):
+    exam_id = create_exam_schedule(db, payload)
+    return {
+        "message": "Exam schedule created successfully",
+        "exam_schedule_id": exam_id
+    }
+
+
+@router.get("/exam-schedule")
+def get_exam_schedule(
+    exam_type: str = "-1",
+    institution_id: int = -1,
+    db: Session = Depends(get_db)
+):
+    return fetch_exam_schedule(db, exam_type, institution_id)
+
+
+
 
 @router.post(
     "/exam-notification",
