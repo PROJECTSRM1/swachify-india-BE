@@ -96,7 +96,7 @@ def register_institution_api(payload: InstitutionRegistrationCreate,db: Session 
 #         "institution_id": user.id
 #     }
 
-@router.post("/institution/student/login")
+@router.post("/login")
 def institution_login(
     payload: InstitutionLoginRequest,
     db: Session = Depends(get_db)
