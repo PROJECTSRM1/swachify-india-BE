@@ -281,6 +281,7 @@ def get_management_overview(
             "institution_id": institution_id,
             "academic_year": academic_year
         }
+        
     )
 
     return result.mappings().all()
