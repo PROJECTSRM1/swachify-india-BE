@@ -37,6 +37,7 @@ from services.institution_service import (
     get_all_alerts,
     get_all_staff,
     get_all_staff,
+    get_bus_fleet,
     get_management_overview,
     get_payslips_by_staff,
     get_staff_payslip_summary,
@@ -127,3 +128,10 @@ def fetch_staff_payslip_summary(db: Session = Depends(get_db)):
 @router.post("/maintenance_budget", response_model=MaintenanceBudgetResponse)
 def create_maintenance_budget(payload: MaintenanceBudgetCreate,db: Session = Depends(get_db)):
     return create_maintenance_budget_service(payload, db)
+
+@router.get(
+    "/bus-fleet/get-all-buses",
+    response_model=list[BusFleetResponse]
+)
+def get_bus_fleet_api(db: Session = Depends(get_db)):
+    return get_bus_fleet(db)
