@@ -21,8 +21,12 @@ from schemas.institution_schema import (
     ExamScheduleCreate,
     MaintenanceBudgetCreate,
     MaintenanceBudgetResponse,
+    PayrollPeriodCreate,
+    PayrollPeriodResponse,
     PayrollSummaryCreate,
     PayrollSummaryResponse,
+    SalaryOverviewCreate,
+    SalaryOverviewResponse,
     StaffPayslipCreate,
     StaffPayslipResponse,
     StaffProfileCreate,
@@ -36,7 +40,9 @@ from services.institution_service import (
     create_exam_schedule,
     create_maintenance_budget_service,
     create_maintenance_budget_service,
+    create_payroll_period,
     create_payroll_summary,
+    create_salary_overview,
     create_staff_payslip,
     create_staff_profile,
     fetch_exam_schedule,
@@ -44,6 +50,7 @@ from services.institution_service import (
     get_all_staff,
     get_all_staff,
     get_bus_fleet,
+    get_salary_overviews,
     get_staff_payslip_summary,
     get_bus_fleet,
     get_exam_notification_by_id,
@@ -177,3 +184,33 @@ def create_exam_notification_api(
 )
 def get_bus_fleet_api(db: Session = Depends(get_db)):
     return get_bus_fleet(db)
+
+
+@router.post(
+    "/payroll-period",
+    response_model=PayrollPeriodResponse
+)
+def create_payroll_period_api(
+    payload: PayrollPeriodCreate,
+    db: Session = Depends(get_db)
+):
+    return create_payroll_period(db, payload)
+
+@router.post(
+    "/salary-overview",
+    response_model=SalaryOverviewResponse
+)
+def create_salary_overview_api(
+    payload: SalaryOverviewCreate,
+    db: Session = Depends(get_db)
+):
+    return create_salary_overview(db, payload)
+
+@router.get(
+    "/salary-overview",
+    response_model=list[SalaryOverviewResponse]
+)
+def get_salary_overview_api(
+    db: Session = Depends(get_db)
+):
+    return get_salary_overviews(db)

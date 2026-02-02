@@ -400,3 +400,83 @@ class ExamNotificationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+#payroll 
+
+
+
+# -------- CREATE --------
+class PayrollPeriodCreate(BaseModel):
+    month: str
+    year: int
+    start_date: Optional[datetime]
+    end_date: Optional[datetime]
+    created_by: Optional[int]
+
+
+# -------- RESPONSE --------
+class PayrollPeriodResponse(BaseModel):
+    id: int
+    month: str
+    year: int
+    start_date: Optional[datetime]
+    end_date: Optional[datetime]
+    created_by: Optional[int]
+    created_date: Optional[datetime]
+    modified_by: Optional[int]
+    modified_date: Optional[datetime]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attributes = True
+
+# salary overveiw 
+
+
+# -------- CREATE --------
+class SalaryOverviewCreate(BaseModel):
+    payroll_period_id: int
+    total_net_disbursement: Decimal
+    gross_earnings: Decimal
+    total_deductions: Decimal
+    staff_count: Optional[int]
+    status: Optional[str]
+    created_by: Optional[int]
+
+
+# -------- RESPONSE --------
+class SalaryOverviewResponse(BaseModel):
+    id: int
+    payroll_period_id: int
+    total_net_disbursement: Decimal
+    gross_earnings: Decimal
+    total_deductions: Decimal
+    staff_count: Optional[int]
+    status: Optional[str]
+    created_by: Optional[int]
+    created_date: Optional[datetime]
+    modified_by: Optional[int]
+    modified_date: Optional[datetime]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attributes = True
+
+# salary overveiw  get 
+
+class SalaryOverviewResponse(BaseModel):
+    id: int
+    payroll_period_id: int
+    total_net_disbursement: Decimal
+    gross_earnings: Decimal
+    total_deductions: Decimal
+    staff_count: Optional[int]
+    status: Optional[str]
+    created_by: Optional[int]
+    created_date: Optional[datetime]
+    modified_by: Optional[int]
+    modified_date: Optional[datetime]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attributes = True

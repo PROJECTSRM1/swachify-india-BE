@@ -12,7 +12,9 @@ from models.generated_models import (
     InstitutionRegistration,
     InstitutionBranch,
     MaintenanceBudget,
+    PayrollPeriod,
     PayrollSummary,
+    SalaryOverview,
     StaffPayslip,
     StaffProfile,
     StudentProfile
@@ -28,7 +30,9 @@ from schemas.institution_schema import (
     InstitutionRegistrationCreate,
     InstitutionBranchCreate,
     MaintenanceBudgetCreate,
+    PayrollPeriodCreate,
     PayrollSummaryCreate,
+    SalaryOverviewCreate,
     StaffPayslipCreate,
     StaffProfileCreate,
     StudentAcademicDetailsSchema,
@@ -510,3 +514,54 @@ def get_exam_notification_by_id(
         )
 
     return notification
+
+#payroll period
+
+
+
+def create_payroll_period(db: Session, data: PayrollPeriodCreate):
+    payroll_period = PayrollPeriod(
+        month=data.month,
+        year=data.year,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        created_by=data.created_by,
+        is_active=True
+    )
+
+    db.add(payroll_period)
+    db.commit()
+    db.refresh(payroll_period)  # fetch id, created_date from DB
+
+    return payroll_period
+
+
+#salary overveiw
+
+def create_salary_overview(db: Session, data: SalaryOverviewCreate):
+    salary = SalaryOverview(
+        payroll_period_id=data.payroll_period_id,
+        total_net_disbursement=data.total_net_disbursement,
+        gross_earnings=data.gross_earnings,
+        total_deductions=data.total_deductions,
+        staff_count=data.staff_count,
+        status=data.status,
+        created_by=data.created_by,
+        is_active=True
+    )
+
+    db.add(salary)
+    db.commit()
+    db.refresh(salary)   # 🔑 fetches DB-generated fields like id, created_date
+
+    return salary
+
+# get for salary overveiw 
+
+def get_salary_overviews(db: Session):
+    return (
+        db.query(SalaryOverview)
+        .filter(SalaryOverview.is_active == True)
+        .order_by(SalaryOverview.created_date.desc())
+        .all()
+    )
