@@ -197,6 +197,7 @@ def get_students_by_branch_api(branch_id: int = Query(..., gt=0),db: Session = D
 # ):
 #     return delete_student_profile(db, student_id)
 
+#exam schedule route
 @router.post("/exam-schedule")
 def create_exam(payload: ExamScheduleCreate,db: Session = Depends(get_db)):
     exam_id = create_exam_schedule(db, payload)
@@ -206,9 +207,17 @@ def create_exam(payload: ExamScheduleCreate,db: Session = Depends(get_db)):
     }
 
 
-@router.get("/exam-schedule",response_model=List[ExamScheduleListResponse])
-def get_exam_schedule(branch_id: int = -1,exam_type: str = "-1",db: Session = Depends(get_db)):
-    return fetch_exam_schedule(db, branch_id, exam_type)
+@router.get(
+    "/exam-schedule",
+    response_model=list[ExamScheduleListResponse]
+)
+def get_exam_schedule(
+    exam_type: str = "-1",
+    institution_id: int = -1,
+    db: Session = Depends(get_db)
+):
+    return fetch_exam_schedule(db, exam_type, institution_id)
+
 
 
 #student profile
