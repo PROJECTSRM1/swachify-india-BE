@@ -1,26 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-
 from core.database import get_db
-
-from schemas.student_education_schema import (
-    StudentListResponse,
-    StudentProfileResponse,
-    StudentEducationFullCreate,
-    
-)
+from schemas.student_education_schema import (StudentListResponse,StudentProfileResponse,StudentEducationFullCreate,)
 from schemas.student_family_schema import StudentFamilyMemberCreate, StudentFamilyMemberResponse, StudentFamilyMemberUpdate
-from schemas.student_attendance_schema import (
-    StudentAttendanceCreate,
-    StudentAttendanceResponse,
-)
-
-from schemas.student_internship_status import (
-    StudentInternshipStatusCreate,
-    StudentInternshipStatusResponse,
-)
-
+from schemas.student_attendance_schema import (StudentAttendanceCreate,StudentAttendanceResponse,)
+from schemas.student_internship_status import (StudentInternshipStatusCreate,StudentInternshipStatusResponse,)
 from services.student_education_service import (
     create_student_certificate,
     add_student_education_service,
@@ -30,34 +15,17 @@ from services.student_education_service import (
     get_students_list_service,
     get_top_performers_service,
 )
-
-
-
-
 from services.student_attendance_service import upsert_student_attendance
 from services.student_family_service import add_family_member_service, hard_delete_family_member_service, list_family_members_service, update_family_member_service
 from services.student_internship_service import upsert_student_internship
-
 from models.generated_models import StudentFamilyMembers, UserRegistration
 from models.generated_models import StudentCertificate
 from models.generated_models import StudentQualification
 
-router = APIRouter(
-    prefix="/api/education",
-    tags=["Student Education"]
-)
-
-# =====================================================
-# STUDENT LIST (NO DUPLICATES)
-# =====================================================
+router = APIRouter(prefix="/api/education",tags=["Student Education"])
 
 @router.get("/students-list")
-def get_students_list(
-    skill_id: int | None = None,
-    aggregate: str | None = None,
-    internship_status: str | None = None,
-    db: Session = Depends(get_db),
-):
+def get_students_list(skill_id: int | None = None,aggregate: str | None = None,internship_status: str | None = None,db: Session = Depends(get_db)):
     return get_students_list_service(
         db=db,
         skill_id=skill_id,
@@ -65,17 +33,8 @@ def get_students_list(
         internship_status=internship_status
     )
 
-# =====================================================
-# STUDENT FULL PROFILE
-# =====================================================
-
-@router.get(
-    "/students/{student_id}/full-profile",
-)
-def get_full_student_profile(
-    student_id: int,
-    db: Session = Depends(get_db)
-):
+@router.get("/students/{student_id}/full-profile",)
+def get_full_student_profile(student_id: int,db: Session = Depends(get_db)):
     student = (
         db.query(UserRegistration)
         .filter(
@@ -203,9 +162,6 @@ def add_full_student_profile(
         "data": results
     }
 
-# =====================================================
-# ATTENDANCE
-# =====================================================
 
 @router.post(
     "/students/{student_id}/attendance",
@@ -221,10 +177,6 @@ def update_student_attendance(
         user_id=student_id,
         attendance_percentage=payload.attendance_percentage,
     )
-
-# =====================================================
-# INTERNSHIP STATUS
-# =====================================================
 
 @router.post(
     "/students/{student_id}/internship-status",

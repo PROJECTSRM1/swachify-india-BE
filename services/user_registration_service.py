@@ -350,9 +350,6 @@ from core.constants import (
     STATUS_PENDING
 )
 
-# ==================================================
-# 🔹 HELPERS
-# ==================================================
 def calculate_age(dob: date | None) -> int | None:
     if not dob:
         return None
@@ -363,15 +360,6 @@ def calculate_age(dob: date | None) -> int | None:
 
 
 def get_message(work_type: int) -> str:
-    """
-    Generate role-based registration message based on work_type.
-    
-    Args:
-        work_type: 1=Customer, 2=Freelancer, 3=Both
-    
-    Returns:
-        Registration success message indicating user type
-    """
     if work_type == 1:
         return "Customer registered successfully"
     if work_type == 2:
@@ -382,25 +370,6 @@ def get_message(work_type: int) -> str:
          return "Student Registered Successfully"
     
 def register_user(db: Session, payload: RegisterUser):
-    """
-    Register a new user with role and status assignment based on work_type.
-    
-    Work Type Mapping:
-        1 = Customer       -> role_id=2, status_id=1 (APPROVED)
-        2 = Freelancer     -> role_id=4, status_id=2 (PENDING - needs admin approval)
-        3 = Both           -> role_id=4, status_id=2 (PENDING - needs admin approval)
-    
-    Args:
-        db: Database session
-        payload: RegisterUser schema containing work_type and user details
-    
-    Returns:
-        Dictionary with user info, tokens, and registration message
-    """
-
-    # -------------------------
-    # Validate services
-    # -------------------------
     modules = (
         db.query(MasterModule)
         .filter(
@@ -416,23 +385,14 @@ def register_user(db: Session, payload: RegisterUser):
             detail="Invalid service IDs"
         )
 
-    # -------------------------
-    # Duplicate checks
-    # -------------------------
     if db.query(UserRegistration).filter_by(email=payload.email).first():
         raise HTTPException(status_code=409, detail="Email already registered")
 
     if db.query(UserRegistration).filter_by(mobile=payload.mobile).first():
         raise HTTPException(status_code=409, detail="Mobile already registered")
-
-    # -------------------------
-    # Role & status assignment based on work_type
-    # -------------------------
     if payload.work_type == 1:
-        # Customer: Immediate approval
         role_id, status_id = CUSTOMER_ROLE_ID, STATUS_APPROVED
     elif payload.work_type == 2:
-        # Freelancer or Both: Pending admin approval
         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
     elif payload.work_type == 3:
         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
@@ -444,10 +404,6 @@ def register_user(db: Session, payload: RegisterUser):
             detail="Invalid work_type. Must be 1 (Customer), 2 (Freelancer), 3 (Both), or 4 (Student)."
         )
         
-
-    # -------------------------
-    # Create user
-    # -------------------------
     user = UserRegistration(
         unique_id=str(uuid.uuid4()),
         first_name=payload.first_name,
@@ -482,36 +438,26 @@ def register_user(db: Session, payload: RegisterUser):
             )
 
     db.add(user)
-    db.flush()  # user.id available
+    db.flush() 
 
     service_ids: list[int] = []
-
-    # -------------------------
-    # User Services
-    # -------------------------
     for module in modules:
         us = UserServices(user_id=user.id, module_id=module.id)
         db.add(us)
-        db.flush()  # us.id available
+        db.flush() 
         service_ids.append(us.id)
 
     skill_ids: list[int] = []
-    # -------------------------
-    # User Skills
-    # -------------------------
     if payload.professional_details:
         for skill_id in payload.professional_details.expertise_in:
             sk = UserSkill(user_id=user.id, skill_id=skill_id)
             db.add(sk)
-            db.flush()  # sk.id available
+            db.flush() 
             skill_ids.append(sk.id)
 
     db.commit()
     db.refresh(user)
 
-    # -------------------------
-    # 🔐 CREATE JWT TOKENS
-    # -------------------------
     token_payload = {
         "user_id": user.id,
         "status_id": user.status_id,
@@ -576,7 +522,6 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
             detail="Invalid email/mobile or password"
         )
 
-    # ✅ SAVE LATITUDE & LONGITUDE (THIS WAS MISSING)
     if payload.latitude is not None and payload.longitude is not None:
         user.latitude = payload.latitude
         user.longitude = payload.longitude
@@ -623,7 +568,6 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
         service_ids=service_ids,
         skill_ids=skill_ids,
 
-        # ✅ NOW THESE WILL NOT BE NULL
         latitude=float(user.latitude) if user.latitude else None,
         longitude=float(user.longitude) if user.longitude else None,
 

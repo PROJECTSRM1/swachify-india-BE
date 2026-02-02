@@ -90,11 +90,7 @@ def get_my_job_applications(db: Session = Depends(get_db),current_user: UserRegi
     )
 
 
-@router.get(
-    "",
-    response_model=List[CompanyListResponse],
-    summary="Get all companies "
-)
+@router.get("",response_model=List[CompanyListResponse],summary="Get all companies ")
 def get_companies_api(
     industry_id: Optional[int] = Query(None),
     company_size_id: Optional[int] = Query(None),
@@ -105,11 +101,6 @@ def get_companies_api(
     ),
     db: Session = Depends(get_db)
 ):
-    """
-    Default:
-    - Returns ALL companies
-    - No filters required
-    """
 
     return get_all_companies(
         db=db,

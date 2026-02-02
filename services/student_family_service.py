@@ -13,17 +13,7 @@ from schemas.student_family_schema import (
 )
 
 
-# =============================
-# ADD FAMILY MEMBER
-# =============================
-
-def add_family_member_service(
-    db: Session,
-    student_id: int,
-    payload: StudentFamilyMemberCreate,
-    created_by: int | None = None
-):
-    # Validate student
+def add_family_member_service(db: Session,student_id: int,payload: StudentFamilyMemberCreate,created_by: int | None = None):
     student = (
         db.query(UserRegistration)
         .filter(UserRegistration.id == student_id, UserRegistration.is_active == True)
@@ -31,8 +21,6 @@ def add_family_member_service(
     )
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
-
-    # Validate relation
     relation = (
         db.query(MasterRelation)
         .filter(
@@ -60,17 +48,7 @@ def add_family_member_service(
 
     return record
 
-
-# =============================
-# UPDATE FAMILY MEMBER
-# =============================
-
-def update_family_member_service(
-    db: Session,
-    member_id: int,
-    payload: StudentFamilyMemberUpdate,
-    modified_by: int | None = None
-):
+def update_family_member_service(db: Session,member_id: int,payload: StudentFamilyMemberUpdate,modified_by: int | None = None):
     record = (
         db.query(StudentFamilyMembers)
         .filter(
@@ -110,10 +88,7 @@ def update_family_member_service(
 
     return record
 
-def hard_delete_family_member_service(
-    db: Session,
-    member_id: int,
-):
+def hard_delete_family_member_service(db: Session,member_id: int,):
     member = (
         db.query(StudentFamilyMembers)
         .filter(StudentFamilyMembers.id == member_id)
@@ -134,14 +109,7 @@ def hard_delete_family_member_service(
         "member_id": member_id
     }
 
-# =============================
-# LIST FAMILY MEMBERS
-# =============================
-
-def list_family_members_service(
-    db: Session,
-    student_id: int
-):
+def list_family_members_service(db: Session,student_id: int):
     return (
         db.query(StudentFamilyMembers)
         .filter(
