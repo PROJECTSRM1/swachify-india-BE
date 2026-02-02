@@ -16,3 +16,4 @@ fastapi-mail
 requests
 razorpay
 sendgrid
+pgvector
