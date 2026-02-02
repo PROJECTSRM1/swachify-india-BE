@@ -17,6 +17,7 @@ from schemas.healthcare_schema import (
 from services.healthcare_service import (
     create_ambulance_booking,
     create_healthcare_appointment,
+    get_available_hospitals,
     get_available_labs,
     get_available_pharmacies,
     get_healthcare_appointments_by_user,
@@ -33,18 +34,18 @@ router = APIRouter(prefix="/healthcare",tags=["Healthcare"])
 def create_doctor(data: DoctorCreateSchema,db: Session = Depends(get_db)):
     return create_doctor_profile(db, data)
 
-@router.post("/appointments",response_model=AppointmentResponseSchema)
+@router.post("/appointments",response_model=AppointmentResponseSchema,status_code=201)
 def book_healthcare_appointment(data: AppointmentCreateSchema,db: Session = Depends(get_db)):
-    return create_healthcare_appointment(db, data)
-
+    return create_healthcare_appointment(db, data)\
+    
 @router.get("/appointments/user/{user_id}",response_model=list[AppointmentResponseSchema])
 def get_user_appointments(user_id: int,db: Session = Depends(get_db)):
     return get_healthcare_appointments_by_user(db, user_id)
 
 
-@router.get("/doctors/available",response_model=list[DoctorResponseSchema])
-def fetch_available_doctors(db: Session = Depends(get_db)):
-    return get_available_doctors(db)
+# @router.get("/doctors/available",response_model=list[DoctorResponseSchema])
+# def fetch_available_doctors(db: Session = Depends(get_db)):
+#     return get_available_doctors(db)
 
 
 @router.get("/ambulances")
@@ -58,6 +59,14 @@ def book_ambulance(data: AmbulanceBookingCreateSchema,db: Session = Depends(get_
 @router.put("/ambulance-booking/{booking_id}/release")
 def release_ambulance(booking_id: int,db: Session = Depends(get_db)):
     return release_ambulance_booking(db, booking_id)
+
+@router.get("/available-hospitals")
+def fetch_available_hospitals(db: Session = Depends(get_db)):
+    return get_available_hospitals(db)
+
+@router.get("/available-labs")
+def fetch_available_labs(db: Session = Depends(get_db)):
+    return get_available_labs(db)
 
 @router.get("/available-labs")
 def available_labs_api(db: Session = Depends(get_db)):

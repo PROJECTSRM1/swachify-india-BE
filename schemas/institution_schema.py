@@ -364,3 +364,39 @@ class BusFleetResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ExamNotificationCreate(BaseModel):
+    exam_schedule_id: int
+    message: Optional[str] = None
+    scheduled_date: Optional[date] = None
+    created_by: Optional[int] = None
+    is_active: Optional[bool] = True
+
+
+class ExamNotificationUpdate(BaseModel):
+    message: Optional[str] = None
+    sent_count: Optional[int] = None
+    failed_count: Optional[int] = None
+    retry_success: Optional[int] = None
+    status: Optional[str] = None
+    modified_by: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class ExamNotificationResponse(BaseModel):
+    id: int
+    exam_schedule_id: int
+    message: Optional[str]
+    sent_count: Optional[int]
+    failed_count: Optional[int]
+    retry_success: Optional[int]
+    scheduled_date: Optional[date]
+    status: Optional[str]
+    created_by: Optional[int]
+    created_date: datetime
+    modified_by: Optional[int]
+    modified_date: Optional[datetime]
+    is_active: bool
+
+    class Config:
+        from_attributes = True

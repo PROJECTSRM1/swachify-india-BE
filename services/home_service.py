@@ -242,3 +242,6 @@ def update_home_service_rating(
     }
 
 
+def get_available_labs(db: Session):
+    query = text("""SELECT * FROM public.vw_available_labs """)
+    return db.execute(query).mappings().all()
