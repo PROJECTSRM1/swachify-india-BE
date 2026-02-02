@@ -278,6 +278,13 @@ def fetch_exam_schedule(db, exam_type: str, institution_id: int):
 
     return result.mappings().all()
 
+def get_bus_fleet(db: Session):
+    query = text("""
+        SELECT *
+        FROM bus_fleet
+        WHERE is_active = true
+    """)
+    return db.execute(query).mappings().all()
 
 
 
