@@ -18,13 +18,15 @@ from services.healthcare_service import (
     create_ambulance_booking,
     create_healthcare_appointment,
     get_available_hospitals,
+    get_available_labs,
+    get_available_pharmacies,
     get_healthcare_appointments_by_user,
     create_doctor_profile,
     get_available_doctors,
     get_hospital_ambulance_list,
     release_ambulance_booking
 )
-from services.home_service import get_available_labs
+
 
 router = APIRouter(prefix="/healthcare",tags=["Healthcare"])
 
@@ -66,3 +68,11 @@ def fetch_available_hospitals(db: Session = Depends(get_db)):
 def fetch_available_labs(db: Session = Depends(get_db)):
     return get_available_labs(db)
 
+@router.get("/available-labs")
+def available_labs_api(db: Session = Depends(get_db)):
+    return get_available_labs(db)
+
+
+@router.get("/available-pharmacies")
+def fetch_available_pharmacies(db: Session = Depends(get_db)):
+    return get_available_pharmacies(db)

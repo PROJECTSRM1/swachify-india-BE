@@ -165,12 +165,8 @@ class ExamScheduleCreate(BaseModel):
     end_time: time
     location: str
     created_by: int
-    
-#ExamList 
 
-class ExamScheduleListResponse(BaseModel):
-    subject_name: str
-    exam_date: date
+
 
 class EnrollmentStatusCreate(BaseModel):
     institute_id: int
