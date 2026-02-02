@@ -303,3 +303,8 @@ def release_ambulance_booking(
         "ambulance_id": ambulance.id,
         "booking_id": booking.id
     }
+
+
+def get_available_hospitals(db: Session):
+    query = text(""" SELECT *FROM fn_get_available_hospitals() """)
+    return db.execute(query).mappings().all()

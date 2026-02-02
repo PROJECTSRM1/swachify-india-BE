@@ -8,6 +8,7 @@ from models.generated_models import (
     BusFleet,
     EnrollmentStatus,
     EnrollmentStatus,
+    ExamNotificationLog,
     InstitutionRegistration,
     InstitutionBranch,
     MaintenanceBudget,
@@ -22,6 +23,8 @@ from schemas.institution_schema import (
     BusAlertCreate,
     BusAlertUpdate,
     EnrollmentStatusCreate,
+    ExamNotificationCreate,
+    ExamNotificationUpdate,
     InstitutionRegistrationCreate,
     InstitutionBranchCreate,
     MaintenanceBudgetCreate,
@@ -433,3 +436,70 @@ def create_maintenance_budget_service(
     db.commit()
     db.refresh(budget)
     return budget
+
+
+
+def create_exam_notification(
+    db: Session,
+    payload: ExamNotificationCreate
+):
+    notification = ExamNotificationLog(
+        **payload.dict(exclude_unset=True),
+        created_date=datetime.utcnow()
+    )
+
+    db.add(notification)
+    db.commit()
+    db.refresh(notification)
+    return notification
+
+
+def get_exam_notifications_by_schedule(
+    db: Session,
+    exam_schedule_id: int
+):
+    return db.query(ExamNotificationLog).filter(
+        ExamNotificationLog.exam_schedule_id == exam_schedule_id,
+        ExamNotificationLog.is_active == True
+    ).order_by(
+        ExamNotificationLog.created_date.desc()
+    ).all()
+
+
+def update_exam_notification(
+    db: Session,
+    notification_id: int,
+    payload: ExamNotificationUpdate
+):
+    notification = db.query(ExamNotificationLog).filter(
+        ExamNotificationLog.id == notification_id,
+        ExamNotificationLog.is_active == True
+    ).first()
+
+    if not notification:
+        raise HTTPException(status_code=404, detail="Notification not found")
+
+    for key, value in payload.dict(exclude_unset=True).items():
+        setattr(notification, key, value)
+
+    notification.modified_date = datetime.utcnow()
+    db.commit()
+    db.refresh(notification)
+    return notification
+
+def get_exam_notification_by_id(
+    db: Session,
+    notification_id: int
+):
+    notification = db.query(ExamNotificationLog).filter(
+        ExamNotificationLog.id == notification_id,
+        ExamNotificationLog.is_active == True
+    ).first()
+
+    if not notification:
+        raise HTTPException(
+            status_code=404,
+            detail="Exam notification not found"
+        )
+
+    return notification

@@ -9,7 +9,6 @@ from schemas.healthcare_schema import (
     AmbulanceBookingResponseSchema,
     AppointmentCreateSchema,
     AppointmentResponseSchema,
-    AvailableLabsResponseSchema,
     DoctorCreateSchema,
     DoctorResponseSchema,
     HospitalAmbulanceResponseSchema
@@ -18,6 +17,7 @@ from schemas.healthcare_schema import (
 from services.healthcare_service import (
     create_ambulance_booking,
     create_healthcare_appointment,
+    get_available_hospitals,
     get_healthcare_appointments_by_user,
     create_doctor_profile,
     get_available_doctors,
@@ -57,6 +57,10 @@ def book_ambulance(data: AmbulanceBookingCreateSchema,db: Session = Depends(get_
 @router.put("/ambulance-booking/{booking_id}/release")
 def release_ambulance(booking_id: int,db: Session = Depends(get_db)):
     return release_ambulance_booking(db, booking_id)
+
+@router.get("/available-hospitals")
+def fetch_available_hospitals(db: Session = Depends(get_db)):
+    return get_available_hospitals(db)
 
 @router.get("/available-labs")
 def fetch_available_labs(db: Session = Depends(get_db)):
