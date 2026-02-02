@@ -28,6 +28,16 @@ from schemas.institution_schema import (
     StudentProfileResponse
 )
 
+from schemas.healthcare_schema import (
+    PaymentCreateSchema,
+    PaymentResponseSchema
+)
+
+from services.healthcare_service import (
+    create_payment
+)
+
+
 from services.institution_service import (
     create_bus,
     create_bus_alert,
@@ -54,7 +64,9 @@ from services.institution_service import (
     fetch_students_by_branch,
     get_management_overview,
     get_bus_tracking_overview,
-    get_bus_tracking_summary
+    get_bus_tracking_summary,
+    get_my_bookings_by_user,
+    get_doctor_bookings
 )
 
 from pydantic import BaseModel, EmailStr, model_validator
@@ -203,3 +215,29 @@ def get_students_by_branch_api(branch_id: int = Query(..., gt=0),db: Session = D
 @router.get("/{student_id}",response_model=StudentProfileResponse)
 def get_student_api(student_id: int = Path(..., gt=0),db: Session = Depends(get_db)):
     return get_student_by_id(db, student_id)
+
+
+@router.get("/bookings/user/{user_id}")
+def fetch_bookings_by_user(
+    user_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_my_bookings_by_user(db, user_id)
+
+@router.get("/bookings/doctor/{user_id}")
+def fetch_doctor_bookings(
+    user_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_doctor_bookings(db, user_id)
+
+@router.post(
+    "/payments",
+    response_model=PaymentResponseSchema,
+    status_code=201
+)
+def create_payment_api(
+    data: PaymentCreateSchema,
+    db: Session = Depends(get_db)
+):
+    return create_payment(db, data)
