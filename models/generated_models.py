@@ -58,8 +58,8 @@ class AvailableLabs(Base):
     delivery_address: Mapped[Optional[str]] = mapped_column(String(255))
     special_instructions: Mapped[Optional[str]] = mapped_column(String(255))
 
-    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='labs')
     service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='lab')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='labs')
 
 
 class AvailablePharmacies(Base):
@@ -88,8 +88,8 @@ class AvailablePharmacies(Base):
     delivery_address: Mapped[Optional[str]] = mapped_column(String(255))
     special_instructions: Mapped[Optional[str]] = mapped_column(String(255))
 
-    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='pharmacies')
     service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='pharmacy')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='pharmacies')
 
 
 class BusFleet(Base):
@@ -433,6 +433,7 @@ class MasterHospital(Base):
 
     master_ambulance: Mapped[list['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='hospital')
     doctor_profile: Mapped[list['DoctorProfile']] = relationship('DoctorProfile', back_populates='hospital')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='hospital')
 
 
 class MasterHostelServices(Base):
@@ -960,6 +961,26 @@ class MasterWorkType(Base):
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='work_type')
 
 
+class PayrollPeriod(Base):
+    __tablename__ = 'payroll_period'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_payroll_period_id'),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    month: Mapped[str] = mapped_column(String, nullable=False)
+    year: Mapped[int] = mapped_column(Integer, nullable=False)
+    start_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    end_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    salary_overview: Mapped[list['SalaryOverview']] = relationship('SalaryOverview', back_populates='payroll_period')
+
+
 class PayrollSummary(Base):
     __tablename__ = 'payroll_summary'
     __table_args__ = (
@@ -1071,6 +1092,25 @@ t_vw_company_list = Table(
     Column('internships_count', BigInteger),
     Column('hiring_status', Text),
     Column('last_active_time', DateTime)
+)
+
+
+t_vw_my_bookings = Table(
+    'vw_my_bookings', Base.metadata,
+    Column('request_id', BigInteger),
+    Column('user_id', BigInteger),
+    Column('service_type', String(50)),
+    Column('booking_status', String(50)),
+    Column('request_date', DateTime),
+    Column('appointment_id', BigInteger),
+    Column('appointment_time', DateTime),
+    Column('appointment_status', String(50)),
+    Column('payment_id', BigInteger),
+    Column('amount', Numeric(10, 2)),
+    Column('payment_method', String(50)),
+    Column('payment_status', String(50)),
+    Column('transaction_id', String(100)),
+    Column('payment_date', DateTime)
 )
 
 
@@ -1372,6 +1412,31 @@ class RawMaterialDetails(Base):
     raw_material_type: Mapped['MasterRawMaterialType'] = relationship('MasterRawMaterialType', back_populates='raw_material_details')
 
 
+class SalaryOverview(Base):
+    __tablename__ = 'salary_overview'
+    __table_args__ = (
+        ForeignKeyConstraint(['payroll_period_id'], ['payroll_period.id'], name='fk_salary_overview_payroll_period_id'),
+        PrimaryKeyConstraint('id', name='pk_salary_overview_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    payroll_period_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    total_net_disbursement: Mapped[decimal.Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    gross_earnings: Mapped[decimal.Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    total_deductions: Mapped[decimal.Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    staff_count: Mapped[Optional[int]] = mapped_column(Integer)
+    status: Mapped[Optional[str]] = mapped_column(String)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    payroll_period: Mapped['PayrollPeriod'] = relationship('PayrollPeriod', back_populates='salary_overview')
+    salary_deductions: Mapped[list['SalaryDeductions']] = relationship('SalaryDeductions', back_populates='salary_overview')
+    salary_earnings: Mapped[list['SalaryEarnings']] = relationship('SalaryEarnings', back_populates='salary_overview')
+
+
 class StaffPayslip(Base):
     __tablename__ = 'staff_payslip'
     __table_args__ = (
@@ -1523,6 +1588,51 @@ class OtpVerification(Base):
     institution: Mapped['InstitutionRegistration'] = relationship('InstitutionRegistration', back_populates='otp_verification')
 
 
+class SalaryDeductions(Base):
+    __tablename__ = 'salary_deductions'
+    __table_args__ = (
+        ForeignKeyConstraint(['salary_overview_id'], ['salary_overview.id'], name='fk_salary_deductions_salary_overview_id'),
+        PrimaryKeyConstraint('id', name='pk_salary_deductions_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    salary_overview_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    total_deduction: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    pf: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    professional_tax: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    insurance: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    salary_overview: Mapped['SalaryOverview'] = relationship('SalaryOverview', back_populates='salary_deductions')
+
+
+class SalaryEarnings(Base):
+    __tablename__ = 'salary_earnings'
+    __table_args__ = (
+        ForeignKeyConstraint(['salary_overview_id'], ['salary_overview.id'], name='fk_salary_earnings_salary_overview_id'),
+        PrimaryKeyConstraint('id', name='pk_salary_earnings_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    salary_overview_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    basic_salary: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    hra: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    medical: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    conveyance: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    gross_earnings: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(12, 2))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    salary_overview: Mapped['SalaryOverview'] = relationship('SalaryOverview', back_populates='salary_earnings')
+
+
 class UserRegistration(Base):
     __tablename__ = 'user_registration'
     __table_args__ = (
@@ -1632,7 +1742,6 @@ class UserRegistration(Base):
     user_skill: Mapped[list['UserSkill']] = relationship('UserSkill', foreign_keys='[UserSkill.created_by]', back_populates='user_registration')
     user_skill_: Mapped[list['UserSkill']] = relationship('UserSkill', foreign_keys='[UserSkill.modified_by]', back_populates='user_registration_')
     user_skill1: Mapped[list['UserSkill']] = relationship('UserSkill', foreign_keys='[UserSkill.user_id]', back_populates='user')
-    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='user')
     home_service: Mapped[list['HomeService']] = relationship('HomeService', foreign_keys='[HomeService.assigned_to]', back_populates='user_registration')
     home_service_: Mapped[list['HomeService']] = relationship('HomeService', foreign_keys='[HomeService.created_by]', back_populates='user_registration_')
     home_service1: Mapped[list['HomeService']] = relationship('HomeService', foreign_keys='[HomeService.modified_by]', back_populates='user_registration1')
@@ -1644,10 +1753,12 @@ class UserRegistration(Base):
     task_history_: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.reporting_manager_id]', back_populates='reporting_manager')
     task_history1: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.to_assignee_id]', back_populates='to_assignee')
     task_history2: Mapped[list['TaskHistory']] = relationship('TaskHistory', foreign_keys='[TaskHistory.user_id]', back_populates='user')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='user')
     freelancer_task_history: Mapped[list['FreelancerTaskHistory']] = relationship('FreelancerTaskHistory', foreign_keys='[FreelancerTaskHistory.created_by]', back_populates='user_registration')
     freelancer_task_history_: Mapped[list['FreelancerTaskHistory']] = relationship('FreelancerTaskHistory', foreign_keys='[FreelancerTaskHistory.modified_by]', back_populates='user_registration_')
     hs_add_on: Mapped[list['HsAddOn']] = relationship('HsAddOn', foreign_keys='[HsAddOn.created_by]', back_populates='user_registration')
     hs_add_on_: Mapped[list['HsAddOn']] = relationship('HsAddOn', foreign_keys='[HsAddOn.modified_by]', back_populates='user_registration_')
+    payments: Mapped[list['Payments']] = relationship('Payments', back_populates='user')
     vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', foreign_keys='[VehicleServiceBooking.created_by]', back_populates='user_registration')
     vehicle_service_booking_: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', foreign_keys='[VehicleServiceBooking.modified_by]', back_populates='user_registration_')
     vehicle_service_booking1: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', foreign_keys='[VehicleServiceBooking.user_id]', back_populates='user')
@@ -1686,8 +1797,8 @@ class DoctorProfile(Base):
     hospital: Mapped[Optional['MasterHospital']] = relationship('MasterHospital', back_populates='doctor_profile')
     specialization: Mapped['MasterDoctorSpecialization'] = relationship('MasterDoctorSpecialization', back_populates='doctor_profile')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='doctor_profile')
-    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='doctor')
     service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='doctor')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='doctor')
 
 
 class EnrollmentStatus(Base):
@@ -2236,53 +2347,6 @@ class UserSkill(Base):
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='user_skill1')
 
 
-class Appointments(Base):
-    __tablename__ = 'appointments'
-    __table_args__ = (
-        ForeignKeyConstraint(['ambulance_id'], ['master_ambulance.id'], name='fk_appointments_ambulance_id'),
-        ForeignKeyConstraint(['assistant_id'], ['master_assistants.id'], name='fk_appointments_assistant_id'),
-        ForeignKeyConstraint(['consultation_type_id'], ['master_consultation_type.id'], name='fk_appointments_consultation_type_id'),
-        ForeignKeyConstraint(['doctor_id'], ['doctor_profile.id'], name='fk_appointments_doctor_id'),
-        ForeignKeyConstraint(['doctor_specialization_id'], ['master_doctor_specialization.id'], name='fk_appointments_doctor_specialization_id'),
-        ForeignKeyConstraint(['labs_id'], ['available_labs.id'], name='fk_appointments_labs_id'),
-        ForeignKeyConstraint(['pharmacies_id'], ['available_pharmacies.id'], name='fk_appointments_pharmacies_id'),
-        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_appointments_user_id'),
-        PrimaryKeyConstraint('id', name='pk_appointments_id')
-    )
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    appointment_time: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)
-    doctor_id: Mapped[Optional[int]] = mapped_column(BigInteger)
-    doctor_specialization_id: Mapped[Optional[int]] = mapped_column(Integer)
-    description: Mapped[Optional[str]] = mapped_column(String)
-    days_of_suffering: Mapped[Optional[int]] = mapped_column(Integer)
-    health_insurance: Mapped[Optional[bool]] = mapped_column(Boolean)
-    required_ambulance: Mapped[Optional[bool]] = mapped_column(Boolean)
-    required_assistant: Mapped[Optional[bool]] = mapped_column(Boolean)
-    ambulance_id: Mapped[Optional[int]] = mapped_column(BigInteger)
-    pickup_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-    assistant_id: Mapped[Optional[int]] = mapped_column(BigInteger)
-    pharmacies_id: Mapped[Optional[int]] = mapped_column(BigInteger)
-    labs_id: Mapped[Optional[int]] = mapped_column(BigInteger)
-    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
-    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-    consultation_type_id: Mapped[Optional[int]] = mapped_column(Integer)
-
-    ambulance: Mapped[Optional['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='appointments')
-    assistant: Mapped[Optional['MasterAssistants']] = relationship('MasterAssistants', back_populates='appointments')
-    consultation_type: Mapped[Optional['MasterConsultationType']] = relationship('MasterConsultationType', back_populates='appointments')
-    doctor: Mapped[Optional['DoctorProfile']] = relationship('DoctorProfile', back_populates='appointments')
-    doctor_specialization: Mapped[Optional['MasterDoctorSpecialization']] = relationship('MasterDoctorSpecialization', back_populates='appointments')
-    labs: Mapped[Optional['AvailableLabs']] = relationship('AvailableLabs', back_populates='appointments')
-    pharmacies: Mapped[Optional['AvailablePharmacies']] = relationship('AvailablePharmacies', back_populates='appointments')
-    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='appointments')
-    ambulance_booking: Mapped[list['AmbulanceBooking']] = relationship('AmbulanceBooking', back_populates='appointment')
-
-
 class ExamInvigilationAssignment(Base):
     __tablename__ = 'exam_invigilation_assignment'
     __table_args__ = (
@@ -2572,6 +2636,8 @@ class ServiceRequests(Base):
     lab: Mapped[Optional['AvailableLabs']] = relationship('AvailableLabs', back_populates='service_requests')
     pharmacy: Mapped[Optional['AvailablePharmacies']] = relationship('AvailablePharmacies', back_populates='service_requests')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='service_requests')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='service_request')
+    payments: Mapped[list['Payments']] = relationship('Payments', back_populates='service_request')
 
 
 class StudentAcademicFinance(Base):
@@ -2714,27 +2780,60 @@ class VehicleBrandFuel(Base):
     sub_service: Mapped['MasterSubService'] = relationship('MasterSubService', back_populates='vehicle_brand_fuel')
 
 
-class AmbulanceBooking(Base):
-    __tablename__ = 'ambulance_booking'
+class Appointments(Base):
+    __tablename__ = 'appointments'
     __table_args__ = (
-        ForeignKeyConstraint(['ambulance_id'], ['master_ambulance.id'], name='fk_ambulance_booking_ambulance'),
-        ForeignKeyConstraint(['appointment_id'], ['appointments.id'], name='fk_ambulance_booking_appointment'),
-        PrimaryKeyConstraint('id', name='pk_ambulance_booking_id')
+        CheckConstraint("status::text = ANY (ARRAY['PENDING'::character varying, 'CONFIRMED'::character varying, 'CANCELLED'::character varying]::text[])", name='ck_appointments_status'),
+        ForeignKeyConstraint(['ambulance_id'], ['master_ambulance.id'], name='fk_appointments_ambulance_id'),
+        ForeignKeyConstraint(['assistant_id'], ['master_assistants.id'], name='fk_appointments_assistant_id'),
+        ForeignKeyConstraint(['consultation_type_id'], ['master_consultation_type.id'], name='fk_appointments_consultation_type_id'),
+        ForeignKeyConstraint(['doctor_id'], ['doctor_profile.id'], name='fk_appointments_doctor_id'),
+        ForeignKeyConstraint(['doctor_specialization_id'], ['master_doctor_specialization.id'], name='fk_appointments_doctor_specialization_id'),
+        ForeignKeyConstraint(['hospital_id'], ['master_hospital.id'], name='appointments_hospital_id_fkey'),
+        ForeignKeyConstraint(['labs_id'], ['available_labs.id'], name='fk_appointments_labs_id'),
+        ForeignKeyConstraint(['pharmacies_id'], ['available_pharmacies.id'], name='fk_appointments_pharmacies_id'),
+        ForeignKeyConstraint(['service_request_id'], ['service_requests.id'], name='appointments_service_request_id_fkey'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_appointments_user_id'),
+        PrimaryKeyConstraint('id', name='pk_appointments_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    appointment_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    ambulance_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    appointment_time: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)
+    doctor_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    doctor_specialization_id: Mapped[Optional[int]] = mapped_column(Integer)
+    description: Mapped[Optional[str]] = mapped_column(String)
+    days_of_suffering: Mapped[Optional[int]] = mapped_column(Integer)
+    health_insurance: Mapped[Optional[bool]] = mapped_column(Boolean)
+    required_ambulance: Mapped[Optional[bool]] = mapped_column(Boolean)
+    required_assistant: Mapped[Optional[bool]] = mapped_column(Boolean)
+    ambulance_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    pickup_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    assistant_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    pharmacies_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    labs_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-    patient_name: Mapped[Optional[str]] = mapped_column(String(255))
-    aadhar_number: Mapped[Optional[str]] = mapped_column(String(50))
+    consultation_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    service_request_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    hospital_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    status: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'PENDING'::character varying"))
 
-    ambulance: Mapped['MasterAmbulance'] = relationship('MasterAmbulance', back_populates='ambulance_booking')
-    appointment: Mapped['Appointments'] = relationship('Appointments', back_populates='ambulance_booking')
+    ambulance: Mapped[Optional['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='appointments')
+    assistant: Mapped[Optional['MasterAssistants']] = relationship('MasterAssistants', back_populates='appointments')
+    consultation_type: Mapped[Optional['MasterConsultationType']] = relationship('MasterConsultationType', back_populates='appointments')
+    doctor: Mapped[Optional['DoctorProfile']] = relationship('DoctorProfile', back_populates='appointments')
+    doctor_specialization: Mapped[Optional['MasterDoctorSpecialization']] = relationship('MasterDoctorSpecialization', back_populates='appointments')
+    hospital: Mapped[Optional['MasterHospital']] = relationship('MasterHospital', back_populates='appointments')
+    labs: Mapped[Optional['AvailableLabs']] = relationship('AvailableLabs', back_populates='appointments')
+    pharmacies: Mapped[Optional['AvailablePharmacies']] = relationship('AvailablePharmacies', back_populates='appointments')
+    service_request: Mapped[Optional['ServiceRequests']] = relationship('ServiceRequests', back_populates='appointments')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='appointments')
+    ambulance_booking: Mapped[list['AmbulanceBooking']] = relationship('AmbulanceBooking', back_populates='appointment')
+    payments: Mapped[list['Payments']] = relationship('Payments', back_populates='appointment')
 
 
 class FreelancerTaskHistory(Base):
@@ -2824,6 +2923,61 @@ class MasterMechanic(Base):
 
     garage: Mapped['MasterGarage'] = relationship('MasterGarage', back_populates='master_mechanic')
     vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='mechanic')
+
+
+class AmbulanceBooking(Base):
+    __tablename__ = 'ambulance_booking'
+    __table_args__ = (
+        ForeignKeyConstraint(['ambulance_id'], ['master_ambulance.id'], name='fk_ambulance_booking_ambulance'),
+        ForeignKeyConstraint(['appointment_id'], ['appointments.id'], name='fk_ambulance_booking_appointment'),
+        PrimaryKeyConstraint('id', name='pk_ambulance_booking_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    appointment_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    ambulance_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    patient_name: Mapped[Optional[str]] = mapped_column(String(255))
+    aadhar_number: Mapped[Optional[str]] = mapped_column(String(50))
+
+    ambulance: Mapped['MasterAmbulance'] = relationship('MasterAmbulance', back_populates='ambulance_booking')
+    appointment: Mapped['Appointments'] = relationship('Appointments', back_populates='ambulance_booking')
+
+
+class Payments(Base):
+    __tablename__ = 'payments'
+    __table_args__ = (
+        CheckConstraint("payment_method::text = ANY (ARRAY['CARD'::character varying, 'UPI'::character varying, 'CASH'::character varying]::text[])", name='ck_payments_method'),
+        CheckConstraint("payment_status::text = ANY (ARRAY['PENDING'::character varying, 'CONFIRMED'::character varying, 'FAILED'::character varying, 'SUCCESS'::character varying]::text[])", name='ck_payments_status'),
+        ForeignKeyConstraint(['appointment_id'], ['appointments.id'], name='fk_payments_appointment_id'),
+        ForeignKeyConstraint(['service_request_id'], ['service_requests.id'], name='fk_payments_service_request_id'),
+        ForeignKeyConstraint(['user_id'], ['user_registration.id'], name='fk_payments_user_id'),
+        PrimaryKeyConstraint('id', name='pk_payments_id'),
+        UniqueConstraint('transaction_id', name='uk_payments_transaction')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    service_request_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    amount: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    payment_method: Mapped[str] = mapped_column(String(50), nullable=False)
+    appointment_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    payment_status: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'PENDING'::character varying"))
+    transaction_id: Mapped[Optional[str]] = mapped_column(String(100))
+    remarks: Mapped[Optional[str]] = mapped_column(String(255))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    appointment: Mapped[Optional['Appointments']] = relationship('Appointments', back_populates='payments')
+    service_request: Mapped['ServiceRequests'] = relationship('ServiceRequests', back_populates='payments')
+    user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='payments')
 
 
 class VehicleServiceBooking(Base):
