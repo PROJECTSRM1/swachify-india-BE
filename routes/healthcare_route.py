@@ -21,7 +21,9 @@ from services.healthcare_service import (
     create_doctor_profile,
     get_available_doctors,
     get_hospital_ambulance_list,
-    release_ambulance_booking
+    release_ambulance_booking,
+    get_available_hospitals
+
 )
 
 router = APIRouter(prefix="/healthcare",tags=["Healthcare"])
@@ -55,3 +57,7 @@ def book_ambulance(data: AmbulanceBookingCreateSchema,db: Session = Depends(get_
 @router.put("/ambulance-booking/{booking_id}/release")
 def release_ambulance(booking_id: int,db: Session = Depends(get_db)):
     return release_ambulance_booking(db, booking_id)
+
+ @router.get("/hospitals/available")
+def fetch_available_hospitals(db: Session = Depends(get_db)):
+    return get_available_hospitals(db)

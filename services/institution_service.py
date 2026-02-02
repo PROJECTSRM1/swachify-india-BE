@@ -216,21 +216,29 @@ def fetch_students_by_branch(db, branch_id: int):
 
 #ExamSchedule service
 
+from sqlalchemy import text
+
 def create_exam_schedule(db, data):
     query = text("""
         INSERT INTO exam_schedule (
-            branch_id,
+            institution_id,
             exam_type,
             subject_name,
             exam_date,
+            start_time,
+            end_time,
+            location,
             created_by,
             is_active
         )
         VALUES (
-            :branch_id,
+            :institution_id,
             :exam_type,
             :subject_name,
             :exam_date,
+            :start_time,
+            :end_time,
+            :location,
             :created_by,
             true
         )
@@ -238,29 +246,37 @@ def create_exam_schedule(db, data):
     """)
 
     result = db.execute(query, {
-        "branch_id": data.branch_id,
+        "institution_id": data.institution_id,
         "exam_type": data.exam_type,
         "subject_name": data.subject_name,
         "exam_date": data.exam_date,
+        "start_time": data.start_time,
+        "end_time": data.end_time,
+        "location": data.location,
         "created_by": data.created_by
     })
 
     db.commit()
     return result.fetchone()[0]
 
-#ExamList Service
 
-def fetch_exam_schedule(db, branch_id: int, exam_type: str):
+
+# Exam List Service
+def fetch_exam_schedule(db, exam_type: str, institution_id: int):
     query = text("""
-        SELECT * FROM fn_get_exam_schedule(:branch_id, :exam_type)
+        SELECT * 
+        FROM fn_get_exam_schedule(:exam_type, :institution_id)
     """)
 
-    result = db.execute(query, {
-        "branch_id": branch_id,
-        "exam_type": exam_type
-    })
+    result = db.execute(
+        query,
+        {
+            "exam_type": exam_type,
+            "institution_id": institution_id
+        }
+    )
 
-    return result.mappings().all()  
+    return result.mappings().all()
 
 
 
@@ -420,77 +436,3 @@ def create_maintenance_budget_service(
     db.commit()
     db.refresh(budget)
     return budget
-
-
-
-    # ==============================
-# EXAM NOTIFICATION SERVICES
-# ==============================
-
-from models.generated_models import ExamNotificationLog
-
-
-def create_exam_notification(
-    db: Session,
-    payload: ExamNotificationCreate
-):
-    notification = ExamNotificationLog(
-        **payload.dict(exclude_unset=True),
-        created_date=datetime.utcnow()
-    )
-
-    db.add(notification)
-    db.commit()
-    db.refresh(notification)
-    return notification
-
-
-def get_exam_notifications_by_schedule(
-    db: Session,
-    exam_schedule_id: int
-):
-    return db.query(ExamNotificationLog).filter(
-        ExamNotificationLog.exam_schedule_id == exam_schedule_id,
-        ExamNotificationLog.is_active == True
-    ).order_by(
-        ExamNotificationLog.created_date.desc()
-    ).all()
-
-
-def update_exam_notification(
-    db: Session,
-    notification_id: int,
-    payload: ExamNotificationUpdate
-):
-    notification = db.query(ExamNotificationLog).filter(
-        ExamNotificationLog.id == notification_id,
-        ExamNotificationLog.is_active == True
-    ).first()
-
-    if not notification:
-        raise HTTPException(status_code=404, detail="Notification not found")
-
-    for key, value in payload.dict(exclude_unset=True).items():
-        setattr(notification, key, value)
-
-    notification.modified_date = datetime.utcnow()
-    db.commit()
-    db.refresh(notification)
-    return notification
-
-def get_exam_notification_by_id(
-    db: Session,
-    notification_id: int
-):
-    notification = db.query(ExamNotificationLog).filter(
-        ExamNotificationLog.id == notification_id,
-        ExamNotificationLog.is_active == True
-    ).first()
-
-    if not notification:
-        raise HTTPException(
-            status_code=404,
-            detail="Exam notification not found"
-        )
-
-    return notification

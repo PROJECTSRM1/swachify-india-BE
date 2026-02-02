@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 
 # ======================================================
@@ -157,12 +157,15 @@ class StudentResponse(BaseModel):
 
 #ExamSchedule
 class ExamScheduleCreate(BaseModel):
-    branch_id: int
+    institution_id: int
     exam_type: str
     subject_name: str
     exam_date: date
+    start_time: time
+    end_time: time
+    location: str
     created_by: int
-
+    
 #ExamList 
 
 class ExamScheduleListResponse(BaseModel):
