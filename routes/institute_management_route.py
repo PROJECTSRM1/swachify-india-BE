@@ -16,6 +16,8 @@ from schemas.institution_schema import (
     BusAlertUpdate,
     EnrollmentStatusCreate,
     EnrollmentStatusResponse,
+    ExamNotificationCreate,
+    ExamNotificationResponse,
     MaintenanceBudgetCreate,
     MaintenanceBudgetResponse,
     PayrollSummaryCreate,
@@ -29,6 +31,7 @@ from services.institution_service import (
     create_bus,
     create_bus_alert,
     create_enrollment_status,
+    create_exam_notification,
     create_maintenance_budget_service,
     create_maintenance_budget_service,
     create_payroll_summary,
@@ -37,6 +40,7 @@ from services.institution_service import (
     get_all_alerts,
     get_all_staff,
     get_all_staff,
+    get_exam_notification_by_id,
     get_management_overview,
     get_payslips_by_staff,
     get_staff_payslip_summary,
@@ -127,3 +131,24 @@ def fetch_staff_payslip_summary(db: Session = Depends(get_db)):
 @router.post("/maintenance_budget", response_model=MaintenanceBudgetResponse)
 def create_maintenance_budget(payload: MaintenanceBudgetCreate,db: Session = Depends(get_db)):
     return create_maintenance_budget_service(payload, db)
+
+@router.post(
+    "/exam-notification",
+    response_model=ExamNotificationResponse
+)
+def create_exam_notification_api(
+    payload: ExamNotificationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_exam_notification(db, payload)
+
+
+@router.get(
+    "/exam-notification/id/{notification_id}",
+    response_model=ExamNotificationResponse
+)
+def get_exam_notification_by_id_api(
+    notification_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_exam_notification_by_id(db, notification_id)
