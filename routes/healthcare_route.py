@@ -13,7 +13,9 @@ from schemas.healthcare_schema import (
     DoctorResponseSchema,
     HospitalAmbulanceResponseSchema,
     PaymentCreateSchema,
-    PaymentResponseSchema
+    PaymentResponseSchema,
+    AvailableLabCreate, 
+    AvailableLabResponse
     
 )
 from services.healthcare_service import (
@@ -30,7 +32,9 @@ from services.healthcare_service import (
     release_ambulance_booking,
     create_payment,
     get_doctor_bookings,
-    get_my_bookings_by_user
+    get_my_bookings_by_user,
+    # get_all_labs_service, 
+    create_lab_service
 )
 
 
@@ -129,3 +133,19 @@ def fetch_available_labs_list(
     db: Session = Depends(get_db)
 ):
     return get_available_labs_list_service(db, filter_type)
+
+
+
+
+# -------- GET ALL --------
+# @router.get("/healthcare", response_model=List[AvailableLabResponse])
+# def get_labs(db: Session = Depends(get_db)):
+#     return get_all_labs_service(db)
+
+# -------- POST --------
+@router.post("/available-labs", response_model=AvailableLabResponse)
+def create_lab(
+    lab: AvailableLabCreate,
+    db: Session = Depends(get_db)
+):
+    return create_lab_service(db, lab)
