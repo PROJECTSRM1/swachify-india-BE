@@ -32,9 +32,6 @@ from schemas.institution_schema import (
     StudentProfileCreate,
     StudentProfileUpdate
 )
-from sqlalchemy.orm import Session
-from fastapi import HTTPException
-from datetime import datetime
 
 from models.generated_models import ExamInvigilationAssignment
 from schemas.institution_schema import (

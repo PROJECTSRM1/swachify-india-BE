@@ -1,7 +1,4 @@
 
-
-
-
 from email.mime import text
 from fastapi import APIRouter, Depends, Path
 from fastapi.params import Query
@@ -17,12 +14,9 @@ from schemas.institution_schema import (
     BusAlertUpdate,
     EnrollmentStatusCreate,
     EnrollmentStatusResponse,
-<<<<<<< HEAD
-=======
     ExamNotificationCreate,
     ExamNotificationResponse,
     ExamScheduleCreate,
->>>>>>> 9ba17f339aab3887fbce719ecde7350e15503460
     MaintenanceBudgetCreate,
     MaintenanceBudgetResponse,
     PayrollSummaryCreate,
@@ -37,11 +31,8 @@ from services.institution_service import (
     create_bus,
     create_bus_alert,
     create_enrollment_status,
-<<<<<<< HEAD
-=======
     create_exam_notification,
     create_exam_schedule,
->>>>>>> 9ba17f339aab3887fbce719ecde7350e15503460
     create_maintenance_budget_service,
     create_maintenance_budget_service,
     create_payroll_summary,
@@ -51,13 +42,10 @@ from services.institution_service import (
     get_all_alerts,
     get_all_staff,
     get_all_staff,
-<<<<<<< HEAD
-=======
     get_bus_fleet,
     get_staff_payslip_summary,
     get_bus_fleet,
     get_exam_notification_by_id,
->>>>>>> 9ba17f339aab3887fbce719ecde7350e15503460
     get_management_overview,
     get_payslips_by_staff,
     get_staff_payslip_summary,
@@ -216,19 +204,8 @@ def create_exam_invigilation_api(
 
 
 @router.get(
-<<<<<<< HEAD
-    "/exam/invigilation/{assignment_id}",
-    response_model=ExamInvigilationAssignmentResponse
-)
-def get_exam_invigilation_api(
-    assignment_id: int = Path(..., gt=0),
-    db: Session = Depends(get_db)
-):
-    return get_exam_invigilation_assignment_by_id(db, assignment_id)
-=======
     "/bus-fleet/get-all-buses",
     response_model=list[BusFleetResponse]
 )
 def get_bus_fleet_api(db: Session = Depends(get_db)):
     return get_bus_fleet(db)
->>>>>>> 9ba17f339aab3887fbce719ecde7350e15503460
