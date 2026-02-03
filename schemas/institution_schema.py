@@ -401,6 +401,26 @@ class ExamNotificationResponse(BaseModel):
     class Config:
         from_attributes = True
 
+#payroll 
+
+
+
+# -------- CREATE --------
+class PayrollPeriodCreate(BaseModel):
+    month: str
+    year: int
+    start_date: Optional[datetime]
+    end_date: Optional[datetime]
+    created_by: Optional[int]
+
+
+# -------- RESPONSE --------
+class PayrollPeriodResponse(BaseModel):
+    id: int
+    month: str
+    year: int
+    start_date: Optional[datetime]
+    end_date: Optional[datetime]
 
 
 class ExamReminderCreate(BaseModel):
@@ -428,6 +448,7 @@ class ExamReminderResponse(BaseModel):
         from_attributes = True
 
 
+
 class ExamInvigilationAssignmentBase(BaseModel):
     exam_schedule_id: int
     staff_id: int
@@ -451,6 +472,53 @@ class ExamInvigilationAssignmentResponse(ExamInvigilationAssignmentBase):
     created_date: Optional[datetime]
     modified_by: Optional[int]
     modified_date: Optional[datetime]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attributes = True
+
+# salary earning 
+
+class SalaryEarningsCreate(BaseModel):
+    payroll_period_id: int
+    total_net_disbursement: Decimal
+    total_deduction: Decimal
+    staff_count: Optional[int] = None
+    status: Optional[str] = None
+
+    basic_salary: Optional[Decimal] = None
+    hra: Optional[Decimal] = None
+    medical: Optional[Decimal] = None
+    conveyance: Optional[Decimal] = None
+    gross_earnings: Optional[Decimal] = None
+
+    pf: Optional[Decimal] = None
+    professional_tax: Optional[Decimal] = None
+    insurance: Optional[Decimal] = None
+
+    created_by: Optional[int] = None
+
+class SalaryEarningsResponse(BaseModel):
+    id: int
+    payroll_period_id: int
+    total_net_disbursement: Decimal
+    total_deduction: Decimal
+    staff_count: Optional[int]
+    status: Optional[str]
+
+    basic_salary: Optional[Decimal]
+    hra: Optional[Decimal]
+    medical: Optional[Decimal]
+    conveyance: Optional[Decimal]
+    gross_earnings: Optional[Decimal]
+
+    pf: Optional[Decimal]
+    professional_tax: Optional[Decimal]
+    insurance: Optional[Decimal]
+
+    created_by: Optional[int]
+    created_date: Optional[datetime]
+    is_active: Optional[bool]
 
     class Config:
         from_attributes = True

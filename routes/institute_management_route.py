@@ -25,8 +25,12 @@ from schemas.institution_schema import (
     ExamScheduleCreate,
     MaintenanceBudgetCreate,
     MaintenanceBudgetResponse,
+    PayrollPeriodCreate,
+    PayrollPeriodResponse,
     PayrollSummaryCreate,
     PayrollSummaryResponse,
+    SalaryEarningsCreate,
+    SalaryEarningsResponse,
     StaffPayslipCreate,
     StaffPayslipResponse,
     StaffProfileCreate,
@@ -42,7 +46,9 @@ from services.institution_service import (
     create_exam_schedule,
     create_maintenance_budget_service,
     create_maintenance_budget_service,
+    create_payroll_period,
     create_payroll_summary,
+    create_salary_earnings,
     create_staff_payslip,
     create_staff_profile,
     fetch_exam_schedule,
@@ -233,3 +239,28 @@ def get_assignment(
 )
 def get_bus_fleet_api(db: Session = Depends(get_db)):
     return get_bus_fleet(db)
+
+
+@router.post(
+    "/payroll-period",
+    response_model=PayrollPeriodResponse
+)
+def create_payroll_period_api(
+    payload: PayrollPeriodCreate,
+    db: Session = Depends(get_db)
+):
+    return create_payroll_period(db, payload)
+
+
+@router.post(
+    "/salary-earnings",
+    response_model=SalaryEarningsResponse
+)
+def create_salary_earnings_api(
+    payload: SalaryEarningsCreate,
+    db: Session = Depends(get_db)
+):
+    return create_salary_earnings(db, payload)
+
+
+
