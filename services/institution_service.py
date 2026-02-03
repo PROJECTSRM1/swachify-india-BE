@@ -300,24 +300,42 @@ def get_bus_fleet(db: Session):
 
 #management
 
+# def get_management_overview(
+#     db: Session,
+#     institution_id: int,
+#     academic_year: str
+# ):
+#     query = text("""
+#         SELECT * 
+#         FROM fn_get_management_overview(:institution_id, :academic_year)
+#     """)
+
+#     result = db.execute(
+#         query,
+#         {
+#             "institution_id": institution_id,
+#             "academic_year": academic_year
+#         }
+        
+#     )
+
+#     return result.mappings().all()
 def get_management_overview(
     db: Session,
-    institution_id: int,
-    academic_year: str
+    institution_id: int | None = None,
+    academic_year: str | None = None
 ):
     query = text("""
-        SELECT * 
-        FROM fn_get_management_overview(:institution_id, :academic_year)
+        SELECT *
+        FROM public.fn_get_management_overview(:institution_id, :academic_year)
     """)
 
-    result = db.execute(
-        query,
-        {
-            "institution_id": institution_id,
-            "academic_year": academic_year
-        }
-        
-    )
+    params = {
+        "institution_id": institution_id if institution_id is not None else -1,
+        "academic_year": academic_year if academic_year is not None else "-1"
+    }
+
+    result = db.execute(query, params)
 
     return result.mappings().all()
 
