@@ -48,7 +48,7 @@ def get_user_appointments(user_id: int,db: Session = Depends(get_db)):
 #     return get_available_doctors(db)
 
 
-@router.get("/ambulances")
+@router.get("/available-ambulances")
 def fetch_hospital_ambulances(hospital_id: int = -1,db: Session = Depends(get_db)):
     return get_hospital_ambulance_list(db, hospital_id)
 
