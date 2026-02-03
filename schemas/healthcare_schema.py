@@ -1,8 +1,7 @@
 from pydantic import BaseModel,Field
-from typing import Optional
-from datetime import datetime
+from typing import Optional, List
+from datetime import datetime, time
 
-from datetime import time
 from decimal import Decimal
 
 class AppointmentCreateSchema(BaseModel):
@@ -164,3 +163,47 @@ class PaymentResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+        
+        
+        
+
+
+# -------- CREATE SCHEMA (POST) --------
+class AvailableLabCreate(BaseModel):
+    lab_name: str
+    services: Optional[str] = None
+    rating: Optional[int] = None
+    home_collection: Optional[bool] = None
+    latitude: Optional[Decimal] = None
+    longitude: Optional[Decimal] = None
+    upload_prescription: Optional[str] = None
+    proceed_type: Optional[str] = None
+    delivery_address: Optional[str] = None
+    special_instructions: Optional[str] = None
+    specialization_id: Optional[int] = None
+    fees_per_test: Optional[Decimal] = None
+    available_from: Optional[time] = None
+    available_to: Optional[time] = None
+    estimated_delivery: Optional[str] = None
+
+
+# -------- RESPONSE SCHEMA (GET) --------
+class AvailableLabResponse(BaseModel):
+    id: int
+    lab_name: str
+    services: Optional[str]
+    rating: Optional[int]
+    home_collection: Optional[bool]
+    is_active: Optional[bool]
+    latitude: Optional[Decimal]
+    longitude: Optional[Decimal]
+    specialization_id: Optional[int]
+    fees_per_test: Optional[Decimal]
+    available_from: Optional[time]
+    available_to: Optional[time]
+    estimated_delivery: Optional[str]
+    is_available: Optional[bool]
+
+    class Config:
+       from_attributes = True
+        
