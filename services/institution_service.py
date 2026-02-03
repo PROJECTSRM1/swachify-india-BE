@@ -16,7 +16,7 @@ from models.generated_models import (
     MaintenanceBudget,
     PayrollPeriod,
     PayrollSummary,
-    SalaryOverview,
+    SalaryEarnings,
     StaffPayslip,
     StaffProfile,
     StudentProfile
@@ -37,7 +37,7 @@ from schemas.institution_schema import (
     MaintenanceBudgetCreate,
     PayrollPeriodCreate,
     PayrollSummaryCreate,
-    SalaryOverviewCreate,
+    SalaryEarningsCreate,
     StaffPayslipCreate,
     StaffProfileCreate,
     StudentAcademicDetailsSchema,
@@ -541,37 +541,6 @@ def create_payroll_period(db: Session, data: PayrollPeriodCreate):
     return payroll_period
 
 
-#salary overveiw
-
-def create_salary_overview(db: Session, data: SalaryOverviewCreate):
-    salary = SalaryOverview(
-        payroll_period_id=data.payroll_period_id,
-        total_net_disbursement=data.total_net_disbursement,
-        gross_earnings=data.gross_earnings,
-        total_deductions=data.total_deductions,
-        staff_count=data.staff_count,
-        status=data.status,
-        created_by=data.created_by,
-        is_active=True
-    )
-
-    db.add(salary)
-    db.commit()
-    db.refresh(salary)   # 🔑 fetches DB-generated fields like id, created_date
-
-    return salary
-
-# get for salary overveiw 
-
-def get_salary_overviews(db: Session):
-    return (
-        db.query(SalaryOverview)
-        .filter(SalaryOverview.is_active == True)
-        .order_by(SalaryOverview.created_date.desc())
-        .all()
-    )
-
-
 def create_exam_reminder_service(db: Session, payload: ExamReminderCreate):
 
     reminder = ExamReminderSettings(
@@ -659,3 +628,24 @@ def delete_exam_invigilation_assignment(
     assignment.modified_date = datetime.utcnow()
     db.commit()
     return {"message": "Exam invigilation assignment deactivated"}
+
+# salary earnings 
+
+def create_salary_earnings(db: Session, data: SalaryEarningsCreate):
+    earnings = SalaryEarnings(
+        salary_overview_id=data.salary_overview_id,
+        basic_salary=data.basic_salary,
+        hra=data.hra,
+        medical=data.medical,
+        conveyance=data.conveyance,
+        gross_earnings=data.gross_earnings,
+        created_by=data.created_by,
+        is_active=True
+    )
+
+    db.add(earnings)
+    db.commit()
+    db.refresh(earnings)
+
+    return earnings
+

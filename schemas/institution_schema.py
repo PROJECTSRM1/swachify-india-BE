@@ -447,29 +447,7 @@ class ExamReminderResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# salary overveiw 
 
-
-# -------- CREATE --------
-class SalaryOverviewCreate(BaseModel):
-    payroll_period_id: int
-    total_net_disbursement: Decimal
-    gross_earnings: Decimal
-    total_deductions: Decimal
-    staff_count: Optional[int]
-    status: Optional[str]
-    created_by: Optional[int]
-
-
-# -------- RESPONSE --------
-class SalaryOverviewResponse(BaseModel):
-    id: int
-    payroll_period_id: int
-    total_net_disbursement: Decimal
-    gross_earnings: Decimal
-    total_deductions: Decimal
-    staff_count: Optional[int]
-    status: Optional[str]
 
 class ExamInvigilationAssignmentBase(BaseModel):
     exam_schedule_id: int
@@ -499,16 +477,25 @@ class ExamInvigilationAssignmentResponse(ExamInvigilationAssignmentBase):
     class Config:
         from_attributes = True
 
-# salary overveiw  get 
+# salary earning 
 
-class SalaryOverviewResponse(BaseModel):
+class SalaryEarningsCreate(BaseModel):
+    salary_overview_id: int
+    basic_salary: Optional[Decimal]
+    hra: Optional[Decimal]
+    medical: Optional[Decimal]
+    conveyance: Optional[Decimal]
+    gross_earnings: Optional[Decimal]
+    created_by: Optional[int]
+
+class SalaryEarningsResponse(BaseModel):
     id: int
-    payroll_period_id: int
-    total_net_disbursement: Decimal
-    gross_earnings: Decimal
-    total_deductions: Decimal
-    staff_count: Optional[int]
-    status: Optional[str]
+    salary_overview_id: int
+    basic_salary: Optional[Decimal]
+    hra: Optional[Decimal]
+    medical: Optional[Decimal]
+    conveyance: Optional[Decimal]
+    gross_earnings: Optional[Decimal]
     created_by: Optional[int]
     created_date: Optional[datetime]
     modified_by: Optional[int]
@@ -517,3 +504,4 @@ class SalaryOverviewResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
