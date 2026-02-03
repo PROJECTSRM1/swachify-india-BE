@@ -307,8 +307,14 @@ def release_ambulance_booking(
     }
 
 
+
 def get_available_hospitals(db: Session):
-    query = text(""" SELECT *FROM fn_get_available_hospitals() """)
+    query = text("""
+        SELECT *
+        FROM fn_get_available_hospitals()
+    """)
+
+    return db.execute(query).mappings().all()
 
 def get_available_labs(db: Session):
     query = text("""
