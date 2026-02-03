@@ -52,6 +52,7 @@ from services.institution_service import (
     get_all_staff,
     get_bus_fleet,
     get_exam_invigilation_assignment_by_id,
+    get_salary_summary_service,
     get_staff_payslip_summary,
     get_bus_fleet,
     get_exam_notification_by_id,
@@ -141,6 +142,21 @@ def get_payslips_by_staff_api(staff_id: str,db: Session = Depends(get_db)):
 @router.get("/payslip-summary")
 def fetch_staff_payslip_summary(db: Session = Depends(get_db)):
     return get_staff_payslip_summary(db)
+
+
+@router.get("/salary-summary")
+def get_salary_summary(
+    year: int | None = Query(None),
+    month: str | None = Query(None),
+    status: str | None = Query(None),
+    db: Session = Depends(get_db),
+):
+    return get_salary_summary_service(
+        db=db,
+        year=year,
+        month=month,
+        status=status,
+    )
 
 @router.post("/maintenance_budget", response_model=MaintenanceBudgetResponse)
 def create_maintenance_budget(payload: MaintenanceBudgetCreate,db: Session = Depends(get_db)):

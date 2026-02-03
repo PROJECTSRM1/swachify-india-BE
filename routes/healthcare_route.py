@@ -94,6 +94,7 @@ def make_payment(
 ):
     return create_payment(db, data)
 
+
 @router.get("/bookings/view-my-bookings/{user_id}")
 def fetch_doctor_bookings(
     user_id: int = Path(..., gt=0),
