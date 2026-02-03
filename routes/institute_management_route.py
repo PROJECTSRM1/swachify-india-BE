@@ -1,4 +1,7 @@
 
+
+
+
 from email.mime import text
 from fastapi import APIRouter, Depends, Path
 from fastapi.params import Query
@@ -180,32 +183,28 @@ def create_assignment(
     return create_exam_invigilation_assignment(db, payload)
 
 
-# @router.get(
-#     "/",
-#     response_model=list[ExamInvigilationAssignmentResponse]
-# )
-# def get_assignments(db: Session = Depends(get_db)):
-#     return get_all_exam_invigilation_assignments(db)
-
 
 # ======================================================
 # EXAM INVIGILATION (MANAGEMENT)
 # ======================================================
 
+
 @router.post(
-    "/exam/invigilation",
+    "/",
     response_model=ExamInvigilationAssignmentResponse
 )
-def create_exam_invigilation_api(
+def create_assignment(
     payload: ExamInvigilationAssignmentCreate,
     db: Session = Depends(get_db)
 ):
     return create_exam_invigilation_assignment(db, payload)
 
-
 @router.get(
-    "/bus-fleet/get-all-buses",
-    response_model=list[BusFleetResponse]
+    "Exam/{assignment_id}",
+    response_model=ExamInvigilationAssignmentResponse
 )
-def get_bus_fleet_api(db: Session = Depends(get_db)):
-    return get_bus_fleet(db)
+def get_assignment(
+    assignment_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_exam_invigilation_assignment_by_id(db, assignment_id)
