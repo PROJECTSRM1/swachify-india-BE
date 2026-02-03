@@ -53,7 +53,7 @@ def get_user_appointments(user_id: int,db: Session = Depends(get_db)):
 #     return get_available_doctors(db)
 
 
-@router.get("/ambulances")
+@router.get("/available-ambulances")
 def fetch_hospital_ambulances(hospital_id: int = -1,db: Session = Depends(get_db)):
     return get_hospital_ambulance_list(db, hospital_id)
 
@@ -94,16 +94,9 @@ def make_payment(
 ):
     return create_payment(db, data)
 
-@router.get("/bookings/doctor/{user_id}")
+@router.get("/bookings/view-my-bookings/{user_id}")
 def fetch_doctor_bookings(
     user_id: int = Path(..., gt=0),
     db: Session = Depends(get_db)
 ):
     return get_doctor_bookings(db, user_id)
-
-@router.get("/bookings/user/{user_id}")
-def fetch_bookings_by_user(
-    user_id: int = Path(..., gt=0),
-    db: Session = Depends(get_db)
-):
-    return get_my_bookings_by_user(db, user_id)
