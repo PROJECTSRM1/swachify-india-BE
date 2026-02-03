@@ -3,9 +3,10 @@ from fastapi import HTTPException,status
 from datetime import datetime
 
 from sqlalchemy import text
-from models.generated_models import AmbulanceBooking, Appointments, DoctorProfile, MasterConsultationType, MasterHospital,UserRegistration,MasterAmbulance, MasterDoctorSpecialization
+from models.generated_models import AmbulanceBooking, Appointments, DoctorProfile, MasterConsultationType, MasterHospital,UserRegistration,MasterAmbulance, MasterDoctorSpecialization,AvailableLabs
 from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema,DoctorCreateSchema
-from schemas.healthcare_schema import PaymentCreateSchema
+from schemas.healthcare_schema import PaymentCreateSchema, AvailableLabCreate
+
 from models.generated_models import Payments, ServiceRequests
 
 
@@ -447,3 +448,23 @@ def get_available_labs_list_service(
         query,
         {"filter_type": filter_type}
     ).mappings().all()
+    
+    
+    
+    
+    
+   
+
+
+# # -------- GET ALL LABS --------
+# def get_all_labs_service(db: Session):
+#     return db.query(AvailableLabs).filter(AvailableLabs.is_active == True).all()
+
+
+# -------- CREATE LAB --------
+def create_lab_service(db: Session, lab_data: AvailableLabCreate):
+    new_lab = AvailableLabs(**lab_data.dict())
+    db.add(new_lab)
+    db.commit()
+    db.refresh(new_lab)
+    return new_lab
