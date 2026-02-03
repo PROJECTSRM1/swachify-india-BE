@@ -21,7 +21,8 @@ from services.healthcare_service import (
     create_healthcare_appointment,
     get_available_hospitals,
     get_available_labs,
-    get_available_pharmacies,
+    get_available_labs_list_service,
+    get_available_pharmacies_service,
     get_healthcare_appointments_by_user,
     create_doctor_profile,
     get_available_doctors,
@@ -69,9 +70,9 @@ def release_ambulance(booking_id: int,db: Session = Depends(get_db)):
 def fetch_available_hospitals(db: Session = Depends(get_db)):
     return get_available_hospitals(db)
 
-@router.get("/available-labs")
-def fetch_available_labs(db: Session = Depends(get_db)):
-    return get_available_labs(db)
+# @router.get("/available-labs")
+# def fetch_available_labs(db: Session = Depends(get_db)):
+#     return get_available_labs(db)
 
 @router.get("/available-doctors")
 def fetch_available_doctors(
@@ -80,8 +81,20 @@ def fetch_available_doctors(
     return get_available_doctors(db)
 
 @router.get("/available-pharmacies")
-def fetch_available_pharmacies(db: Session = Depends(get_db)):
-    return get_available_pharmacies(db)
+def fetch_available_pharmacies(
+    filter_type: str = Query(
+        "ALL",
+        enum=[
+            "ALL",
+            "NEARBY",
+            "RATING_4_5_PLUS",
+            "HOME_DELIVERY"
+        ],
+        description="Filter pharmacies list"
+    ),
+    db: Session = Depends(get_db)
+):
+    return get_available_pharmacies_service(db, filter_type)
 
 @router.post(
     "/payments",
@@ -101,3 +114,18 @@ def fetch_doctor_bookings(
     db: Session = Depends(get_db)
 ):
     return get_doctor_bookings(db, user_id)
+@router.get("/available-labs")
+def fetch_available_labs_list(
+    filter_type: str = Query(
+        "ALL",
+        enum=[
+            "ALL",
+            "NEARBY",
+            "RATING_4_5_PLUS",
+            "HOME_COLLECT"
+        ],
+        description="Filter labs list"
+    ),
+    db: Session = Depends(get_db)
+):
+    return get_available_labs_list_service(db, filter_type)
