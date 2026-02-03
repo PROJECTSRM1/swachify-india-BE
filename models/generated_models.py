@@ -33,35 +33,6 @@ class AiDocuments(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
 
-class AvailableLabs(Base):
-    __tablename__ = 'available_labs'
-    __table_args__ = (
-        CheckConstraint('rating >= 1 AND rating <= 5', name='ck_master_labs_rating'),
-        PrimaryKeyConstraint('id', name='pk_master_labs_id'),
-        UniqueConstraint('lab_name', name='master_labs_lab_name_key')
-    )
-
-    id: Mapped[int] = mapped_column(BigInteger, Sequence('master_labs_id_seq'), primary_key=True)
-    lab_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    services: Mapped[Optional[str]] = mapped_column(String(255))
-    rating: Mapped[Optional[int]] = mapped_column(Integer)
-    home_collection: Mapped[Optional[bool]] = mapped_column(Boolean)
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-    latitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
-    longitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
-    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
-    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-    upload_prescription: Mapped[Optional[str]] = mapped_column(String(500))
-    proceed_type: Mapped[Optional[str]] = mapped_column(String(255))
-    delivery_address: Mapped[Optional[str]] = mapped_column(String(255))
-    special_instructions: Mapped[Optional[str]] = mapped_column(String(255))
-
-    service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='lab')
-    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='labs')
-
-
 class AvailablePharmacies(Base):
     __tablename__ = 'available_pharmacies'
     __table_args__ = (
@@ -87,6 +58,9 @@ class AvailablePharmacies(Base):
     proceed_type: Mapped[Optional[str]] = mapped_column(String(255))
     delivery_address: Mapped[Optional[str]] = mapped_column(String(255))
     special_instructions: Mapped[Optional[str]] = mapped_column(String(255))
+    open_from: Mapped[Optional[datetime.time]] = mapped_column(Time)
+    open_to: Mapped[Optional[datetime.time]] = mapped_column(Time)
+    home_delivery: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
 
     service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='pharmacy')
     appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='pharmacies')
@@ -569,6 +543,21 @@ class MasterJobSkill(Base):
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='job_skill')
 
 
+class MasterLabSpecialization(Base):
+    __tablename__ = 'master_lab_specialization'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_lab_specialization_id'),
+        UniqueConstraint('specialization_name', name='master_lab_specialization_specialization_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    specialization_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    available_labs: Mapped[list['AvailableLabs']] = relationship('AvailableLabs', back_populates='specialization')
+
+
 class MasterLandType(Base):
     __tablename__ = 'master_land_type'
     __table_args__ = (
@@ -1044,41 +1033,6 @@ t_vw_active_job_openings = Table(
 )
 
 
-t_vw_available_labs = Table(
-    'vw_available_labs', Base.metadata,
-    Column('lab_id', BigInteger),
-    Column('lab_name', String(255)),
-    Column('services', String(255)),
-    Column('rating', Integer),
-    Column('home_collection', Boolean),
-    Column('is_active', Boolean),
-    Column('latitude', Numeric(9, 6)),
-    Column('longitude', Numeric(9, 6)),
-    Column('upload_prescription', String(500)),
-    Column('proceed_type', String(255)),
-    Column('delivery_address', String(255)),
-    Column('special_instructions', String(255))
-)
-
-
-t_vw_available_pharmacies = Table(
-    'vw_available_pharmacies', Base.metadata,
-    Column('pharmacy_id', BigInteger),
-    Column('pharmacy_name', String(255)),
-    Column('pharmacy_type', String(100)),
-    Column('services', String(255)),
-    Column('rating', Integer),
-    Column('delivery_time', String(50)),
-    Column('is_active', Boolean),
-    Column('latitude', Numeric(9, 6)),
-    Column('longitude', Numeric(9, 6)),
-    Column('upload_prescription', String(500)),
-    Column('proceed_type', String(255)),
-    Column('delivery_address', String(255)),
-    Column('special_instructions', String(255))
-)
-
-
 t_vw_company_list = Table(
     'vw_company_list', Base.metadata,
     Column('company_id', BigInteger),
@@ -1165,6 +1119,43 @@ t_vw_students_get_list = Table(
     Column('internship_status', String(255)),
     Column('rating', Numeric)
 )
+
+
+class AvailableLabs(Base):
+    __tablename__ = 'available_labs'
+    __table_args__ = (
+        CheckConstraint('rating >= 1 AND rating <= 5', name='ck_master_labs_rating'),
+        ForeignKeyConstraint(['specialization_id'], ['master_lab_specialization.id'], name='fk_available_labs_specialization_id'),
+        PrimaryKeyConstraint('id', name='pk_master_labs_id'),
+        UniqueConstraint('lab_name', name='master_labs_lab_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Sequence('master_labs_id_seq'), primary_key=True)
+    lab_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    services: Mapped[Optional[str]] = mapped_column(String(255))
+    rating: Mapped[Optional[int]] = mapped_column(Integer)
+    home_collection: Mapped[Optional[bool]] = mapped_column(Boolean)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    latitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
+    longitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 6))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    upload_prescription: Mapped[Optional[str]] = mapped_column(String(500))
+    proceed_type: Mapped[Optional[str]] = mapped_column(String(255))
+    delivery_address: Mapped[Optional[str]] = mapped_column(String(255))
+    special_instructions: Mapped[Optional[str]] = mapped_column(String(255))
+    specialization_id: Mapped[Optional[int]] = mapped_column(Integer)
+    fees_per_test: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    available_from: Mapped[Optional[datetime.time]] = mapped_column(Time)
+    available_to: Mapped[Optional[datetime.time]] = mapped_column(Time)
+    estimated_delivery: Mapped[Optional[str]] = mapped_column(String(50))
+    is_available: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    specialization: Mapped[Optional['MasterLabSpecialization']] = relationship('MasterLabSpecialization', back_populates='available_labs')
+    service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='lab')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='labs')
 
 
 class BusAlertLog(Base):
@@ -1748,7 +1739,7 @@ class UserRegistration(Base):
 class DoctorProfile(Base):
     __tablename__ = 'doctor_profile'
     __table_args__ = (
-        CheckConstraint('rating >= 1 AND rating <= 5', name='ck_doctor_profile_rating'),
+        CheckConstraint('rating >= 1::numeric AND rating <= 5::numeric', name='ck_doctor_profile_rating'),
         ForeignKeyConstraint(['consultation_type_id'], ['master_consultation_type.id'], name='doctor_profile_consultation_type_id_fkey'),
         ForeignKeyConstraint(['hospital_id'], ['master_hospital.id'], name='doctor_profile_hospital_id_fkey'),
         ForeignKeyConstraint(['specialization_id'], ['master_doctor_specialization.id'], name='fk_doctor_profile_specialization_id'),
@@ -1761,7 +1752,7 @@ class DoctorProfile(Base):
     user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     specialization_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     experience_years: Mapped[Optional[int]] = mapped_column(Integer)
-    rating: Mapped[Optional[int]] = mapped_column(Integer)
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
     fees_per_hour: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
@@ -1770,7 +1761,7 @@ class DoctorProfile(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
     available_from: Mapped[Optional[datetime.time]] = mapped_column(Time)
     available_to: Mapped[Optional[datetime.time]] = mapped_column(Time)
-    is_available: Mapped[Optional[bool]] = mapped_column(Boolean)
+    is_available: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
     hospital_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     consultation_type_id: Mapped[Optional[int]] = mapped_column(Integer)
 
