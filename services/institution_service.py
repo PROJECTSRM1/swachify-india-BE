@@ -522,8 +522,6 @@ def get_exam_notification_by_id(
 
 #payroll period
 
-
-
 def create_payroll_period(db: Session, data: PayrollPeriodCreate):
     payroll_period = PayrollPeriod(
         month=data.month,
