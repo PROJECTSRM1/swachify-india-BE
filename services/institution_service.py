@@ -703,3 +703,22 @@ def create_salary_earnings(db: Session, data: SalaryEarningsCreate):
     db.refresh(earnings)
 
     return earnings
+
+
+def get_student_full_details_service(
+    db: Session,
+    student_id: str,
+    branch_id: int
+):
+    query = text("""
+        SELECT *
+        FROM fn_get_student_full_details(:student_id, :branch_id)
+    """)
+
+    return db.execute(
+        query,
+        {
+            "student_id": student_id,
+            "branch_id": branch_id
+        }
+    ).mappings().all()
