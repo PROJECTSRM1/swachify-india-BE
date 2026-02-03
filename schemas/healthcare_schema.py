@@ -131,3 +131,31 @@ class AmbulanceBookingResponseSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
+class PaymentCreateSchema(BaseModel):
+    service_request_id: int
+    user_id: int
+    amount: Decimal = Field(..., gt=0)
+    payment_method: str  # CARD | UPI | CASH
+    appointment_id: Optional[int] = None
+    transaction_id: Optional[str] = None
+    remarks: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PaymentResponseSchema(BaseModel):
+    id: int
+    service_request_id: int
+    user_id: int
+    amount: Decimal
+    payment_method: str
+    appointment_id: Optional[int]
+    payment_status: Optional[str]
+    transaction_id: Optional[str]
+    remarks: Optional[str]
+    created_date: datetime
+
+    class Config:
+        from_attributes = True
