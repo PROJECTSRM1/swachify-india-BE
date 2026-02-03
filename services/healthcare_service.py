@@ -80,14 +80,13 @@ def create_healthcare_appointment(
     return appointment
 
 
-def get_healthcare_appointments_by_user(
-    db: Session,
-    user_id: int
-):
+def get_healthcare_appointments_by_user(db: Session, user_id: int):
     return db.query(Appointments).filter(
         Appointments.user_id == user_id,
-        Appointments.is_active == True
+        Appointments.is_active == True,
+        Appointments.consultation_type_id.isnot(None)
     ).all()
+
 
 #doctor
 
