@@ -629,6 +629,33 @@ def delete_exam_invigilation_assignment(
     db.commit()
     return {"message": "Exam invigilation assignment deactivated"}
 
+
+
+
+def get_salary_summary_service(
+    db: Session,
+    year: int | None = None,
+    month: str | None = None,
+    status: str | None = None,
+):
+    query = text("""
+        SELECT *
+        FROM vw_salary_summary
+        WHERE
+            (:year IS NULL OR year = :year)
+        AND (:month IS NULL OR month = :month)
+        AND (:status IS NULL OR status = :status)
+        ORDER BY year DESC, payroll_period_id DESC
+    """)
+
+    return db.execute(
+        query,
+        {
+            "year": year,
+            "month": month,
+            "status": status,
+        }
+    ).mappings().all()
 # salary earnings 
 
 def create_salary_earnings(db: Session, data: SalaryEarningsCreate):

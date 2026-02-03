@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from fastapi import HTTPException,status
 from datetime import datetime
 
 from sqlalchemy import text
@@ -416,4 +416,5 @@ def get_doctor_bookings(db: Session, user_id: int):
         query,
         {"user_id": user_id}
     ).mappings().all()
+
 
