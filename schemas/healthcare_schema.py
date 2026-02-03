@@ -151,12 +151,11 @@ class PaymentResponseSchema(BaseModel):
     user_id: int
     amount: Decimal
     payment_method: str
-    payment_status: str
     appointment_id: Optional[int]
+    payment_status: Optional[str]
     transaction_id: Optional[str]
     remarks: Optional[str]
     created_date: datetime
-    is_active: bool
 
     class Config:
         from_attributes = True

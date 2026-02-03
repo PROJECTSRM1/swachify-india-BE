@@ -351,16 +351,21 @@ def create_payment(
     ).first()
 
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid user")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user"
+        )
 
-    # 2️⃣ Validate Service Request
+    # 2️⃣ Validate Service Request (NO is_active column)
     service_request = db.query(ServiceRequests).filter(
-        ServiceRequests.id == data.service_request_id,
-        ServiceRequests.is_active == True
+        ServiceRequests.id == data.service_request_id
     ).first()
 
     if not service_request:
-        raise HTTPException(status_code=400, detail="Invalid service request")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid service request"
+        )
 
     # 3️⃣ Create Payment
     payment = Payments(
@@ -382,3 +387,33 @@ def create_payment(
     db.refresh(payment)
 
     return payment
+
+   
+  # ======================================================
+# MY BOOKINGS (VIEW: vw_my_bookings)
+# ======================================================
+
+def get_my_bookings_by_user(db: Session, user_id: int):
+    query = text("""
+        SELECT *
+        FROM vw_my_bookings
+        WHERE user_id = :user_id
+    """)
+    return db.execute(
+        query,
+        {"user_id": user_id}
+    ).mappings().all()
+
+
+def get_doctor_bookings(db: Session, user_id: int):
+    query = text("""
+        SELECT *
+        FROM vw_my_bookings
+        WHERE user_id = :user_id
+          AND service_type = 'DOCTOR'
+    """)
+    return db.execute(
+        query,
+        {"user_id": user_id}
+    ).mappings().all()
+

@@ -515,26 +515,26 @@ def get_exam_notification_by_id(
 # MY BOOKINGS (VIEW: vw_my_bookings)
 # ======================================================
 
-def get_my_bookings_by_user(db: Session, user_id: int):
-    query = text("""
-        SELECT *
-        FROM vw_my_bookings
-        WHERE user_id = :user_id
-    """)
-    return db.execute(
-        query,
-        {"user_id": user_id}
-    ).mappings().all()
+# def get_my_bookings_by_user(db: Session, user_id: int):
+#     query = text("""
+#         SELECT *
+#         FROM vw_my_bookings
+#         WHERE user_id = :user_id
+#     """)
+#     return db.execute(
+#         query,
+#         {"user_id": user_id}
+#     ).mappings().all()
 
 
-def get_doctor_bookings(db: Session, user_id: int):
-    query = text("""
-        SELECT *
-        FROM vw_my_bookings
-        WHERE user_id = :user_id
-          AND service_type = 'DOCTOR'
-    """)
-    return db.execute(
-        query,
-        {"user_id": user_id}
-    ).mappings().all()
+# def get_doctor_bookings(db: Session, user_id: int):
+#     query = text("""
+#         SELECT *
+#         FROM vw_my_bookings
+#         WHERE user_id = :user_id
+#           AND service_type = 'DOCTOR'
+#     """)
+#     return db.execute(
+#         query,
+#         {"user_id": user_id}
+#     ).mappings().all()
