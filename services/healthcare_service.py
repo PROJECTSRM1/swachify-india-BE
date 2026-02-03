@@ -173,11 +173,6 @@ def create_doctor_profile(
 
     return doctor
 
-def get_available_doctors(db):
-    return db.query(DoctorProfile).filter(
-        DoctorProfile.is_active == True,
-        DoctorProfile.is_available == True
-    ).all()
 
 def get_hospital_ambulance_list(db: Session, hospital_id: int):
     if hospital_id == -1:
@@ -194,7 +189,6 @@ def get_hospital_ambulance_list(db: Session, hospital_id: int):
             {"hospital_id": hospital_id}
         ).mappings().all()
     
-
 
 def create_ambulance_booking(
     db: Session,
