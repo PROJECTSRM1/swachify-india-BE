@@ -14,7 +14,9 @@ from models.generated_models import (
     InstitutionRegistration,
     InstitutionBranch,
     MaintenanceBudget,
+    PayrollPeriod,
     PayrollSummary,
+    SalaryEarnings,
     StaffPayslip,
     StaffProfile,
     StudentProfile
@@ -33,7 +35,9 @@ from schemas.institution_schema import (
     InstitutionRegistrationCreate,
     InstitutionBranchCreate,
     MaintenanceBudgetCreate,
+    PayrollPeriodCreate,
     PayrollSummaryCreate,
+    SalaryEarningsCreate,
     StaffPayslipCreate,
     StaffProfileCreate,
     StudentAcademicDetailsSchema,
@@ -516,33 +520,25 @@ def get_exam_notification_by_id(
 
     return notification
 
-  # ======================================================
-# MY BOOKINGS (VIEW: vw_my_bookings)
-# ======================================================
-
-# def get_my_bookings_by_user(db: Session, user_id: int):
-#     query = text("""
-#         SELECT *
-#         FROM vw_my_bookings
-#         WHERE user_id = :user_id
-#     """)
-#     return db.execute(
-#         query,
-#         {"user_id": user_id}
-#     ).mappings().all()
+#payroll period
 
 
-# def get_doctor_bookings(db: Session, user_id: int):
-#     query = text("""
-#         SELECT *
-#         FROM vw_my_bookings
-#         WHERE user_id = :user_id
-#           AND service_type = 'DOCTOR'
-#     """)
-#     return db.execute(
-#         query,
-#         {"user_id": user_id}
-#     ).mappings().all()
+
+def create_payroll_period(db: Session, data: PayrollPeriodCreate):
+    payroll_period = PayrollPeriod(
+        month=data.month,
+        year=data.year,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        created_by=data.created_by,
+        is_active=True
+    )
+
+    db.add(payroll_period)
+    db.commit()
+    db.refresh(payroll_period)  # fetch id, created_date from DB
+
+    return payroll_period
 
 
 def create_exam_reminder_service(db: Session, payload: ExamReminderCreate):
@@ -632,3 +628,60 @@ def delete_exam_invigilation_assignment(
     assignment.modified_date = datetime.utcnow()
     db.commit()
     return {"message": "Exam invigilation assignment deactivated"}
+
+
+
+
+def get_salary_summary_service(
+    db: Session,
+    year: int | None = None,
+    month: str | None = None,
+    status: str | None = None,
+):
+    query = text("""
+        SELECT *
+        FROM vw_salary_summary
+        WHERE
+            (:year IS NULL OR year = :year)
+        AND (:month IS NULL OR month = :month)
+        AND (:status IS NULL OR status = :status)
+        ORDER BY year DESC, payroll_period_id DESC
+    """)
+
+    return db.execute(
+        query,
+        {
+            "year": year,
+            "month": month,
+            "status": status,
+        }
+    ).mappings().all()
+# salary earnings 
+
+def create_salary_earnings(db: Session, data: SalaryEarningsCreate):
+    earnings = SalaryEarnings(
+        payroll_period_id=data.payroll_period_id,
+        total_net_disbursement=data.total_net_disbursement,
+        total_deduction=data.total_deduction,
+        staff_count=data.staff_count,
+        status=data.status,
+
+        basic_salary=data.basic_salary,
+        hra=data.hra,
+        medical=data.medical,
+        conveyance=data.conveyance,
+        gross_earnings=data.gross_earnings,
+
+        pf=data.pf,
+        professional_tax=data.professional_tax,
+        insurance=data.insurance,
+
+        created_by=data.created_by,
+        is_active=True
+    )
+
+    db.add(earnings)
+    db.commit()
+    db.refresh(earnings)
+
+    return earnings
