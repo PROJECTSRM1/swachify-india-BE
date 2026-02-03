@@ -32,7 +32,7 @@ class AppointmentCreateSchema(BaseModel):
 class AppointmentResponseSchema(BaseModel):
     id: int
     user_id: int
-    consultation_type_id: int
+    consultation_type_id: Optional[int] = None
     appointment_time: datetime
 
     doctor_id: Optional[int]
@@ -59,8 +59,13 @@ class DoctorCreateSchema(BaseModel):
     specialization_id: int
 
     experience_years: Optional[int] = Field(None, ge=0)
-    rating: Optional[int] = Field(None, ge=1, le=5)
+    rating: Optional[Decimal] = Field(
+        None,
+        ge=Decimal("1.0"),
+        le=Decimal("5.0")
+    )
     fees_per_hour: Optional[Decimal] = None
+
 
     available_from: Optional[time] = None
     available_to: Optional[time] = None
@@ -78,7 +83,7 @@ class DoctorResponseSchema(BaseModel):
     specialization_id: int
 
     experience_years: Optional[int]
-    rating: Optional[int]
+    rating: Optional[Decimal] 
     fees_per_hour: Optional[Decimal]
 
     available_from: Optional[time]
