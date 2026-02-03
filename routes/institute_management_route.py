@@ -71,24 +71,30 @@ from services.institution_service import (
 )
 
 router = APIRouter(prefix="/institution/management",tags=["Institution Management"])
-
 @router.get("/management-overview")
-def management_overview_api(
-    institution_id: int = Query(
-        -1,
-        description="Pass institution_id or -1 for all institutions"
+def management_overview(
+    institution_id: int | None = Query(
+        default=None,
+        description="Institution ID (optional)"
     ),
-    academic_year: str = Query(
-        "-1",
-        description="Pass academic year (e.g. 2023-2024) or -1 for all"
+    academic_year: str | None = Query(
+        default=None,
+        description="Academic year (optional)"
     ),
     db: Session = Depends(get_db)
 ):
-    return get_management_overview(
-        db,
-        institution_id,
-        academic_year
+    data = get_management_overview(
+        db=db,
+        institution_id=institution_id,
+        academic_year=academic_year
     )
+
+    return {
+        "status": True,
+        "data": data
+    }
+
+
 
 
 @router.post("/enrollment-status/create",response_model=EnrollmentStatusResponse)
