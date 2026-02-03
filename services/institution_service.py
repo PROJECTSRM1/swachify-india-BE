@@ -633,12 +633,22 @@ def delete_exam_invigilation_assignment(
 
 def create_salary_earnings(db: Session, data: SalaryEarningsCreate):
     earnings = SalaryEarnings(
-        salary_overview_id=data.salary_overview_id,
+        payroll_period_id=data.payroll_period_id,
+        total_net_disbursement=data.total_net_disbursement,
+        total_deduction=data.total_deduction,
+        staff_count=data.staff_count,
+        status=data.status,
+
         basic_salary=data.basic_salary,
         hra=data.hra,
         medical=data.medical,
         conveyance=data.conveyance,
         gross_earnings=data.gross_earnings,
+
+        pf=data.pf,
+        professional_tax=data.professional_tax,
+        insurance=data.insurance,
+
         created_by=data.created_by,
         is_active=True
     )
@@ -648,4 +658,3 @@ def create_salary_earnings(db: Session, data: SalaryEarningsCreate):
     db.refresh(earnings)
 
     return earnings
-

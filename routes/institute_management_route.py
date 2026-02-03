@@ -263,3 +263,4 @@ def create_salary_earnings_api(
     return create_salary_earnings(db, payload)
 
 
+
