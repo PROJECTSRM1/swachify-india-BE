@@ -317,12 +317,19 @@ def get_available_labs(db: Session):
     """)
     return db.execute(query).mappings().all()
 
+def get_available_pharmacies_service(
+    db: Session,
+    filter_type: str
+):
+    query = text("""
+        SELECT *
+        FROM fn_get_available_pharmacies(:filter_type)
+    """)
 
-def get_available_pharmacies(db: Session):
-    query = text("SELECT * FROM public.vw_available_pharmacies")
-    return db.execute(query).mappings().all()
-
-
+    return db.execute(
+        query,
+        {"filter_type": filter_type}
+    ).mappings().all()
 
 def get_available_doctors(db: Session):
     query = text("""
@@ -417,4 +424,16 @@ def get_doctor_bookings(db: Session, user_id: int):
         {"user_id": user_id}
     ).mappings().all()
 
+def get_available_labs_list_service(
+    db: Session,
+    filter_type: str
+):
+    query = text("""
+        SELECT *
+        FROM fn_get_available_labs_list(:filter_type)
+    """)
 
+    return db.execute(
+        query,
+        {"filter_type": filter_type}
+    ).mappings().all()
