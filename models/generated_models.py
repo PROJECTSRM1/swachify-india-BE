@@ -978,7 +978,7 @@ class PayrollPeriod(Base):
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
-    salary_overview: Mapped[list['SalaryOverview']] = relationship('SalaryOverview', back_populates='payroll_period')
+    salary_earnings: Mapped[list['SalaryEarnings']] = relationship('SalaryEarnings', back_populates='payroll_period')
 
 
 class PayrollSummary(Base):
@@ -1127,6 +1127,27 @@ t_vw_nearby_ambulance_list = Table(
     Column('service_provider', String(100)),
     Column('ambulance_contact', String(20)),
     Column('availability_status', String(20))
+)
+
+
+t_vw_salary_summary = Table(
+    'vw_salary_summary', Base.metadata,
+    Column('payroll_period_id', BigInteger),
+    Column('month', String),
+    Column('year', Integer),
+    Column('staff_count', Integer),
+    Column('status', String),
+    Column('basic_salary', Numeric(10, 2)),
+    Column('hra', Numeric(10, 2)),
+    Column('medical', Numeric(10, 2)),
+    Column('conveyance', Numeric(10, 2)),
+    Column('gross_earnings', Numeric(12, 2)),
+    Column('pf', Numeric(10, 2)),
+    Column('professional_tax', Numeric(10, 2)),
+    Column('insurance', Numeric(10, 2)),
+    Column('total_deduction', Numeric(10, 2)),
+    Column('total_net_disbursement', Numeric(12, 2)),
+    Column('net_payable', Numeric)
 )
 
 
@@ -1412,29 +1433,34 @@ class RawMaterialDetails(Base):
     raw_material_type: Mapped['MasterRawMaterialType'] = relationship('MasterRawMaterialType', back_populates='raw_material_details')
 
 
-class SalaryOverview(Base):
-    __tablename__ = 'salary_overview'
+class SalaryEarnings(Base):
+    __tablename__ = 'salary_earnings'
     __table_args__ = (
-        ForeignKeyConstraint(['payroll_period_id'], ['payroll_period.id'], name='fk_salary_overview_payroll_period_id'),
-        PrimaryKeyConstraint('id', name='pk_salary_overview_id')
+        ForeignKeyConstraint(['payroll_period_id'], ['payroll_period.id'], name='fk_salary_earnings_payroll_period_id'),
+        PrimaryKeyConstraint('id', name='pk_salary_earnings_id')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     payroll_period_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     total_net_disbursement: Mapped[decimal.Decimal] = mapped_column(Numeric(12, 2), nullable=False)
-    gross_earnings: Mapped[decimal.Decimal] = mapped_column(Numeric(12, 2), nullable=False)
-    total_deductions: Mapped[decimal.Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    total_deduction: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     staff_count: Mapped[Optional[int]] = mapped_column(Integer)
     status: Mapped[Optional[str]] = mapped_column(String)
+    basic_salary: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    hra: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    medical: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    conveyance: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    gross_earnings: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(12, 2))
+    pf: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    professional_tax: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    insurance: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
-    payroll_period: Mapped['PayrollPeriod'] = relationship('PayrollPeriod', back_populates='salary_overview')
-    salary_deductions: Mapped[list['SalaryDeductions']] = relationship('SalaryDeductions', back_populates='salary_overview')
-    salary_earnings: Mapped[list['SalaryEarnings']] = relationship('SalaryEarnings', back_populates='salary_overview')
+    payroll_period: Mapped['PayrollPeriod'] = relationship('PayrollPeriod', back_populates='salary_earnings')
 
 
 class StaffPayslip(Base):
@@ -1586,51 +1612,6 @@ class OtpVerification(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     institution: Mapped['InstitutionRegistration'] = relationship('InstitutionRegistration', back_populates='otp_verification')
-
-
-class SalaryDeductions(Base):
-    __tablename__ = 'salary_deductions'
-    __table_args__ = (
-        ForeignKeyConstraint(['salary_overview_id'], ['salary_overview.id'], name='fk_salary_deductions_salary_overview_id'),
-        PrimaryKeyConstraint('id', name='pk_salary_deductions_id')
-    )
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    salary_overview_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    total_deduction: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    pf: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    professional_tax: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    insurance: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
-    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-
-    salary_overview: Mapped['SalaryOverview'] = relationship('SalaryOverview', back_populates='salary_deductions')
-
-
-class SalaryEarnings(Base):
-    __tablename__ = 'salary_earnings'
-    __table_args__ = (
-        ForeignKeyConstraint(['salary_overview_id'], ['salary_overview.id'], name='fk_salary_earnings_salary_overview_id'),
-        PrimaryKeyConstraint('id', name='pk_salary_earnings_id')
-    )
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    salary_overview_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    basic_salary: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    hra: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    medical: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    conveyance: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
-    gross_earnings: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(12, 2))
-    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
-    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-
-    salary_overview: Mapped['SalaryOverview'] = relationship('SalaryOverview', back_populates='salary_earnings')
 
 
 class UserRegistration(Base):
