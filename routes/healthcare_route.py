@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Path, Query, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from core.database import get_db
@@ -11,7 +11,9 @@ from schemas.healthcare_schema import (
     AppointmentResponseSchema,
     DoctorCreateSchema,
     DoctorResponseSchema,
-    HospitalAmbulanceResponseSchema
+    HospitalAmbulanceResponseSchema,
+    PaymentCreateSchema,
+    PaymentResponseSchema
     
 )
 from services.healthcare_service import (
@@ -24,7 +26,10 @@ from services.healthcare_service import (
     create_doctor_profile,
     get_available_doctors,
     get_hospital_ambulance_list,
-    release_ambulance_booking
+    release_ambulance_booking,
+    create_payment,
+    get_doctor_bookings,
+    get_my_bookings_by_user
 )
 
 
@@ -77,3 +82,21 @@ def fetch_available_doctors(
 @router.get("/available-pharmacies")
 def fetch_available_pharmacies(db: Session = Depends(get_db)):
     return get_available_pharmacies(db)
+
+@router.post(
+    "/payments",
+    response_model=PaymentResponseSchema,
+    status_code=201
+)
+def make_payment(
+    data: PaymentCreateSchema,
+    db: Session = Depends(get_db)
+):
+    return create_payment(db, data)
+
+@router.get("/bookings/view-my-bookings/{user_id}")
+def fetch_doctor_bookings(
+    user_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db)
+):
+    return get_doctor_bookings(db, user_id)

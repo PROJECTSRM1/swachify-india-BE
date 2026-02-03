@@ -5,6 +5,8 @@ from datetime import datetime
 from sqlalchemy import text
 from models.generated_models import AmbulanceBooking, Appointments, DoctorProfile, MasterConsultationType, MasterHospital,UserRegistration,MasterAmbulance, MasterDoctorSpecialization
 from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema,DoctorCreateSchema
+from schemas.healthcare_schema import PaymentCreateSchema
+from models.generated_models import Payments, ServiceRequests
 
 
 def create_healthcare_appointment(
@@ -332,3 +334,86 @@ def get_available_doctors(db: Session):
         {"specialization_id": -1}
     )
     return result.mappings().all()
+
+
+# =======================
+# PAYMENTS SERVICE
+# =======================
+
+def create_payment(
+    db: Session,
+    data: PaymentCreateSchema
+):
+    # 1️⃣ Validate User
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == data.user_id,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user"
+        )
+
+    # 2️⃣ Validate Service Request (NO is_active column)
+    service_request = db.query(ServiceRequests).filter(
+        ServiceRequests.id == data.service_request_id
+    ).first()
+
+    if not service_request:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid service request"
+        )
+
+    # 3️⃣ Create Payment
+    payment = Payments(
+        service_request_id=data.service_request_id,
+        user_id=data.user_id,
+        amount=data.amount,
+        payment_method=data.payment_method,
+        appointment_id=data.appointment_id,
+        transaction_id=data.transaction_id,
+        remarks=data.remarks,
+        payment_status="PENDING",
+        created_by=data.user_id,
+        created_date=datetime.utcnow(),
+        is_active=True
+    )
+
+    db.add(payment)
+    db.commit()
+    db.refresh(payment)
+
+    return payment
+
+   
+  # ======================================================
+# MY BOOKINGS (VIEW: vw_my_bookings)
+# ======================================================
+
+def get_my_bookings_by_user(db: Session, user_id: int):
+    query = text("""
+        SELECT *
+        FROM vw_my_bookings
+        WHERE user_id = :user_id
+    """)
+    return db.execute(
+        query,
+        {"user_id": user_id}
+    ).mappings().all()
+
+
+def get_doctor_bookings(db: Session, user_id: int):
+    query = text("""
+        SELECT *
+        FROM vw_my_bookings
+        WHERE user_id = :user_id
+          AND service_type = 'DOCTOR'
+    """)
+    return db.execute(
+        query,
+        {"user_id": user_id}
+    ).mappings().all()
+
