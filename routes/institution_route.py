@@ -57,6 +57,7 @@ from services.institution_service import (
     create_student_profile,
     get_all_students,
     get_student_by_id,
+    get_student_full_details_service,
     update_bus_alert,
     update_student_profile,
     delete_student_profile,
@@ -211,6 +212,18 @@ def get_students_by_branch_api(branch_id: int = Query(..., gt=0),db: Session = D
 
 
 
+@router.get("/full-details")
+def fetch_student_full_details(
+    student_id: str = Query("-1", description="Student ID or -1 for all"),
+    branch_id: int = Query(-1, description="Branch ID or -1 for all"),
+    db: Session = Depends(get_db)
+):
+    return get_student_full_details_service(
+        db=db,
+        student_id=student_id,
+        branch_id=branch_id
+    )
+
 #student profile
 
 @router.get("/{student_id}",response_model=StudentProfileResponse)
@@ -242,3 +255,6 @@ def get_student_api(student_id: int = Path(..., gt=0),db: Session = Depends(get_
 #     db: Session = Depends(get_db)
 # ):
 #     return create_payment(db, data)
+
+
+
