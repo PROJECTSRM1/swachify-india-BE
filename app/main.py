@@ -24,6 +24,7 @@ from routes.healthcare_route import router as healthcare_router
 from routes.student_education_route import router as student_profile_router
 from routes.institute_management_route import router as institute_management_router
 
+
 load_dotenv()
 
 Base.metadata.create_all(bind=engine)
