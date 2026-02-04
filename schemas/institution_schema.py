@@ -522,3 +522,30 @@ class SalaryEarningsResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+
+class StudentFeeInstallmentCreateSchema(BaseModel):
+    student_id: str
+    installment_no: int
+    installment_amount: Decimal
+    due_date: date
+    paid_date: Optional[date] = None
+    academic_year: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class StudentFeeInstallmentResponseSchema(BaseModel):
+    id: int
+    student_id: str
+    installment_no: int
+    installment_amount: Decimal
+    due_date: date
+    paid_date: Optional[date]
+    academic_year: Optional[str]
+    is_active: bool
+
+    class Config:
+        from_attributes = True

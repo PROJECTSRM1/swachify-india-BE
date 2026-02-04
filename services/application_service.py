@@ -304,3 +304,24 @@ def fetch_success_ui_by_job_id(db: Session, job_id: int):
             # "status": status.upper()
         }
     }
+
+
+
+from fastapi import HTTPException
+
+def delete_by_id(db: Session, id: int):
+
+    record = db.query(JobOpenings).filter(
+        JobOpenings.id == id,
+        JobOpenings.is_active == True
+    ).first()
+
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail="Record not found"
+        )
+
+    # ✅ Soft delete
+    record.is_active = False
+    db.commit()

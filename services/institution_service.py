@@ -19,6 +19,7 @@ from models.generated_models import (
     SalaryEarnings,
     StaffPayslip,
     StaffProfile,
+    StudentFeeInstallments,
     StudentProfile
 )
 from sqlalchemy import text
@@ -41,6 +42,7 @@ from schemas.institution_schema import (
     StaffPayslipCreate,
     StaffProfileCreate,
     StudentAcademicDetailsSchema,
+    StudentFeeInstallmentCreateSchema,
     StudentProfileCreate,
     StudentProfileUpdate
 )
@@ -722,3 +724,53 @@ def get_student_full_details_service(
             "branch_id": branch_id
         }
     ).mappings().all()
+
+def create_student_fee_installment(
+    db: Session,
+    data: StudentFeeInstallmentCreateSchema
+):
+    # Check duplicate installment
+    existing = db.query(StudentFeeInstallments).filter(
+        StudentFeeInstallments.student_id == data.student_id,
+        StudentFeeInstallments.installment_no == data.installment_no,
+        StudentFeeInstallments.is_active == True
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Installment already exists for this student"
+        )
+
+    installment = StudentFeeInstallments(
+        student_id=data.student_id,
+        installment_no=data.installment_no,
+        installment_amount=data.installment_amount,
+        due_date=data.due_date,
+        paid_date=data.paid_date,
+        academic_year=data.academic_year,
+        is_active=True
+    )
+
+    db.add(installment)
+    db.commit()
+    db.refresh(installment)
+
+    return installment
+
+def get_student_fee_installments(
+    db: Session,
+    student_id: str
+):
+    data = db.query(StudentFeeInstallments).filter(
+        StudentFeeInstallments.student_id == student_id,
+        StudentFeeInstallments.is_active == True
+    ).order_by(StudentFeeInstallments.installment_no).all()
+
+    if not data:
+        raise HTTPException(
+            status_code=404,
+            detail="No fee installments found for this student"
+        )
+
+    return data

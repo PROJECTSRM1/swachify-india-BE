@@ -256,3 +256,19 @@ class AvailableLabResponse(BaseModel):
 
     class Config:
        from_attributes = True
+
+
+
+
+
+class DoctorAppointmentResponseSchema(BaseModel):
+    appointment_id: int
+    doctor_name: str
+    appointment_time: datetime
+    call_booking_status: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+class CallBookingStatusUpdateSchema(BaseModel):
+    call_booking_status: str

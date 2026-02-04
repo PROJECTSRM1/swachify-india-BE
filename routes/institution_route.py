@@ -23,6 +23,8 @@ from schemas.institution_schema import (
     InstitutionBranchCreate,
     InstitutionBranchResponse,
     StudentAcademicDetailsSchema,
+    StudentFeeInstallmentCreateSchema,
+    StudentFeeInstallmentResponseSchema,
     StudentProfileCreate,
     StudentProfileUpdate,
     StudentProfileResponse
@@ -45,12 +47,14 @@ from services.institution_service import (
     create_enrollment_status,
     create_exam_schedule,
     create_institution,
+    create_student_fee_installment,
     fetch_exam_schedule,
     get_all_alerts,
     # get_all_buses,
     get_institution_by_id,
     create_institution_branch,
     get_branches_by_institution,
+    get_student_fee_installments,
     get_student_full_academic_details,
     get_all_branches,
     get_branches_by_institution,
@@ -256,5 +260,27 @@ def get_student_api(student_id: int = Path(..., gt=0),db: Session = Depends(get_
 # ):
 #     return create_payment(db, data)
 
+
+@router.post(
+    "/installments",
+    response_model=StudentFeeInstallmentResponseSchema,
+    status_code=201
+)
+def create_fee_installment(
+    payload: StudentFeeInstallmentCreateSchema,
+    db: Session = Depends(get_db)
+):
+    return create_student_fee_installment(db, payload)
+
+
+@router.get(
+    "/installments/{student_id}",
+    response_model=List[StudentFeeInstallmentResponseSchema]
+)
+def fetch_fee_installments(
+    student_id: str,
+    db: Session = Depends(get_db)
+):
+    return get_student_fee_installments(db, student_id)
 
 
