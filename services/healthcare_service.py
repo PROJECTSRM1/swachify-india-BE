@@ -1,98 +1,157 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,joinedload
 from fastapi import HTTPException,status
 from datetime import datetime
 
 from sqlalchemy import text
-from models.generated_models import AmbulanceBooking, Appointments, DoctorProfile, MasterConsultationType, MasterHospital,UserRegistration,MasterAmbulance, MasterDoctorSpecialization,AvailableLabs
-from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema, AvailableLabCreate,DoctorCreateSchema
+from models.generated_models import (
+    Appointments,
+    DoctorProfile,
+    MasterConsultationType,
+    MasterDoctorSpecialization,
+    MasterAmbulance,
+    MasterAssistants,
+    AvailableLabs,
+    AvailablePharmacies,
+    MasterHospital,
+    UserRegistration,
+)
+from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema, AppointmentResponseSchema, AvailableLabCreate,DoctorCreateSchema, IdNameSchema
 from schemas.healthcare_schema import PaymentCreateSchema,AvailablePharmacyCreate
 from models.generated_models import Payments, ServiceRequests,AvailablePharmacies
 
+def map_appointment_response(a: Appointments) -> AppointmentResponseSchema:
+    return AppointmentResponseSchema(
+        id=a.id,
+        user_id=a.user_id,
+        appointment_time=a.appointment_time,
 
-def create_healthcare_appointment(
-    db: Session,
-    data: AppointmentCreateSchema
-):
-    # 1️⃣ Validate User
+        consultation_type_id=a.consultation_type_id,
+        doctor_id=a.doctor_id,
+        doctor_specialization_id=a.doctor_specialization_id,
+        ambulance_id=a.ambulance_id,
+        assistant_id=a.assistant_id,
+        labs_id=a.labs_id,
+        pharmacies_id=a.pharmacies_id,
+
+        consultation_type=(
+            IdNameSchema(
+                id=a.consultation_type.id,
+                name=a.consultation_type.consultation_type
+            ) if a.consultation_type else None
+        ),
+
+        doctor=(
+            IdNameSchema(
+                id=a.doctor.id,
+                name=f"{a.doctor.user.first_name} {a.doctor.user.last_name}"
+            ) if a.doctor and a.doctor.user else None
+        ),
+
+        doctor_specialization=(
+            IdNameSchema(
+                id=a.doctor_specialization.id,
+                name=a.doctor_specialization.specialization_name
+            ) if a.doctor_specialization else None
+        ),
+
+        ambulance=(
+            IdNameSchema(
+                id=a.ambulance.id,
+                name=a.ambulance.vehicle_number
+            ) if a.ambulance else None
+        ),
+
+        assistant=(
+            IdNameSchema(
+                id=a.assistant.id,
+                name=a.assistant.name
+            ) if a.assistant else None
+        ),
+
+        labs=(
+            IdNameSchema(
+                id=a.labs.id,
+                name=a.labs.lab_name
+            ) if a.labs else None
+        ),
+
+        pharmacies=(
+            IdNameSchema(
+                id=a.pharmacies.id,
+                name=a.pharmacies.pharmacy_name
+            ) if a.pharmacies else None
+        ),
+
+        hospital=(
+            IdNameSchema(
+                id=a.hospital.id,
+                name=a.hospital.hospital_name
+            ) if a.hospital else None
+        ),
+
+        required_ambulance=a.required_ambulance,
+        required_assistant=a.required_assistant,
+        pickup_time=a.pickup_time,
+        status=a.status,
+        call_booking_status=a.call_booking_status,
+        is_active=a.is_active
+    )
+
+def create_healthcare_appointment(db: Session, data: AppointmentCreateSchema):
     user = db.query(UserRegistration).filter(
         UserRegistration.id == data.user_id,
-        UserRegistration.is_active == True
+        UserRegistration.is_active.is_(True)
     ).first()
 
     if not user:
         raise HTTPException(status_code=400, detail="Invalid user")
 
-    # 2️⃣ Validate Ambulance
-    ambulance = None
-    if data.required_ambulance:
-        if not data.ambulance_id:
-            raise HTTPException(status_code=400, detail="Ambulance ID is required")
-
-        ambulance = db.query(MasterAmbulance).filter(
-            MasterAmbulance.id == data.ambulance_id,
-            MasterAmbulance.is_active == True,
-            MasterAmbulance.availability_status == "Available"
-        ).first()
-
-        if not ambulance:
-            raise HTTPException(status_code=400, detail="Ambulance not available")
-
-    # 3️⃣ Validate Assistant
-    if data.required_assistant and not data.assistant_id:
-        raise HTTPException(status_code=400, detail="Assistant ID is required")
-
-    # 4️⃣ Create Appointment
     appointment = Appointments(
         user_id=data.user_id,
         consultation_type_id=data.consultation_type_id,
         appointment_time=data.appointment_time,
-
         doctor_id=data.doctor_id,
         doctor_specialization_id=data.doctor_specialization_id,
-        description=data.description,
-        days_of_suffering=data.days_of_suffering,
-        health_insurance=data.health_insurance,
-
         required_ambulance=data.required_ambulance,
         ambulance_id=data.ambulance_id if data.required_ambulance else None,
         pickup_time=data.pickup_time if data.required_ambulance else None,
-
         required_assistant=data.required_assistant,
         assistant_id=data.assistant_id if data.required_assistant else None,
-
         labs_id=data.labs_id,
         pharmacies_id=data.pharmacies_id,
-        call_booking_status="CALL_PENDING",
-
+        call_booking_status=data.call_booking_status,
         created_by=data.user_id,
-        created_date=datetime.utcnow(),
         is_active=True
     )
 
     db.add(appointment)
-
-    # 5️⃣ Update Ambulance Status
-    if ambulance:
-        ambulance.availability_status = "Booked"
-
     db.commit()
     db.refresh(appointment)
 
-    return appointment
-
-
-# def get_healthcare_appointments_by_user(db: Session, user_id: int):
-#     return db.query(Appointments).filter(
-#         Appointments.user_id == user_id,
-#         Appointments.is_active == True,
-#         Appointments.consultation_type_id.isnot(None)
-#     ).all()
+    return map_appointment_response(appointment)
 
 def get_healthcare_appointments_by_user(db: Session, user_id: int):
-    return db.query(Appointments).filter(
-        Appointments.user_id == user_id
-    ).all()
+    appointments = (
+        db.query(Appointments)
+        .options(
+            joinedload(Appointments.consultation_type),
+            joinedload(Appointments.doctor).joinedload(DoctorProfile.user),
+            joinedload(Appointments.doctor_specialization),
+            joinedload(Appointments.ambulance),
+            joinedload(Appointments.assistant),
+            joinedload(Appointments.labs),
+            joinedload(Appointments.pharmacies),
+            joinedload(Appointments.hospital),
+        )
+        .filter(
+            Appointments.user_id == user_id,
+            Appointments.is_active.is_(True)
+        )
+        .order_by(Appointments.created_date.desc())
+        .all()
+    )
 
+    return [map_appointment_response(a) for a in appointments]
 #doctor
 
 def create_doctor_profile(
