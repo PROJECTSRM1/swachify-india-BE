@@ -4,6 +4,7 @@ from datetime import datetime
 
 from datetime import time
 from decimal import Decimal
+import decimal
 
 class AppointmentCreateSchema(BaseModel):
     user_id: int
@@ -164,3 +165,53 @@ class PaymentResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+#available_pharmacies:
+
+class AvailablePharmacyCreate(BaseModel):
+    
+    pharmacy_name: str
+    pharmacy_type: Optional[str] = None
+    services: Optional[str] = None
+    rating: Optional[int] = None
+    delivery_time: Optional[str] = None
+    latitude: Optional[decimal.Decimal] = None
+    longitude: Optional[decimal.Decimal] = None
+    upload_prescription: Optional[str] = None
+    proceed_type: Optional[str] = None
+    delivery_address: Optional[str] = None
+    special_instructions: Optional[str] = None
+
+    open_from: Optional[time] = None
+    open_to: Optional[time] = None
+
+    home_delivery: Optional[bool] = False
+    created_by: Optional[int] = None
+
+
+
+class AvailablePharmacyResponse(BaseModel):
+    id: int
+    pharmacy_name: str
+    pharmacy_type: Optional[str] = None
+    services: Optional[str] = None
+    rating: Optional[int] = None
+    delivery_time: Optional[str] = None
+    latitude: Optional[decimal.Decimal] = None
+    longitude: Optional[decimal.Decimal] = None
+    upload_prescription: Optional[str] = None
+    proceed_type: Optional[str] = None
+    delivery_address: Optional[str] = None
+    special_instructions: Optional[str] = None
+
+    open_from: Optional[time] = None
+    open_to: Optional[time] = None
+
+    home_delivery: Optional[bool] = False
+    created_by: Optional[int] = None
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+

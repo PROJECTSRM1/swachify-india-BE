@@ -5,8 +5,8 @@ from datetime import datetime
 from sqlalchemy import text
 from models.generated_models import AmbulanceBooking, Appointments, DoctorProfile, MasterConsultationType, MasterHospital,UserRegistration,MasterAmbulance, MasterDoctorSpecialization
 from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema,DoctorCreateSchema
-from schemas.healthcare_schema import PaymentCreateSchema
-from models.generated_models import Payments, ServiceRequests
+from schemas.healthcare_schema import PaymentCreateSchema,AvailablePharmacyCreate
+from models.generated_models import Payments, ServiceRequests,AvailablePharmacies
 
 
 def create_healthcare_appointment(
@@ -91,7 +91,6 @@ def get_healthcare_appointments_by_user(db: Session, user_id: int):
     return db.query(Appointments).filter(
         Appointments.user_id == user_id
     ).all()
-
 
 #doctor
 
@@ -447,3 +446,38 @@ def get_available_labs_list_service(
         query,
         {"filter_type": filter_type}
     ).mappings().all()
+    
+#available_pharmacies    
+
+
+
+
+def create_pharmacy_service(db: Session, payload: AvailablePharmacyCreate):
+
+    # ✅ Validate created_by against registered users
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid created_by: user not registered"
+        )
+
+    # ✅ Check duplicate pharmacy name
+    existing = db.query(AvailablePharmacies).filter(
+        AvailablePharmacies.pharmacy_name == payload.pharmacy_name
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Pharmacy already exists"
+        )
+
+    pharmacy = AvailablePharmacies(**payload.dict())
+    db.add(pharmacy)
+    db.commit()
+    db.refresh(pharmacy)
+    return pharmacy

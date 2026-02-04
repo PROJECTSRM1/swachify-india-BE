@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Header, Path, Query, HTTPException
+from fastapi import APIRouter, Depends, Header, Path, Query, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from core.database import get_db
@@ -13,7 +13,9 @@ from schemas.healthcare_schema import (
     DoctorResponseSchema,
     HospitalAmbulanceResponseSchema,
     PaymentCreateSchema,
-    PaymentResponseSchema
+    PaymentResponseSchema,
+    AvailablePharmacyCreate,
+    AvailablePharmacyResponse
     
 )
 from services.healthcare_service import (
@@ -30,7 +32,8 @@ from services.healthcare_service import (
     release_ambulance_booking,
     create_payment,
     get_doctor_bookings,
-    get_my_bookings_by_user
+    get_my_bookings_by_user,
+    create_pharmacy_service
 )
 
 
@@ -129,3 +132,23 @@ def fetch_available_labs_list(
     db: Session = Depends(get_db)
 ):
     return get_available_labs_list_service(db, filter_type)
+
+#avialbile_pharamcies
+
+# @router.post(
+#     "/pharmacies",
+#     response_model=AvailablePharmacyResponse,
+#     status_code=status.HTTP_201_CREATED
+# )
+# def create_pharmacy_api(
+#     pharmacy_data: AvailablePharmacyCreate,
+#     db: Session = Depends(get_db)
+# ):
+#     return create_pharmacy_service(db, pharmacy_data)
+
+@router.post("/available-pharmacies")
+def create_pharmacy_api(
+    pharmacy_data: AvailablePharmacyCreate,
+    db: Session = Depends(get_db)
+):
+    return create_pharmacy_service(db, pharmacy_data)
