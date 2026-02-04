@@ -12,6 +12,7 @@ from schemas.application_schema import (
     JobSuccessResponse
 )
 from services.application_service import (
+    delete_by_id,
     get_application_review,
     update_application,
     get_trending_students,
@@ -80,3 +81,15 @@ def get_application(user_id: int):
 def update_application_api(user_id: int, payload: ApplicationUpdateRequest):
     update_application(user_id, payload)
     return {"message": "Updated successfully"}
+
+
+@router.delete("/{id}")
+def delete_record(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    delete_by_id(db, id)
+    return {
+        "status": True,
+        "message": "Deleted successfully"
+    }

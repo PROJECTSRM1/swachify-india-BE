@@ -500,3 +500,32 @@ def create_lab_service(db: Session, lab_data: AvailableLabCreate):
     db.commit()
     db.refresh(new_lab)
     return new_lab
+
+from sqlalchemy import func
+
+def get_appointments_by_doctor(
+    db: Session,
+    doctor_id: int
+):
+    data = (
+        db.query(
+            Appointments.id.label("appointment_id"),
+            func.concat(
+                UserRegistration.first_name, " ", UserRegistration.last_name
+            ).label("doctor_name"),
+            Appointments.appointment_time,
+            Appointments.call_booking_status
+        )
+        .join(DoctorProfile, DoctorProfile.id == Appointments.doctor_id)
+        .join(UserRegistration, UserRegistration.id == DoctorProfile.user_id)
+        .filter(
+            Appointments.doctor_id == doctor_id,
+            Appointments.is_active == True
+        )
+        .all()
+    )
+
+    if not data:
+        raise HTTPException(status_code=404, detail="No appointments found")
+
+    return data
