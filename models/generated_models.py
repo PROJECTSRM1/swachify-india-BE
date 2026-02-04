@@ -87,21 +87,6 @@ class BusFleet(Base):
     bus_tracking_status: Mapped[list['BusTrackingStatus']] = relationship('BusTrackingStatus', back_populates='bus')
 
 
-class MasterAddOn(Base):
-    __tablename__ = 'master_add_on'
-    __table_args__ = (
-        PrimaryKeyConstraint('id', name='pk_master_add_on_id'),
-        UniqueConstraint('add_on', name='uk_master_add_on_add_on')
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    price: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    add_on: Mapped[Optional[str]] = mapped_column(String(255))
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-
-    hs_add_on: Mapped[list['HsAddOn']] = relationship('HsAddOn', back_populates='add_on')
-
-
 class MasterAggregate(Base):
     __tablename__ = 'master_aggregate'
     __table_args__ = (
@@ -889,21 +874,6 @@ class MasterTimeSlot(Base):
 
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='time_slot')
     vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='time_slot')
-
-
-class MasterVehicleBrand(Base):
-    __tablename__ = 'master_vehicle_brand'
-    __table_args__ = (
-        PrimaryKeyConstraint('id', name='pk_master_vehicle_brand_id'),
-        UniqueConstraint('brand_name', name='uk_master_vehicle_brand_name')
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    brand_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-
-    vehicle_brand_fuel: Mapped[list['VehicleBrandFuel']] = relationship('VehicleBrandFuel', back_populates='brand')
-    vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='brand')
 
 
 class MasterVehicleType(Base):
@@ -1924,9 +1894,11 @@ class MasterSubService(Base):
 
     service: Mapped['MasterService'] = relationship('MasterService', back_populates='master_sub_service')
     home_service: Mapped[list['HomeService']] = relationship('HomeService', back_populates='sub_service')
+    master_add_on: Mapped[list['MasterAddOn']] = relationship('MasterAddOn', back_populates='sub_service')
     master_garage: Mapped[list['MasterGarage']] = relationship('MasterGarage', back_populates='sub_service')
     master_garage_service: Mapped[list['MasterGarageService']] = relationship('MasterGarageService', back_populates='sub_service')
     master_sub_group: Mapped[list['MasterSubGroup']] = relationship('MasterSubGroup', back_populates='sub_service')
+    master_vehicle_brand: Mapped[list['MasterVehicleBrand']] = relationship('MasterVehicleBrand', back_populates='sub_service')
     vehicle_brand_fuel: Mapped[list['VehicleBrandFuel']] = relationship('VehicleBrandFuel', back_populates='sub_service')
     vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='sub_service')
 
@@ -2472,6 +2444,25 @@ class HomeService(Base):
     hs_add_on: Mapped[list['HsAddOn']] = relationship('HsAddOn', back_populates='home_service')
 
 
+class MasterAddOn(Base):
+    __tablename__ = 'master_add_on'
+    __table_args__ = (
+        ForeignKeyConstraint(['sub_service_id'], ['master_sub_service.id'], name='fk_master_add_on_sub_service_id'),
+        PrimaryKeyConstraint('id', name='pk_master_add_on_id'),
+        UniqueConstraint('packages_add_on', name='uk_master_add_on_add_on'),
+        UniqueConstraint('sub_service_id', 'packages_add_on', name='uk_master_add_on_sub_service_id_packages_add_on')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    price: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    packages_add_on: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    sub_service_id: Mapped[Optional[int]] = mapped_column(Integer)
+
+    sub_service: Mapped[Optional['MasterSubService']] = relationship('MasterSubService', back_populates='master_add_on')
+    hs_add_on: Mapped[list['HsAddOn']] = relationship('HsAddOn', back_populates='add_on')
+
+
 class MasterGarage(Base):
     __tablename__ = 'master_garage'
     __table_args__ = (
@@ -2525,6 +2516,24 @@ class MasterSubGroup(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     sub_service: Mapped['MasterSubService'] = relationship('MasterSubService', back_populates='master_sub_group')
+
+
+class MasterVehicleBrand(Base):
+    __tablename__ = 'master_vehicle_brand'
+    __table_args__ = (
+        ForeignKeyConstraint(['sub_service_id'], ['master_sub_service.id'], name='fk_master_vehicle_brand_sub_service_id'),
+        PrimaryKeyConstraint('id', name='pk_master_vehicle_brand_id'),
+        UniqueConstraint('brand_name', name='uk_master_vehicle_brand_name')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    brand_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    sub_service_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    sub_service: Mapped['MasterSubService'] = relationship('MasterSubService', back_populates='master_vehicle_brand')
+    vehicle_brand_fuel: Mapped[list['VehicleBrandFuel']] = relationship('VehicleBrandFuel', back_populates='brand')
+    vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='brand')
 
 
 class PropertyListing(Base):
@@ -2727,31 +2736,6 @@ class TaskHistory(Base):
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='task_history2')
 
 
-class VehicleBrandFuel(Base):
-    __tablename__ = 'vehicle_brand_fuel'
-    __table_args__ = (
-        ForeignKeyConstraint(['brand_id'], ['master_vehicle_brand.id'], name='fk_vehicle_brand_fuel_brand_id'),
-        ForeignKeyConstraint(['fuel_id'], ['master_fuel_type.id'], name='fk_vehicle_brand_fuel_fuel_id'),
-        ForeignKeyConstraint(['sub_service_id'], ['master_sub_service.id'], name='fk_vehicle_brand_fuel_sub_service_id'),
-        PrimaryKeyConstraint('id', name='pk_vehicle_brand_fuel_id'),
-        UniqueConstraint('sub_service_id', 'brand_id', 'fuel_id', name='uk_vehicle_brand_fuel')
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    sub_service_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    brand_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    fuel_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
-    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
-    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-
-    brand: Mapped['MasterVehicleBrand'] = relationship('MasterVehicleBrand', back_populates='vehicle_brand_fuel')
-    fuel: Mapped['MasterFuelType'] = relationship('MasterFuelType', back_populates='vehicle_brand_fuel')
-    sub_service: Mapped['MasterSubService'] = relationship('MasterSubService', back_populates='vehicle_brand_fuel')
-
-
 class Appointments(Base):
     __tablename__ = 'appointments'
     __table_args__ = (
@@ -2793,7 +2777,8 @@ class Appointments(Base):
     service_request_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     hospital_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     status: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'PENDING'::character varying"))
-    call_booking_status: Mapped[str | None] = mapped_column(String(255))
+    call_booking_status: Mapped[Optional[str]] = mapped_column(String(255))
+
     ambulance: Mapped[Optional['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='appointments')
     assistant: Mapped[Optional['MasterAssistants']] = relationship('MasterAssistants', back_populates='appointments')
     consultation_type: Mapped[Optional['MasterConsultationType']] = relationship('MasterConsultationType', back_populates='appointments')
@@ -2895,6 +2880,31 @@ class MasterMechanic(Base):
 
     garage: Mapped['MasterGarage'] = relationship('MasterGarage', back_populates='master_mechanic')
     vehicle_service_booking: Mapped[list['VehicleServiceBooking']] = relationship('VehicleServiceBooking', back_populates='mechanic')
+
+
+class VehicleBrandFuel(Base):
+    __tablename__ = 'vehicle_brand_fuel'
+    __table_args__ = (
+        ForeignKeyConstraint(['brand_id'], ['master_vehicle_brand.id'], name='fk_vehicle_brand_fuel_brand_id'),
+        ForeignKeyConstraint(['fuel_id'], ['master_fuel_type.id'], name='fk_vehicle_brand_fuel_fuel_id'),
+        ForeignKeyConstraint(['sub_service_id'], ['master_sub_service.id'], name='fk_vehicle_brand_fuel_sub_service_id'),
+        PrimaryKeyConstraint('id', name='pk_vehicle_brand_fuel_id'),
+        UniqueConstraint('sub_service_id', 'brand_id', 'fuel_id', name='uk_vehicle_brand_fuel')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sub_service_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    brand_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    fuel_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+
+    brand: Mapped['MasterVehicleBrand'] = relationship('MasterVehicleBrand', back_populates='vehicle_brand_fuel')
+    fuel: Mapped['MasterFuelType'] = relationship('MasterFuelType', back_populates='vehicle_brand_fuel')
+    sub_service: Mapped['MasterSubService'] = relationship('MasterSubService', back_populates='vehicle_brand_fuel')
 
 
 class AmbulanceBooking(Base):

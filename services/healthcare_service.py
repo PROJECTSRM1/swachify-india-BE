@@ -4,10 +4,9 @@ from datetime import datetime
 
 from sqlalchemy import text
 from models.generated_models import AmbulanceBooking, Appointments, DoctorProfile, MasterConsultationType, MasterHospital,UserRegistration,MasterAmbulance, MasterDoctorSpecialization,AvailableLabs
-from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema, AppointmentResponseSchema,DoctorCreateSchema, IdNameSchema
-from schemas.healthcare_schema import PaymentCreateSchema, AvailableLabCreate
-
-from models.generated_models import Payments, ServiceRequests
+from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema, AvailableLabCreate,DoctorCreateSchema
+from schemas.healthcare_schema import PaymentCreateSchema,AvailablePharmacyCreate
+from models.generated_models import Payments, ServiceRequests,AvailablePharmacies
 
 
 def create_healthcare_appointment(
@@ -90,100 +89,9 @@ def create_healthcare_appointment(
 #     ).all()
 
 def get_healthcare_appointments_by_user(db: Session, user_id: int):
-
-    appointments = (
-        db.query(Appointments)
-        .filter(Appointments.user_id == user_id)
-        .all()
-    )
-
-    response = []
-
-    for a in appointments:
-        response.append(
-            AppointmentResponseSchema(
-                id=a.id,
-                user_id=a.user_id,
-                appointment_time=a.appointment_time,
-
-                consultation_type_id=a.consultation_type_id,
-                doctor_id=a.doctor_id,
-                doctor_specialization_id=a.doctor_specialization_id,
-                ambulance_id=a.ambulance_id,
-                assistant_id=a.assistant_id,
-                labs_id=a.labs_id,
-                pharmacies_id=a.pharmacies_id,
-
-                consultation_type=(
-                    IdNameSchema(
-                        id=a.consultation_type.id,
-                        name=a.consultation_type.name
-                    ) if a.consultation_type else None
-                ),
-                
-                doctor=(
-                    IdNameSchema(
-                          id=a.doctor.id,
-                          name=f"{a.doctor.user.first_name} {a.doctor.user.last_name}".strip()
-                        )
-                        if a.doctor and a.doctor.user
-                        else None
-                ),
-
-                doctor_specialization=(
-                    IdNameSchema(
-                           id=a.doctor_specialization.id,
-                           name=a.doctor_specialization.specialization_name
-                        )
-                        if a.doctor_specialization
-                        else None
-                ),
-
-                ambulance=(
-                    IdNameSchema(
-                        id=a.ambulance.id,
-                        name=a.ambulance.vehicle_number
-                    ) if a.ambulance else None
-                ),
-
-                assistant=(
-                    IdNameSchema(
-                        id=a.assistant.id,
-                        name=a.assistant.name
-                    ) if a.assistant else None
-                ),
-
-                labs=(
-                    IdNameSchema(
-                        id=a.labs.id,
-                        name=a.labs.lab_name
-                    ) if a.labs else None
-                ),
-
-                pharmacies=(
-                    IdNameSchema(
-                        id=a.pharmacies.id,
-                        name=a.pharmacies.pharmacy_name
-                    ) if a.pharmacies else None
-                ),
-
-                hospital=(
-                    IdNameSchema(
-                        id=a.hospital.id,
-                        name=a.hospital.name
-                    ) if a.hospital else None
-                ),
-
-                required_ambulance=a.required_ambulance,
-                required_assistant=a.required_assistant,
-                pickup_time=a.pickup_time,
-                call_booking_status=a.call_booking_status,
-                status=a.status,
-                is_active=a.is_active
-            )
-        )
-
-    return response
+    return db.query(Appointments).filter(
+        Appointments.user_id == user_id
+    ).all()
 
 #doctor
 
@@ -540,6 +448,40 @@ def get_available_labs_list_service(
         {"filter_type": filter_type}
     ).mappings().all()
     
+#available_pharmacies    
+
+
+
+
+def create_pharmacy_service(db: Session, payload: AvailablePharmacyCreate):
+
+    # ✅ Validate created_by against registered users
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid created_by: user not registered"
+        )
+
+    # ✅ Check duplicate pharmacy name
+    existing = db.query(AvailablePharmacies).filter(
+        AvailablePharmacies.pharmacy_name == payload.pharmacy_name
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Pharmacy already exists"
+        )
+
+    pharmacy = AvailablePharmacies(**payload.dict())
+    db.add(pharmacy)
+    db.commit()
+    db.refresh(pharmacy)
+    return pharmacy
     
     
     
@@ -559,3 +501,32 @@ def create_lab_service(db: Session, lab_data: AvailableLabCreate):
     db.commit()
     db.refresh(new_lab)
     return new_lab
+
+from sqlalchemy import func
+
+def get_appointments_by_doctor(
+    db: Session,
+    doctor_id: int
+):
+    data = (
+        db.query(
+            Appointments.id.label("appointment_id"),
+            func.concat(
+                UserRegistration.first_name, " ", UserRegistration.last_name
+            ).label("doctor_name"),
+            Appointments.appointment_time,
+            Appointments.call_booking_status
+        )
+        .join(DoctorProfile, DoctorProfile.id == Appointments.doctor_id)
+        .join(UserRegistration, UserRegistration.id == DoctorProfile.user_id)
+        .filter(
+            Appointments.doctor_id == doctor_id,
+            Appointments.is_active == True
+        )
+        .all()
+    )
+
+    if not data:
+        raise HTTPException(status_code=404, detail="No appointments found")
+
+    return data
