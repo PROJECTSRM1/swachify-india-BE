@@ -3,6 +3,7 @@ from typing import Optional, List
 from datetime import datetime, time
 
 from decimal import Decimal
+import decimal
 
 class AppointmentCreateSchema(BaseModel):
     user_id: int
@@ -163,47 +164,53 @@ class PaymentResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
-        
-        
-        
 
 
-# -------- CREATE SCHEMA (POST) --------
-class AvailableLabCreate(BaseModel):
-    lab_name: str
+#available_pharmacies:
+
+class AvailablePharmacyCreate(BaseModel):
+    
+    pharmacy_name: str
+    pharmacy_type: Optional[str] = None
     services: Optional[str] = None
     rating: Optional[int] = None
-    home_collection: Optional[bool] = None
-    latitude: Optional[Decimal] = None
-    longitude: Optional[Decimal] = None
+    delivery_time: Optional[str] = None
+    latitude: Optional[decimal.Decimal] = None
+    longitude: Optional[decimal.Decimal] = None
     upload_prescription: Optional[str] = None
     proceed_type: Optional[str] = None
     delivery_address: Optional[str] = None
     special_instructions: Optional[str] = None
-    specialization_id: Optional[int] = None
-    fees_per_test: Optional[Decimal] = None
-    available_from: Optional[time] = None
-    available_to: Optional[time] = None
-    estimated_delivery: Optional[str] = None
+
+    open_from: Optional[time] = None
+    open_to: Optional[time] = None
+
+    home_delivery: Optional[bool] = False
+    created_by: Optional[int] = None
 
 
-# -------- RESPONSE SCHEMA (GET) --------
-class AvailableLabResponse(BaseModel):
+
+class AvailablePharmacyResponse(BaseModel):
     id: int
-    lab_name: str
-    services: Optional[str]
-    rating: Optional[int]
-    home_collection: Optional[bool]
-    is_active: Optional[bool]
-    latitude: Optional[Decimal]
-    longitude: Optional[Decimal]
-    specialization_id: Optional[int]
-    fees_per_test: Optional[Decimal]
-    available_from: Optional[time]
-    available_to: Optional[time]
-    estimated_delivery: Optional[str]
-    is_available: Optional[bool]
+    pharmacy_name: str
+    pharmacy_type: Optional[str] = None
+    services: Optional[str] = None
+    rating: Optional[int] = None
+    delivery_time: Optional[str] = None
+    latitude: Optional[decimal.Decimal] = None
+    longitude: Optional[decimal.Decimal] = None
+    upload_prescription: Optional[str] = None
+    proceed_type: Optional[str] = None
+    delivery_address: Optional[str] = None
+    special_instructions: Optional[str] = None
+
+    open_from: Optional[time] = None
+    open_to: Optional[time] = None
+
+    home_delivery: Optional[bool] = False
+    created_by: Optional[int] = None
+    is_active: bool
 
     class Config:
-       from_attributes = True
-        
+        from_attributes = True
+

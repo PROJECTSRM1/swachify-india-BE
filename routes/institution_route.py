@@ -182,8 +182,8 @@ def preview_branch_directory(
 def create_student_api(payload: StudentProfileCreate,db: Session = Depends(get_db)):
     return create_student_profile(db, payload)
 
-@router.get("/students",response_model=list[StudentProfileResponse])
-def get_students_api(db: Session = Depends(get_db)):
+@router.get("/all_students",response_model=list[StudentProfileResponse])
+def get_all_students_api(db: Session = Depends(get_db)):
     return get_all_students(db)
 
 @router.get("/by-branch")
