@@ -549,3 +549,33 @@ class StudentFeeInstallmentResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ================= STUDENT SEM ACADEMIC PROGRESS =================
+
+class StudentSemAcademicProgressCreate(BaseModel):
+    student_id: str
+    academic_year: str
+    semester_no: int
+    sgpa: Optional[Decimal] = None
+    attendance_percent: Optional[int] = None
+    backlogs: Optional[int] = None
+    created_by: Optional[int] = None
+
+
+
+
+
+class StudentSemAcademicProgressResponse(BaseModel):
+    id: int
+    student_id: str
+    academic_year: str
+    semester_no: int
+    sgpa: Optional[Decimal]
+    attendance_percent: Optional[int]
+    backlogs: Optional[int]
+    is_active: bool
+    created_date: datetime
+
+    class Config:
+        from_attributes = True
