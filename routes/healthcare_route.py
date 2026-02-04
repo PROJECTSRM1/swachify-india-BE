@@ -9,6 +9,8 @@ from schemas.healthcare_schema import (
     AmbulanceBookingResponseSchema,
     AppointmentCreateSchema,
     AppointmentResponseSchema,
+    AvailableLabCreate,
+    AvailableLabResponse,
     DoctorCreateSchema,
     DoctorResponseSchema,
     HospitalAmbulanceResponseSchema,
@@ -17,10 +19,12 @@ from schemas.healthcare_schema import (
     AvailablePharmacyCreate,
     AvailablePharmacyResponse
     
+    
 )
 from services.healthcare_service import (
     create_ambulance_booking,
     create_healthcare_appointment,
+    create_lab_service,
     get_available_hospitals,
     get_available_labs,
     get_available_labs_list_service,
@@ -135,16 +139,7 @@ def fetch_available_labs_list(
 
 #avialbile_pharamcies
 
-# @router.post(
-#     "/pharmacies",
-#     response_model=AvailablePharmacyResponse,
-#     status_code=status.HTTP_201_CREATED
-# )
-# def create_pharmacy_api(
-#     pharmacy_data: AvailablePharmacyCreate,
-#     db: Session = Depends(get_db)
-# ):
-#     return create_pharmacy_service(db, pharmacy_data)
+
 
 @router.post("/available-pharmacies")
 def create_pharmacy_api(
@@ -152,3 +147,18 @@ def create_pharmacy_api(
     db: Session = Depends(get_db)
 ):
     return create_pharmacy_service(db, pharmacy_data)
+
+
+
+# -------- GET ALL --------
+# @router.get("/healthcare", response_model=List[AvailableLabResponse])
+# def get_labs(db: Session = Depends(get_db)):
+#     return get_all_labs_service(db)
+
+# -------- POST --------
+@router.post("/available-labs", response_model=AvailableLabResponse)
+def create_lab(
+    lab: AvailableLabCreate,
+    db: Session = Depends(get_db)
+):
+    return create_lab_service(db, lab)

@@ -1,309 +1,836 @@
+# # # import uuid
+# # # from datetime import date
+# # # from sqlalchemy.orm import Session
+# # # from fastapi import HTTPException, status
+
+# # # from models.user_registration import UserRegistration
+# # # from models.master_module import MasterModule
+# # # from models.user_services import UserServices
+# # # from models.user_skill import UserSkill
+# # # from schemas.user_schema import RegisterUser
+# # # from utils.hash_utils import hash_password
+# # # from core.constants import (
+# # #     CUSTOMER_ROLE_ID,
+# # #     FREELANCER_ROLE_ID,
+# # #     STATUS_ACTIVE,
+# # #     STATUS_PENDING
+# # # )
+
+
+# # # def calculate_age(dob: date | None) -> int | None:
+# # #     if not dob:
+# # #         return None
+# # #     today = date.today()
+# # #     return today.year - dob.year - (
+# # #         (today.month, today.day) < (dob.month, dob.day)
+# # #     )
+
+
+# # # def get_message(work_type: int) -> str:
+# # #     if work_type == 1:
+# # #         return "Customer registered successfully"
+# # #     if work_type == 2:
+# # #         return "Freelancer registered successfully. Awaiting admin approval"
+# # #     return "Registered as Customer & Freelancer. Awaiting approval"
+
+# # # def register_user(db: Session, payload: RegisterUser):
+
+# # #     # 🔹 Validate services from master_module
+# # #     modules = (
+# # #         db.query(MasterModule)
+# # #         .filter(
+# # #             MasterModule.id.in_(payload.service_ids),
+# # #             MasterModule.is_active == True
+# # #         )
+# # #         .all()
+# # #     )
+
+# # #     if len(modules) != len(payload.service_ids):
+# # #         raise HTTPException(
+# # #             status_code=status.HTTP_400_BAD_REQUEST,
+# # #             detail="Invalid service IDs"
+# # #         )
+
+# # #     # 🔹 Duplicate checks
+# # #     if db.query(UserRegistration).filter_by(email=payload.email).first():
+# # #         raise HTTPException(status_code=409, detail="Email already registered")
+
+# # #     if db.query(UserRegistration).filter_by(mobile=payload.mobile).first():
+# # #         raise HTTPException(status_code=409, detail="Mobile already registered")
+
+# # #     # 🔹 Role & status
+# # #     if payload.work_type == 1:
+# # #         role_id, status_id = CUSTOMER_ROLE_ID, STATUS_ACTIVE
+# # #     else:
+# # #         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
+
+# # #     # 🔹 Create user
+# # #     user = UserRegistration(
+# # #         unique_id=str(uuid.uuid4()),
+# # #         first_name=payload.first_name,
+# # #         last_name=payload.last_name,
+# # #         email=payload.email,
+# # #         mobile=payload.mobile,
+# # #         password=hash_password(payload.password),
+# # #         gender_id=payload.gender_id,
+# # #         dob=payload.dob,
+# # #         age=calculate_age(payload.dob),
+# # #         role_id=role_id,
+# # #         status_id=status_id,
+# # #         state_id=payload.state_id,
+# # #         district_id=payload.district_id,
+# # #         address=payload.address,
+# # #         is_active=True
+# # #     )
+
+# # #     if payload.government_id:
+# # #         user.government_id = [g.model_dump() for g in payload.government_id]
+
+# # #     if payload.professional_details:
+# # #         pd = payload.professional_details
+# # #         if pd.experience_years is not None:
+# # #             user.experience_in_years = str(pd.experience_years)
+
+# # #     db.add(user)
+# # #     db.flush()  # ✅ user.id available
+
+# # #     # ===============================
+# # #     # 🔹 INSERT USER SERVICES
+# # #     # ===============================
+# # #     user_service_ids: list[int] = []
+
+# # #     for module in modules:
+# # #         us = UserServices(
+# # #             user_id=user.id,
+# # #             module_id=module.id
+# # #         )
+# # #         db.add(us)
+# # #         db.flush()  # ✅ us.id available
+# # #         user_service_ids.append(us.id)
+
+# # #     # ===============================
+# # #     # 🔹 INSERT USER SKILLS
+# # #     # ===============================
+# # #     user_skill_ids: list[int] = []
+
+# # #     if payload.professional_details and payload.professional_details.expertise_in:
+# # #         for skill_id in payload.professional_details.expertise_in:
+# # #             sk = UserSkill(
+# # #                 user_id=user.id,
+# # #                 skill_id=skill_id
+# # #             )
+# # #             db.add(sk)
+# # #             db.flush()  # ✅ sk.id available
+# # #             user_skill_ids.append(sk.id)
+
+# # #     # ===============================
+# # #     # 🔹 STORE PRIMARY IDS IN REGISTRATION
+# # #     # ===============================
+# # #     user.user_services_id = user_service_ids[0] if user_service_ids else None
+# # #     user.user_skill_id = user_skill_ids[0] if user_skill_ids else None
+
+# # #     db.commit()
+# # #     db.refresh(user)
+
+# # #     return user, get_message(payload.work_type)
+
+
+
+# # # import uuid
+# # # from datetime import date
+# # # from sqlalchemy.orm import Session
+# # # from fastapi import HTTPException, status
+
+# # # from models.user_registration import UserRegistration
+# # # from models.master_module import MasterModule
+# # # from models.user_services import UserServices
+# # # from models.user_skill import UserSkill
+# # # from schemas.user_schema import RegisterUser
+# # # from utils.hash_utils import hash_password
+# # # from core.constants import (
+# # #     CUSTOMER_ROLE_ID,
+# # #     FREELANCER_ROLE_ID,
+# # #     STATUS_ACTIVE,
+# # #     STATUS_PENDING
+# # # )
+
+
+# # # def calculate_age(dob: date | None) -> int | None:
+# # #     if not dob:
+# # #         return None
+# # #     today = date.today()
+# # #     return today.year - dob.year - (
+# # #         (today.month, today.day) < (dob.month, dob.day)
+# # #     )
+
+
+# # # def get_message(work_type: int) -> str:
+# # #     if work_type == 1:
+# # #         return "Customer registered successfully"
+# # #     if work_type == 2:
+# # #         return "Freelancer registered successfully. Awaiting admin approval"
+# # #     return "Registered as Customer & Freelancer. Awaiting approval"
+
+# # # def register_user(db: Session, payload: RegisterUser):
+
+# # #     # 🔹 Validate services from master_module
+# # #     modules = (
+# # #         db.query(MasterModule)
+# # #         .filter(
+# # #             MasterModule.id.in_(payload.service_ids),
+# # #             MasterModule.is_active == True
+# # #         )
+# # #         .all()
+# # #     )
+
+# # #     if len(modules) != len(payload.service_ids):
+# # #         raise HTTPException(
+# # #             status_code=status.HTTP_400_BAD_REQUEST,
+# # #             detail="Invalid service IDs"
+# # #         )
+
+# # #     # 🔹 Duplicate checks
+# # #     if db.query(UserRegistration).filter_by(email=payload.email).first():
+# # #         raise HTTPException(status_code=409, detail="Email already registered")
+
+# # #     if db.query(UserRegistration).filter_by(mobile=payload.mobile).first():
+# # #         raise HTTPException(status_code=409, detail="Mobile already registered")
+
+# # #     # 🔹 Role & status
+# # #     if payload.work_type == 1:
+# # #         role_id, status_id = CUSTOMER_ROLE_ID, STATUS_ACTIVE
+# # #     else:
+# # #         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
+
+# # #     # 🔹 Create user
+# # #     user = UserRegistration(
+# # #         unique_id=str(uuid.uuid4()),
+# # #         first_name=payload.first_name,
+# # #         last_name=payload.last_name,
+# # #         email=payload.email,
+# # #         mobile=payload.mobile,
+# # #         password=hash_password(payload.password),
+# # #         gender_id=payload.gender_id,
+# # #         dob=payload.dob,
+# # #         age=calculate_age(payload.dob),
+# # #         role_id=role_id,
+# # #         status_id=status_id,
+# # #         state_id=payload.state_id,
+# # #         district_id=payload.district_id,
+# # #         address=payload.address,
+# # #         is_active=True
+# # #     )
+
+# # #     if payload.government_id:
+# # #         user.government_id = [g.model_dump() for g in payload.government_id]
+
+# # #     if payload.professional_details:
+# # #         pd = payload.professional_details
+# # #         if pd.experience_years is not None:
+# # #             user.experience_in_years = str(pd.experience_years)
+
+# # #     db.add(user)
+# # #     db.flush()  # ✅ user.id available
+
+# # #     # ===============================
+# # #     # 🔹 INSERT USER SERVICES
+# # #     # ===============================
+# # #     user_service_ids: list[int] = []
+
+# # #     for module in modules:
+# # #         us = UserServices(
+# # #             user_id=user.id,
+# # #             module_id=module.id
+# # #         )
+# # #         db.add(us)
+# # #         db.flush()  # ✅ us.id available
+# # #         user_service_ids.append(us.id)
+
+# # #     # ===============================
+# # #     # 🔹 INSERT USER SKILLS
+# # #     # ===============================
+# # #     user_skill_ids: list[int] = []
+
+# # #     if payload.professional_details and payload.professional_details.expertise_in:
+# # #         for skill_id in payload.professional_details.expertise_in:
+# # #             sk = UserSkill(
+# # #                 user_id=user.id,
+# # #                 skill_id=skill_id
+# # #             )
+# # #             db.add(sk)
+# # #             db.flush()  # ✅ sk.id available
+# # #             user_skill_ids.append(sk.id)
+
+# # #     # ===============================
+# # #     # 🔹 STORE PRIMARY IDS IN REGISTRATION
+# # #     # ===============================
+# # #     user.user_services_id = user_service_ids[0] if user_service_ids else None
+# # #     user.user_skill_id = user_skill_ids[0] if user_skill_ids else None
+
+# # #     db.commit()
+# # #     db.refresh(user)
+
+# # #     return user, get_message(payload.work_type)
+
+
+# # # from sqlalchemy.orm import Session
+# # # from fastapi import HTTPException, status
+
+# # # from models.user_registration import UserRegistration
+# # # from schemas.user_schema import LoginRequest, LoginResponse
+# # # from utils.hash_utils import verify_password
+# # # from utils.jwt_utils import create_access_token, create_refresh_token
+
+
+# # # def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
+
+# # #     user = (
+# # #         db.query(UserRegistration)
+# # #         .filter(
+# # #             (UserRegistration.email == payload.email_or_phone) |
+# # #             (UserRegistration.mobile == payload.email_or_phone)
+# # #         )
+# # #         .first()
+# # #     )
+
+# # #     if not user:
+# # #         raise HTTPException(
+# # #             status_code=status.HTTP_401_UNAUTHORIZED,
+# # #             detail="Invalid email/mobile or password"
+# # #         )
+
+# # #     if not verify_password(payload.password, user.password):
+# # #         raise HTTPException(
+# # #             status_code=status.HTTP_401_UNAUTHORIZED,
+# # #             detail="Invalid email/mobile or password"
+# # #         )
+
+# # #     token_payload = {
+# # #         "user_id": user.id,
+# # #         "email": user.email,
+# # #         "role_id": user.role_id
+# # #     }
+
+# # #     return LoginResponse(
+# # #         user_id=user.id,
+# # #         email_or_phone=payload.email_or_phone,
+# # #         access_token=create_access_token(token_payload),
+# # #         refresh_token=create_refresh_token(token_payload),
+# # #         expires_in=60 * 60,              # 1 hour
+# # #         refresh_expires_in=60 * 60 * 24  # 1 day
+# # #     )
+
+
+
+
+# # import uuid
+# # from datetime import date
+# # from sqlalchemy.orm import Session
+# # from fastapi import HTTPException, status
+
+# # from models.generated_models import UserRegistration
+# # from models.generated_models import MasterModule
+# # from models.generated_models import UserServices
+# # from models.generated_models import UserSkill
+
+# # from schemas.user_schema import (
+# #     RegisterUser,
+# #     LoginRequest,
+# #     LoginResponse
+# # )
+
+# # from utils.hash_utils import hash_password, verify_password
+# # from utils.jwt_utils import create_access_token, create_refresh_token
+
+# # from core.constants import (
+# #     CUSTOMER_ROLE_ID,
+# #     FREELANCER_ROLE_ID,
+# #     STUDENT_ROLE_ID,
+# #     STATUS_APPROVED,
+# #     STATUS_PENDING
+# # )
+
+# # def calculate_age(dob: date | None) -> int | None:
+# #     if not dob:
+# #         return None
+# #     today = date.today()
+# #     return today.year - dob.year - (
+# #         (today.month, today.day) < (dob.month, dob.day)
+# #     )
+
+
+# # def get_message(work_type: int) -> str:
+# #     if work_type == 1:
+# #         return "Customer registered successfully"
+# #     if work_type == 2:
+# #         return "Freelancer registered successfully. Awaiting admin approval"
+# #     if work_type == 3:
+# #         return "Registered as Customer & Freelancer. Awaiting approval"
+# #     if work_type == 4:
+# #          return "Student Registered Successfully"
+    
+# # def register_user(db: Session, payload: RegisterUser):
+# #     modules = (
+# #         db.query(MasterModule)
+# #         .filter(
+# #             MasterModule.id.in_(payload.service_ids),
+# #             MasterModule.is_active.is_(True)
+# #         )
+# #         .all()
+# #     )
+
+# #     # if len(modules) != len(payload.service_ids):
+# #     #     raise HTTPException(
+# #     #         status_code=status.HTTP_400_BAD_REQUEST,
+# #     #         detail="Invalid service IDs"
+# #     #     )
+
+# #     if db.query(UserRegistration).filter_by(email=payload.email).first():
+# #         raise HTTPException(status_code=409, detail="Email already registered")
+
+# #     if db.query(UserRegistration).filter_by(mobile=payload.mobile).first():
+# #         raise HTTPException(status_code=409, detail="Mobile already registered")
+# #     if payload.work_type == 1:
+# #         role_id, status_id = CUSTOMER_ROLE_ID, STATUS_APPROVED
+# #     elif payload.work_type == 2:
+# #         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
+# #     elif payload.work_type == 3:
+# #         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
+# #     elif payload.work_type == 4:
+# #         role_id, status_id = STUDENT_ROLE_ID, STATUS_APPROVED  # <-- FIXED assignment
+# #     else:
+# #         raise HTTPException(
+# #             status_code=status.HTTP_400_BAD_REQUEST,
+# #             detail="Invalid work_type. Must be 1 (Customer), 2 (Freelancer), 3 (Both), or 4 (Student)."
+# #         )
+        
+# #     user = UserRegistration(
+# #         unique_id=str(uuid.uuid4()),
+# #         first_name=payload.first_name,
+# #         last_name=payload.last_name,
+# #         email=payload.email,
+# #         mobile=payload.mobile,
+# #         password=hash_password(payload.password),
+# #         gender_id=payload.gender_id,
+# #         dob=payload.dob,
+# #         age=calculate_age(payload.dob),
+# #         role_id=role_id,
+# #         status_id=status_id,
+# #         state_id=payload.state_id,
+# #         district_id=payload.district_id,
+# #         address=payload.address,
+# #         is_active=True,
+# #         business_type_id=payload.business_type_id if payload.work_type != 4 else None,
+# #         product_name=payload.product_name if payload.work_type != 4 else None,
+# #         business_description=payload.business_description if payload.work_type != 4 else None,
+# #         org_name=payload.org_name if payload.work_type != 4 else None,
+# #         gst_number=payload.gst_number if payload.work_type != 4 else None,
+# #         job_skill_id=payload.job_skill_id
+# #     )
+
+# #     if payload.government_id:
+# #         user.government_id = [g.model_dump() for g in payload.government_id]
+
+# #     if payload.professional_details:
+# #         if payload.professional_details.experience_years is not None:
+# #             user.experience_in_years = str(
+# #                 payload.professional_details.experience_years
+# #             )
+
+# #     db.add(user)
+# #     db.flush() 
+
+# #     service_ids: list[int] = []
+# #     for module in modules:
+# #         us = UserServices(user_id=user.id, module_id=module.id)
+# #         db.add(us)
+# #         db.flush() 
+# #         service_ids.append(us.id)
+
+# #     skill_ids: list[int] = []
+# #     if payload.professional_details:
+# #         for skill_id in payload.professional_details.expertise_in:
+# #             sk = UserSkill(user_id=user.id, skill_id=skill_id)
+# #             db.add(sk)
+# #             db.flush() 
+# #             skill_ids.append(sk.id)
+
+# #     db.commit()
+# #     db.refresh(user)
+
+# #     token_payload = {
+# #         "user_id": user.id,
+# #         "status_id": user.status_id,
+# #         "role_id": user.role_id
+# #     }
+
+# #     access_token = create_access_token(token_payload)
+# #     refresh_token = create_refresh_token(token_payload)
+
+# #     return {
+# #         "message": get_message(payload.work_type),
+# #         "user_id": user.id,
+# #         "unique_id": user.unique_id,
+# #         "email": user.email,
+# #         "mobile": user.mobile,
+# #         "role_id": user.role_id,
+# #         "status_id": user.status_id,
+# #         "work_type": payload.work_type,
+# #         "service_ids": service_ids,
+# #         "skill_ids": skill_ids,
+# #         "access_token": access_token,
+# #         "refresh_token": refresh_token,
+# #         "token_type": "bearer",
+# #         "expires_in": 60 * 60,
+# #         "refresh_expires_in": 60 * 60 * 24,
+# #         "business_type_id": user.business_type_id,
+# #         "product_name": user.product_name,
+# #         "business_description": user.business_description,
+# #         "org_name": user.org_name,
+# #         "gst_number": user.gst_number,
+# #         "job_skill_id": user.job_skill_id
+# #         # "profile_image": user.profile_image,
+# #         # "experience_summary": user.experience_summary,
+# #         # "experience_doc": user.experience_doc,
+# #         # "reg_payment_done": user.reg_payment_done,
+# #         # "reg_fee": float(user.reg_fee) if user.reg_fee is not None else None,
+# #         # "experience_in_years": user.experience_in_years,
+# #         # "noc_number": user.noc_number,
+# #         # "police_station_name": user.police_station_name,
+# #         # "issue_year": user.issue_year,
+# #         # "upload_noc": user.upload_noc,
+# #         # "latitude": float(user.latitude) if user.latitude is not None else None,
+# #         # "longitude": float(user.longitude) if user.longitude is not None else None
+# #     }
+
+
+# # def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
+
+# #     user = (
+# #         db.query(UserRegistration)
+# #         .filter(
+# #             (UserRegistration.email == payload.email_or_phone) |
+# #             (UserRegistration.mobile == payload.email_or_phone),
+# #             UserRegistration.status_id == STATUS_APPROVED
+# #         )
+# #         .first()
+# #     )
+
+# #     if not user or not verify_password(payload.password, user.password):
+# #         raise HTTPException(
+# #             status_code=status.HTTP_401_UNAUTHORIZED,
+# #             detail="Invalid email/mobile or password"
+# #         )
+
+# #     if payload.latitude is not None and payload.longitude is not None:
+# #         user.latitude = payload.latitude
+# #         user.longitude = payload.longitude
+# #         db.commit()
+# #         db.refresh(user)
+
+# #     service_ids = [
+# #         s.module_id
+# #         for s in db.query(UserServices)
+# #         .filter(UserServices.user_id == user.id)
+# #         .all()
+# #     ]
+
+# #     skill_ids = [
+# #         s.skill_id
+# #         for s in db.query(UserSkill)
+# #         .filter(UserSkill.user_id == user.id)
+# #         .all()
+# #     ]
+
+# #     role = (
+# #         "customer" if user.role_id == 2
+# #         else "freelancer" if user.role_id == 4
+# #         else "Student" if user.role_id == 5
+# #         else "other"
+# #     )
+
+# #     role_message = (
+# #         "User logged in as a " f"{role}"
+# #         if role == "Customer" or "Student"
+# #         else "User logged in as a freelancer"
+# #     )
+
+# #     token_payload = {
+# #         "user_id": user.id,
+# #         "email": user.email,
+# #         "role_id": user.role_id
+# #     }
+
+# #     return LoginResponse(
+# #         message=role_message,
+# #         user_id=user.id,
+# #         email_or_phone=payload.email_or_phone,
+# #         service_ids=service_ids,
+# #         skill_ids=skill_ids,
+
+# #         latitude=float(user.latitude) if user.latitude else None,
+# #         longitude=float(user.longitude) if user.longitude else None,
+
+# #         access_token=create_access_token(token_payload),
+# #         refresh_token=create_refresh_token(token_payload),
+# #         expires_in=3600,
+# #         refresh_expires_in=86400,
+# #         role=role
+# #     )
+
 # import uuid
 # from datetime import date
 # from sqlalchemy.orm import Session
 # from fastapi import HTTPException, status
 
-# from models.user_registration import UserRegistration
-# from models.master_module import MasterModule
-# from models.user_services import UserServices
-# from models.user_skill import UserSkill
-# from schemas.user_schema import RegisterUser
-# from utils.hash_utils import hash_password
-# from core.constants import (
-#     CUSTOMER_ROLE_ID,
-#     FREELANCER_ROLE_ID,
-#     STATUS_ACTIVE,
-#     STATUS_PENDING
+# from models.generated_models import (
+#     UserRegistration,
+#     MasterModule,
+#     UserServices,
+#     UserSkill
 # )
 
-
-# def calculate_age(dob: date | None) -> int | None:
-#     if not dob:
-#         return None
-#     today = date.today()
-#     return today.year - dob.year - (
-#         (today.month, today.day) < (dob.month, dob.day)
-#     )
-
-
-# def get_message(work_type: int) -> str:
-#     if work_type == 1:
-#         return "Customer registered successfully"
-#     if work_type == 2:
-#         return "Freelancer registered successfully. Awaiting admin approval"
-#     return "Registered as Customer & Freelancer. Awaiting approval"
-
-# def register_user(db: Session, payload: RegisterUser):
-
-#     # 🔹 Validate services from master_module
-#     modules = (
-#         db.query(MasterModule)
-#         .filter(
-#             MasterModule.id.in_(payload.service_ids),
-#             MasterModule.is_active == True
-#         )
-#         .all()
-#     )
-
-#     if len(modules) != len(payload.service_ids):
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Invalid service IDs"
-#         )
-
-#     # 🔹 Duplicate checks
-#     if db.query(UserRegistration).filter_by(email=payload.email).first():
-#         raise HTTPException(status_code=409, detail="Email already registered")
-
-#     if db.query(UserRegistration).filter_by(mobile=payload.mobile).first():
-#         raise HTTPException(status_code=409, detail="Mobile already registered")
-
-#     # 🔹 Role & status
-#     if payload.work_type == 1:
-#         role_id, status_id = CUSTOMER_ROLE_ID, STATUS_ACTIVE
-#     else:
-#         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
-
-#     # 🔹 Create user
-#     user = UserRegistration(
-#         unique_id=str(uuid.uuid4()),
-#         first_name=payload.first_name,
-#         last_name=payload.last_name,
-#         email=payload.email,
-#         mobile=payload.mobile,
-#         password=hash_password(payload.password),
-#         gender_id=payload.gender_id,
-#         dob=payload.dob,
-#         age=calculate_age(payload.dob),
-#         role_id=role_id,
-#         status_id=status_id,
-#         state_id=payload.state_id,
-#         district_id=payload.district_id,
-#         address=payload.address,
-#         is_active=True
-#     )
-
-#     if payload.government_id:
-#         user.government_id = [g.model_dump() for g in payload.government_id]
-
-#     if payload.professional_details:
-#         pd = payload.professional_details
-#         if pd.experience_years is not None:
-#             user.experience_in_years = str(pd.experience_years)
-
-#     db.add(user)
-#     db.flush()  # ✅ user.id available
-
-#     # ===============================
-#     # 🔹 INSERT USER SERVICES
-#     # ===============================
-#     user_service_ids: list[int] = []
-
-#     for module in modules:
-#         us = UserServices(
-#             user_id=user.id,
-#             module_id=module.id
-#         )
-#         db.add(us)
-#         db.flush()  # ✅ us.id available
-#         user_service_ids.append(us.id)
-
-#     # ===============================
-#     # 🔹 INSERT USER SKILLS
-#     # ===============================
-#     user_skill_ids: list[int] = []
-
-#     if payload.professional_details and payload.professional_details.expertise_in:
-#         for skill_id in payload.professional_details.expertise_in:
-#             sk = UserSkill(
-#                 user_id=user.id,
-#                 skill_id=skill_id
-#             )
-#             db.add(sk)
-#             db.flush()  # ✅ sk.id available
-#             user_skill_ids.append(sk.id)
-
-#     # ===============================
-#     # 🔹 STORE PRIMARY IDS IN REGISTRATION
-#     # ===============================
-#     user.user_services_id = user_service_ids[0] if user_service_ids else None
-#     user.user_skill_id = user_skill_ids[0] if user_skill_ids else None
-
-#     db.commit()
-#     db.refresh(user)
-
-#     return user, get_message(payload.work_type)
-
-
-
-# import uuid
-# from datetime import date
-# from sqlalchemy.orm import Session
-# from fastapi import HTTPException, status
-
-# from models.user_registration import UserRegistration
-# from models.master_module import MasterModule
-# from models.user_services import UserServices
-# from models.user_skill import UserSkill
-# from schemas.user_schema import RegisterUser
-# from utils.hash_utils import hash_password
-# from core.constants import (
-#     CUSTOMER_ROLE_ID,
-#     FREELANCER_ROLE_ID,
-#     STATUS_ACTIVE,
-#     STATUS_PENDING
+# from schemas.user_schema import (
+#     RegisterUser,
+#     LoginRequest,
+#     LoginResponse
 # )
 
-
-# def calculate_age(dob: date | None) -> int | None:
-#     if not dob:
-#         return None
-#     today = date.today()
-#     return today.year - dob.year - (
-#         (today.month, today.day) < (dob.month, dob.day)
-#     )
-
-
-# def get_message(work_type: int) -> str:
-#     if work_type == 1:
-#         return "Customer registered successfully"
-#     if work_type == 2:
-#         return "Freelancer registered successfully. Awaiting admin approval"
-#     return "Registered as Customer & Freelancer. Awaiting approval"
-
-# def register_user(db: Session, payload: RegisterUser):
-
-#     # 🔹 Validate services from master_module
-#     modules = (
-#         db.query(MasterModule)
-#         .filter(
-#             MasterModule.id.in_(payload.service_ids),
-#             MasterModule.is_active == True
-#         )
-#         .all()
-#     )
-
-#     if len(modules) != len(payload.service_ids):
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Invalid service IDs"
-#         )
-
-#     # 🔹 Duplicate checks
-#     if db.query(UserRegistration).filter_by(email=payload.email).first():
-#         raise HTTPException(status_code=409, detail="Email already registered")
-
-#     if db.query(UserRegistration).filter_by(mobile=payload.mobile).first():
-#         raise HTTPException(status_code=409, detail="Mobile already registered")
-
-#     # 🔹 Role & status
-#     if payload.work_type == 1:
-#         role_id, status_id = CUSTOMER_ROLE_ID, STATUS_ACTIVE
-#     else:
-#         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
-
-#     # 🔹 Create user
-#     user = UserRegistration(
-#         unique_id=str(uuid.uuid4()),
-#         first_name=payload.first_name,
-#         last_name=payload.last_name,
-#         email=payload.email,
-#         mobile=payload.mobile,
-#         password=hash_password(payload.password),
-#         gender_id=payload.gender_id,
-#         dob=payload.dob,
-#         age=calculate_age(payload.dob),
-#         role_id=role_id,
-#         status_id=status_id,
-#         state_id=payload.state_id,
-#         district_id=payload.district_id,
-#         address=payload.address,
-#         is_active=True
-#     )
-
-#     if payload.government_id:
-#         user.government_id = [g.model_dump() for g in payload.government_id]
-
-#     if payload.professional_details:
-#         pd = payload.professional_details
-#         if pd.experience_years is not None:
-#             user.experience_in_years = str(pd.experience_years)
-
-#     db.add(user)
-#     db.flush()  # ✅ user.id available
-
-#     # ===============================
-#     # 🔹 INSERT USER SERVICES
-#     # ===============================
-#     user_service_ids: list[int] = []
-
-#     for module in modules:
-#         us = UserServices(
-#             user_id=user.id,
-#             module_id=module.id
-#         )
-#         db.add(us)
-#         db.flush()  # ✅ us.id available
-#         user_service_ids.append(us.id)
-
-#     # ===============================
-#     # 🔹 INSERT USER SKILLS
-#     # ===============================
-#     user_skill_ids: list[int] = []
-
-#     if payload.professional_details and payload.professional_details.expertise_in:
-#         for skill_id in payload.professional_details.expertise_in:
-#             sk = UserSkill(
-#                 user_id=user.id,
-#                 skill_id=skill_id
-#             )
-#             db.add(sk)
-#             db.flush()  # ✅ sk.id available
-#             user_skill_ids.append(sk.id)
-
-#     # ===============================
-#     # 🔹 STORE PRIMARY IDS IN REGISTRATION
-#     # ===============================
-#     user.user_services_id = user_service_ids[0] if user_service_ids else None
-#     user.user_skill_id = user_skill_ids[0] if user_skill_ids else None
-
-#     db.commit()
-#     db.refresh(user)
-
-#     return user, get_message(payload.work_type)
-
-
-# from sqlalchemy.orm import Session
-# from fastapi import HTTPException, status
-
-# from models.user_registration import UserRegistration
-# from schemas.user_schema import LoginRequest, LoginResponse
-# from utils.hash_utils import verify_password
+# from utils.hash_utils import hash_password, verify_password
 # from utils.jwt_utils import create_access_token, create_refresh_token
 
+# from core.constants import (
+#     CUSTOMER_ROLE_ID,
+#     FREELANCER_ROLE_ID,
+#     STUDENT_ROLE_ID,
+#     STATUS_APPROVED,
+#     STATUS_PENDING
+# )
 
+# # -------------------------------------------------
+# # Utilities
+# # -------------------------------------------------
+# def calculate_age(dob: date | None) -> int | None:
+#     if not dob:
+#         return None
+#     today = date.today()
+#     return today.year - dob.year - (
+#         (today.month, today.day) < (dob.month, dob.day)
+#     )
+
+
+# def get_message(work_type_id: int) -> str:
+#     if work_type_id == 1:
+#         return "Customer registered successfully"
+#     if work_type_id == 2:
+#         return "Freelancer registered successfully. Awaiting admin approval"
+#     if work_type_id == 3:
+#         return "Registered as Customer & Freelancer. Awaiting approval"
+#     if work_type_id == 4:
+#         return "Student registered successfully"
+#     return "Registration successful"
+
+
+# # -------------------------------------------------
+# # Register User
+# # -------------------------------------------------
+# def register_user(db: Session, payload: RegisterUser):
+
+#     work_type_id = payload.work_type_id
+
+#     # -------------------------------
+#     # Duplicate checks
+#     # -------------------------------
+#     if db.query(UserRegistration).filter_by(email=payload.email).first():
+#         raise HTTPException(status_code=409, detail="Email already registered")
+
+#     if db.query(UserRegistration).filter_by(mobile=payload.mobile).first():
+#         raise HTTPException(status_code=409, detail="Mobile already registered")
+
+#     # -------------------------------
+#     # Role & Status Mapping
+#     # -------------------------------
+#     if work_type_id == 1:  # Customer
+#         role_id, status_id = CUSTOMER_ROLE_ID, STATUS_APPROVED
+
+#     elif work_type_id in (2, 3):  # Freelancer / Both
+#         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
+
+#     elif work_type_id == 4:  # Student
+#         role_id, status_id = STUDENT_ROLE_ID, STATUS_APPROVED
+
+#     else:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Invalid work_type_id"
+#         )
+
+#     # -------------------------------
+#     # Create User (NO relationship FKs here)
+#     # -------------------------------
+#     user = UserRegistration(
+#         unique_id=str(uuid.uuid4()),
+#         first_name=payload.first_name,
+#         last_name=payload.last_name,
+#         email=payload.email,
+#         mobile=payload.mobile,
+#         password=hash_password(payload.password),
+
+#         gender_id=payload.gender_id,
+#         dob=payload.dob,
+#         age=calculate_age(payload.dob),
+
+#         role_id=role_id,
+#         status_id=status_id,
+#         work_type_id=work_type_id,
+
+#         state_id=payload.state_id,
+#         district_id=payload.district_id,
+#         address=payload.address,
+
+#         is_active=True,
+
+#         business_type_id=payload.business_type_id if work_type_id != 4 else None,
+#         product_name=payload.product_name if work_type_id != 4 else None,
+#         business_description=payload.business_description if work_type_id != 4 else None,
+#         org_name=payload.org_name if work_type_id != 4 else None,
+#         gst_number=payload.gst_number if work_type_id != 4 else None
+#     )
+
+#     # JSON field
+#     if payload.government_id:
+#         user.government_id = payload.government_id
+
+#     # if payload.professional_details and payload.professional_details.experience_years is not None:
+#     #     user.experience_in_years = str(payload.professional_details.experience_years)
+
+#     db.add(user)
+#     db.flush()  # user.id available
+
+#     # -------------------------------
+#     # Assign relationship-linked FKs AFTER flush
+#     # # -------------------------------
+#     # if payload.job_skill_id:
+#     #     user.job_skill_id = payload.job_skill_id
+
+#     # # -------------------------------
+#     # # User Services
+#     # # -------------------------------
+#     # service_ids: list[int] = []
+
+#     # if payload.service_ids:
+#     #     modules = (
+#     #         db.query(MasterModule)
+#     #         .filter(
+#     #             MasterModule.id.in_(payload.service_ids),
+#     #             MasterModule.is_active.is_(True)
+#     #         )
+#     #         .all()
+#     #     )
+
+#     #     for module in modules:
+#     #         db.add(UserServices(user_id=user.id, module_id=module.id))
+#     #         service_ids.append(module.id)
+
+#     # # -------------------------------
+#     # # User Skills (many-to-many)
+#     # # -------------------------------
+#     # skill_ids: list[int] = []
+
+#     # if payload.professional_details:
+#     #     for skill_id in payload.professional_details.expertise_in:
+#     #         db.add(UserSkill(user_id=user.id, skill_id=skill_id))
+#     #         skill_ids.append(skill_id)
+
+#     db.commit()
+#     db.refresh(user)
+
+#     # -------------------------------
+#     # Tokens
+#     # -------------------------------
+#     token_payload = {
+#         "user_id": user.id,
+#         "role_id": user.role_id,
+#         "status_id": user.status_id
+#     }
+
+#     access_token = create_access_token(token_payload)
+#     refresh_token = create_refresh_token(token_payload)
+
+#     # -------------------------------
+#     # Response
+#     # -------------------------------
+#     return {
+#         "message": get_message(work_type_id),
+#         "user_id": user.id,
+#         "unique_id": user.unique_id,
+#         "email": user.email,
+#         "mobile": user.mobile,
+#         "role_id": user.role_id,
+#         "status_id": user.status_id,
+#         "work_type_id": work_type_id,
+
+#         # "service_ids": service_ids,
+#         # "skill_ids": skill_ids,
+
+#         "access_token": access_token,
+#         "refresh_token": refresh_token,
+#         "token_type": "bearer",
+#         "expires_in": 3600,
+#         "refresh_expires_in": 86400,
+
+#         # "business_type_id": user.business_type_id,
+#         # "product_name": user.product_name,
+#         # "business_description": user.business_description,
+#         # "org_name": user.org_name,
+#         # "gst_number": user.gst_number,
+#         # "job_skill_id": user.job_skill_id
+#     }
+
+
+# # -------------------------------------------------
+# # Login User
+# # -------------------------------------------------
 # def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
 
 #     user = (
 #         db.query(UserRegistration)
 #         .filter(
 #             (UserRegistration.email == payload.email_or_phone) |
-#             (UserRegistration.mobile == payload.email_or_phone)
+#             (UserRegistration.mobile == payload.email_or_phone),
+#             UserRegistration.status_id == STATUS_APPROVED
 #         )
 #         .first()
 #     )
 
-#     if not user:
+#     if not user or not verify_password(payload.password, user.password):
 #         raise HTTPException(
 #             status_code=status.HTTP_401_UNAUTHORIZED,
 #             detail="Invalid email/mobile or password"
 #         )
 
-#     if not verify_password(payload.password, user.password):
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Invalid email/mobile or password"
-#         )
+#     # Update location
+#     if payload.latitude is not None and payload.longitude is not None:
+#         user.latitude = payload.latitude
+#         user.longitude = payload.longitude
+#         db.commit()
+
+#     service_ids = [
+#         s.module_id
+#         for s in db.query(UserServices).filter(UserServices.user_id == user.id).all()
+#     ]
+
+#     skill_ids = [
+#         s.skill_id
+#         for s in db.query(UserSkill).filter(UserSkill.user_id == user.id).all()
+#     ]
+
+#     role = (
+#         "customer" if user.role_id == CUSTOMER_ROLE_ID
+#         else "freelancer" if user.role_id == FREELANCER_ROLE_ID
+#         else "student" if user.role_id == STUDENT_ROLE_ID
+#         else "other"
+#     )
 
 #     token_payload = {
 #         "user_id": user.id,
@@ -312,15 +839,21 @@
 #     }
 
 #     return LoginResponse(
+#         message=f"User logged in as {role}",
 #         user_id=user.id,
 #         email_or_phone=payload.email_or_phone,
+#         service_ids=service_ids,
+#         skill_ids=skill_ids,
+
+#         latitude=float(user.latitude) if user.latitude else None,
+#         longitude=float(user.longitude) if user.longitude else None,
+
 #         access_token=create_access_token(token_payload),
 #         refresh_token=create_refresh_token(token_payload),
-#         expires_in=60 * 60,              # 1 hour
-#         refresh_expires_in=60 * 60 * 24  # 1 day
+#         expires_in=3600,
+#         refresh_expires_in=86400,
+#         role=role
 #     )
-
-
 
 
 import uuid
@@ -328,17 +861,14 @@ from datetime import date
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from models.generated_models import UserRegistration
-from models.generated_models import MasterModule
-from models.generated_models import UserServices
-from models.generated_models import UserSkill
-
-from schemas.user_schema import (
-    RegisterUser,
-    LoginRequest,
-    LoginResponse
+from models.generated_models import (
+    UserRegistration,
+    MasterModule,
+    UserServices,
+    UserSkill
 )
 
+from schemas.user_schema import RegisterUser, LoginRequest, LoginResponse
 from utils.hash_utils import hash_password, verify_password
 from utils.jwt_utils import create_access_token, create_refresh_token
 
@@ -350,6 +880,7 @@ from core.constants import (
     STATUS_PENDING
 )
 
+
 def calculate_age(dob: date | None) -> int | None:
     if not dob:
         return None
@@ -359,51 +890,37 @@ def calculate_age(dob: date | None) -> int | None:
     )
 
 
-def get_message(work_type: int) -> str:
-    if work_type == 1:
-        return "Customer registered successfully"
-    if work_type == 2:
-        return "Freelancer registered successfully. Awaiting admin approval"
-    if work_type == 3:
-        return "Registered as Customer & Freelancer. Awaiting approval"
-    if work_type == 4:
-         return "Student Registered Successfully"
-    
-def register_user(db: Session, payload: RegisterUser):
-    modules = (
-        db.query(MasterModule)
-        .filter(
-            MasterModule.id.in_(payload.service_ids),
-            MasterModule.is_active.is_(True)
-        )
-        .all()
-    )
+def get_message(work_type_id: int) -> str:
+    return {
+        1: "Customer registered successfully",
+        2: "Freelancer registered successfully. Awaiting admin approval",
+        3: "Registered as Customer & Freelancer. Awaiting approval",
+        4: "Student registered successfully"
+    }.get(work_type_id, "Registration successful")
 
-    if len(modules) != len(payload.service_ids):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid service IDs"
-        )
+
+# -----------------------------
+# Register
+# -----------------------------
+def register_user(db: Session, payload: RegisterUser):
+
+    work_type_id = payload.work_type_id
 
     if db.query(UserRegistration).filter_by(email=payload.email).first():
-        raise HTTPException(status_code=409, detail="Email already registered")
+        raise HTTPException(409, "Email already registered")
 
     if db.query(UserRegistration).filter_by(mobile=payload.mobile).first():
-        raise HTTPException(status_code=409, detail="Mobile already registered")
-    if payload.work_type == 1:
+        raise HTTPException(409, "Mobile already registered")
+
+    if work_type_id == 1:
         role_id, status_id = CUSTOMER_ROLE_ID, STATUS_APPROVED
-    elif payload.work_type == 2:
+    elif work_type_id in (2, 3):
         role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
-    elif payload.work_type == 3:
-        role_id, status_id = FREELANCER_ROLE_ID, STATUS_PENDING
-    elif payload.work_type == 4:
-        role_id, status_id = STUDENT_ROLE_ID, STATUS_APPROVED  # <-- FIXED assignment
+    elif work_type_id == 4:
+        role_id, status_id = STUDENT_ROLE_ID, STATUS_APPROVED
     else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid work_type. Must be 1 (Customer), 2 (Freelancer), 3 (Both), or 4 (Student)."
-        )
-        
+        raise HTTPException(400, "Invalid work_type_id")
+
     user = UserRegistration(
         unique_id=str(uuid.uuid4()),
         first_name=payload.first_name,
@@ -411,148 +928,98 @@ def register_user(db: Session, payload: RegisterUser):
         email=payload.email,
         mobile=payload.mobile,
         password=hash_password(payload.password),
+
         gender_id=payload.gender_id,
         dob=payload.dob,
         age=calculate_age(payload.dob),
+
         role_id=role_id,
         status_id=status_id,
+        work_type_id=work_type_id,
+
         state_id=payload.state_id,
         district_id=payload.district_id,
         address=payload.address,
-        is_active=True,
-        business_type_id=payload.business_type_id if payload.work_type != 4 else None,
-        product_name=payload.product_name if payload.work_type != 4 else None,
-        business_description=payload.business_description if payload.work_type != 4 else None,
-        org_name=payload.org_name if payload.work_type != 4 else None,
-        gst_number=payload.gst_number if payload.work_type != 4 else None,
-        job_skill_id=payload.job_skill_id
+        is_active=True
     )
 
-    if payload.government_id:
-        user.government_id = [g.model_dump() for g in payload.government_id]
-
-    if payload.professional_details:
-        if payload.professional_details.experience_years is not None:
-            user.experience_in_years = str(
-                payload.professional_details.experience_years
-            )
-
     db.add(user)
-    db.flush() 
+    db.flush()
 
-    service_ids: list[int] = []
-    for module in modules:
-        us = UserServices(user_id=user.id, module_id=module.id)
-        db.add(us)
-        db.flush() 
-        service_ids.append(us.id)
+    if payload.job_skill_id:
+        user.job_skill_id = payload.job_skill_id
 
-    skill_ids: list[int] = []
+    service_ids = []
+    if payload.service_ids:
+        modules = db.query(MasterModule).filter(
+            MasterModule.id.in_(payload.service_ids),
+            MasterModule.is_active.is_(True)
+        ).all()
+
+        for m in modules:
+            db.add(UserServices(user_id=user.id, module_id=m.id))
+            service_ids.append(m.id)
+
+    skill_ids = []
     if payload.professional_details:
-        for skill_id in payload.professional_details.expertise_in:
-            sk = UserSkill(user_id=user.id, skill_id=skill_id)
-            db.add(sk)
-            db.flush() 
-            skill_ids.append(sk.id)
+        for sid in payload.professional_details.expertise_in:
+            db.add(UserSkill(user_id=user.id, skill_id=sid))
+            skill_ids.append(sid)
 
     db.commit()
     db.refresh(user)
 
     token_payload = {
         "user_id": user.id,
-        "status_id": user.status_id,
-        "role_id": user.role_id
+        "role_id": user.role_id,
+        "status_id": user.status_id
     }
 
-    access_token = create_access_token(token_payload)
-    refresh_token = create_refresh_token(token_payload)
-
     return {
-        "message": get_message(payload.work_type),
+        "message": get_message(work_type_id),
         "user_id": user.id,
         "unique_id": user.unique_id,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
         "email": user.email,
         "mobile": user.mobile,
         "role_id": user.role_id,
         "status_id": user.status_id,
-        "work_type": payload.work_type,
-        "service_ids": service_ids,
-        "skill_ids": skill_ids,
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "expires_in": 60 * 60,
-        "refresh_expires_in": 60 * 60 * 24,
-        "business_type_id": user.business_type_id,
-        "product_name": user.product_name,
-        "business_description": user.business_description,
-        "org_name": user.org_name,
-        "gst_number": user.gst_number,
-        "job_skill_id": user.job_skill_id
-        # "profile_image": user.profile_image,
-        # "experience_summary": user.experience_summary,
-        # "experience_doc": user.experience_doc,
-        # "reg_payment_done": user.reg_payment_done,
-        # "reg_fee": float(user.reg_fee) if user.reg_fee is not None else None,
-        # "experience_in_years": user.experience_in_years,
-        # "noc_number": user.noc_number,
-        # "police_station_name": user.police_station_name,
-        # "issue_year": user.issue_year,
-        # "upload_noc": user.upload_noc,
-        # "latitude": float(user.latitude) if user.latitude is not None else None,
-        # "longitude": float(user.longitude) if user.longitude is not None else None
+        "work_type_id": work_type_id,
+        "is_active": user.is_active,
+        "access_token": create_access_token(token_payload),
+        "refresh_token": create_refresh_token(token_payload),
+        "expires_in": 3600,
+        "refresh_expires_in": 86400
     }
 
 
+# -----------------------------
+# Login
+# -----------------------------
 def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
 
-    user = (
-        db.query(UserRegistration)
-        .filter(
-            (UserRegistration.email == payload.email_or_phone) |
-            (UserRegistration.mobile == payload.email_or_phone),
-            UserRegistration.status_id == STATUS_APPROVED
-        )
-        .first()
-    )
+    user = db.query(UserRegistration).filter(
+        (UserRegistration.email == payload.email_or_phone) |
+        (UserRegistration.mobile == payload.email_or_phone),
+        UserRegistration.status_id == STATUS_APPROVED
+    ).first()
 
     if not user or not verify_password(payload.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email/mobile or password"
-        )
-
-    if payload.latitude is not None and payload.longitude is not None:
-        user.latitude = payload.latitude
-        user.longitude = payload.longitude
-        db.commit()
-        db.refresh(user)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
 
     service_ids = [
-        s.module_id
-        for s in db.query(UserServices)
-        .filter(UserServices.user_id == user.id)
-        .all()
+        s.module_id for s in db.query(UserServices).filter_by(user_id=user.id)
     ]
 
     skill_ids = [
-        s.skill_id
-        for s in db.query(UserSkill)
-        .filter(UserSkill.user_id == user.id)
-        .all()
+        s.skill_id for s in db.query(UserSkill).filter_by(user_id=user.id)
     ]
 
     role = (
-        "customer" if user.role_id == 2
-        else "freelancer" if user.role_id == 4
-        else "Student" if user.role_id == 5
-        else "other"
-    )
-
-    role_message = (
-        "User logged in as a " f"{role}"
-        if role == "Customer" or "Student"
-        else "User logged in as a freelancer"
+        "customer" if user.role_id == CUSTOMER_ROLE_ID
+        else "freelancer" if user.role_id == FREELANCER_ROLE_ID
+        else "student"
     )
 
     token_payload = {
@@ -562,15 +1029,13 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
     }
 
     return LoginResponse(
-        message=role_message,
+        message=f"User logged in as {role}",
         user_id=user.id,
         email_or_phone=payload.email_or_phone,
         service_ids=service_ids,
         skill_ids=skill_ids,
-
-        latitude=float(user.latitude) if user.latitude else None,
-        longitude=float(user.longitude) if user.longitude else None,
-
+        latitude=user.latitude,
+        longitude=user.longitude,
         access_token=create_access_token(token_payload),
         refresh_token=create_refresh_token(token_payload),
         expires_in=3600,

@@ -7,7 +7,7 @@ from core.database import get_db
 # from utils.mail_agent import send_welcome_email
 from utils.sms_agent import send_welcome_sms
 # from utils.jwt_utils import create_access_token
-from schemas.user_schema import RefreshRequest, VerifyTokenResponse
+# from schemas.user_schema import Re
 from utils.jwt_utils import verify_token
 from utils.auth_dependencies import get_current_freelancer
 from schemas.freelancer_schema import FreelancerLogin

@@ -1,8 +1,7 @@
 from pydantic import BaseModel,Field
-from typing import Optional
-from datetime import datetime
+from typing import Optional, List
+from datetime import datetime, time
 
-from datetime import time
 from decimal import Decimal
 import decimal
 
