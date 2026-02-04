@@ -4,6 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import text
 from models.generated_models import (
+    AmbulanceBooking,
     Appointments,
     DoctorProfile,
     MasterConsultationType,
