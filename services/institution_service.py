@@ -20,7 +20,8 @@ from models.generated_models import (
     StaffPayslip,
     StaffProfile,
     StudentFeeInstallments,
-    StudentProfile
+    StudentProfile,
+    StudentSemAcademicProgress
 )
 from sqlalchemy import text
 from typing import List
@@ -44,7 +45,9 @@ from schemas.institution_schema import (
     StudentAcademicDetailsSchema,
     StudentFeeInstallmentCreateSchema,
     StudentProfileCreate,
-    StudentProfileUpdate
+    StudentProfileUpdate,
+    StudentSemAcademicProgressCreate,
+    
 )
 
 
@@ -542,8 +545,6 @@ def get_exam_notification_by_id(
 
 #payroll period
 
-
-
 def create_payroll_period(db: Session, data: PayrollPeriodCreate):
     payroll_period = PayrollPeriod(
         month=data.month,
@@ -774,3 +775,43 @@ def get_student_fee_installments(
         )
 
     return data
+
+
+#post student_sem_academic_progress
+def create_student_sem_academic_progress(
+    db: Session,
+    data: StudentSemAcademicProgressCreate
+):
+    record = StudentSemAcademicProgress(
+        student_id=data.student_id,
+        academic_year=data.academic_year,
+        semester_no=data.semester_no,
+        sgpa=data.sgpa,
+        attendance_percent=data.attendance_percent,
+        backlogs=data.backlogs,
+        created_by=data.created_by,
+        is_active=True
+    )
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return record
+
+
+
+
+
+# ---------- GET BY STUDENT ID ----------
+def get_student_sem_academic_progress_by_student_id(
+    db: Session,
+    student_id: str
+):
+    return (
+        db.query(StudentSemAcademicProgress)
+        .filter(
+            StudentSemAcademicProgress.student_id == student_id,
+            StudentSemAcademicProgress.is_active == True
+        )
+        .all()
+    )
+

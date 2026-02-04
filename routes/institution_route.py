@@ -27,7 +27,9 @@ from schemas.institution_schema import (
     StudentFeeInstallmentResponseSchema,
     StudentProfileCreate,
     StudentProfileUpdate,
-    StudentProfileResponse
+    StudentProfileResponse,
+    StudentSemAcademicProgressCreate,
+    StudentSemAcademicProgressResponse
 )
 
 from schemas.healthcare_schema import (
@@ -69,11 +71,14 @@ from services.institution_service import (
     fetch_students_by_branch,
     get_management_overview,
     get_bus_tracking_overview,
-    get_bus_tracking_summary
- 
+    get_bus_tracking_summary,
+    create_student_sem_academic_progress,
+    get_student_sem_academic_progress_by_student_id
 
    
 )
+
+
 
 from pydantic import BaseModel, EmailStr, model_validator
 from fastapi import HTTPException
@@ -282,5 +287,32 @@ def fetch_fee_installments(
     db: Session = Depends(get_db)
 ):
     return get_student_fee_installments(db, student_id)
+
+
+
+# ---------- CREATE ----------
+@router.post(
+    "/",
+    response_model=StudentSemAcademicProgressResponse
+)
+def create_student_sem_progress(
+    data: StudentSemAcademicProgressCreate,
+    db: Session = Depends(get_db)
+):
+    return create_student_sem_academic_progress(db, data)
+
+
+
+
+# ---------- GET BY STUDENT ID ----------
+@router.get(
+    "/student/{student_id}",
+    response_model=List[StudentSemAcademicProgressResponse]
+)
+def get_student_sem_progress_by_student(
+    student_id: str,
+    db: Session = Depends(get_db)
+):
+    return get_student_sem_academic_progress_by_student_id(db, student_id)
 
 
