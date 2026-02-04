@@ -2793,7 +2793,7 @@ class Appointments(Base):
     service_request_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     hospital_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     status: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'PENDING'::character varying"))
-
+    call_booking_status: Mapped[str | None] = mapped_column(String(255))
     ambulance: Mapped[Optional['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='appointments')
     assistant: Mapped[Optional['MasterAssistants']] = relationship('MasterAssistants', back_populates='appointments')
     consultation_type: Mapped[Optional['MasterConsultationType']] = relationship('MasterConsultationType', back_populates='appointments')

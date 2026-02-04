@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import text
 from models.generated_models import AmbulanceBooking, Appointments, DoctorProfile, MasterConsultationType, MasterHospital,UserRegistration,MasterAmbulance, MasterDoctorSpecialization,AvailableLabs
-from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema,DoctorCreateSchema
+from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema, AppointmentResponseSchema,DoctorCreateSchema, IdNameSchema
 from schemas.healthcare_schema import PaymentCreateSchema, AvailableLabCreate
 
 from models.generated_models import Payments, ServiceRequests
@@ -63,6 +63,7 @@ def create_healthcare_appointment(
 
         labs_id=data.labs_id,
         pharmacies_id=data.pharmacies_id,
+        call_booking_status="CALL_PENDING",
 
         created_by=data.user_id,
         created_date=datetime.utcnow(),
@@ -89,10 +90,100 @@ def create_healthcare_appointment(
 #     ).all()
 
 def get_healthcare_appointments_by_user(db: Session, user_id: int):
-    return db.query(Appointments).filter(
-        Appointments.user_id == user_id
-    ).all()
 
+    appointments = (
+        db.query(Appointments)
+        .filter(Appointments.user_id == user_id)
+        .all()
+    )
+
+    response = []
+
+    for a in appointments:
+        response.append(
+            AppointmentResponseSchema(
+                id=a.id,
+                user_id=a.user_id,
+                appointment_time=a.appointment_time,
+
+                consultation_type_id=a.consultation_type_id,
+                doctor_id=a.doctor_id,
+                doctor_specialization_id=a.doctor_specialization_id,
+                ambulance_id=a.ambulance_id,
+                assistant_id=a.assistant_id,
+                labs_id=a.labs_id,
+                pharmacies_id=a.pharmacies_id,
+
+                consultation_type=(
+                    IdNameSchema(
+                        id=a.consultation_type.id,
+                        name=a.consultation_type.name
+                    ) if a.consultation_type else None
+                ),
+                
+                doctor=(
+                    IdNameSchema(
+                          id=a.doctor.id,
+                          name=f"{a.doctor.user.first_name} {a.doctor.user.last_name}".strip()
+                        )
+                        if a.doctor and a.doctor.user
+                        else None
+                ),
+
+                doctor_specialization=(
+                    IdNameSchema(
+                           id=a.doctor_specialization.id,
+                           name=a.doctor_specialization.specialization_name
+                        )
+                        if a.doctor_specialization
+                        else None
+                ),
+
+                ambulance=(
+                    IdNameSchema(
+                        id=a.ambulance.id,
+                        name=a.ambulance.vehicle_number
+                    ) if a.ambulance else None
+                ),
+
+                assistant=(
+                    IdNameSchema(
+                        id=a.assistant.id,
+                        name=a.assistant.name
+                    ) if a.assistant else None
+                ),
+
+                labs=(
+                    IdNameSchema(
+                        id=a.labs.id,
+                        name=a.labs.lab_name
+                    ) if a.labs else None
+                ),
+
+                pharmacies=(
+                    IdNameSchema(
+                        id=a.pharmacies.id,
+                        name=a.pharmacies.pharmacy_name
+                    ) if a.pharmacies else None
+                ),
+
+                hospital=(
+                    IdNameSchema(
+                        id=a.hospital.id,
+                        name=a.hospital.name
+                    ) if a.hospital else None
+                ),
+
+                required_ambulance=a.required_ambulance,
+                required_assistant=a.required_assistant,
+                pickup_time=a.pickup_time,
+                call_booking_status=a.call_booking_status,
+                status=a.status,
+                is_active=a.is_active
+            )
+        )
+
+    return response
 
 #doctor
 
