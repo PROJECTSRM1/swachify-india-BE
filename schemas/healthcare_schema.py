@@ -5,6 +5,10 @@ from datetime import datetime, time
 from decimal import Decimal
 import decimal
 
+class IdNameSchema(BaseModel):
+    id: int
+    name: str
+
 class AppointmentCreateSchema(BaseModel):
     user_id: int
     consultation_type_id: int
@@ -12,10 +16,6 @@ class AppointmentCreateSchema(BaseModel):
 
     doctor_id: Optional[int] = None
     doctor_specialization_id: Optional[int] = None
-    description: Optional[str] = None
-    days_of_suffering: Optional[int] = None
-
-    health_insurance: Optional[bool] = None
 
     required_ambulance: Optional[bool] = False
     ambulance_id: Optional[int] = None
@@ -27,27 +27,42 @@ class AppointmentCreateSchema(BaseModel):
     labs_id: Optional[int] = None
     pharmacies_id: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    call_booking_status: Optional[str] = "CALL_PENDING"
+
 class AppointmentResponseSchema(BaseModel):
     id: int
     user_id: int
-    consultation_type_id: Optional[int] = None
     appointment_time: datetime
 
+    consultation_type_id: Optional[int]
+    consultation_type: Optional[IdNameSchema]
+
     doctor_id: Optional[int]
+    doctor: Optional[IdNameSchema]
+
     doctor_specialization_id: Optional[int]
+    doctor_specialization: Optional[IdNameSchema]
 
-    required_ambulance: Optional[bool]
     ambulance_id: Optional[int]
-    pickup_time: Optional[datetime]
+    ambulance: Optional[IdNameSchema]
 
-    required_assistant: Optional[bool]
     assistant_id: Optional[int]
+    assistant: Optional[IdNameSchema]
 
     labs_id: Optional[int]
-    pharmacies_id: Optional[int]
+    labs: Optional[IdNameSchema]
 
+    pharmacies_id: Optional[int]
+    pharmacies: Optional[IdNameSchema]
+
+    hospital: Optional[IdNameSchema]
+
+    required_ambulance: Optional[bool]
+    required_assistant: Optional[bool]
+    pickup_time: Optional[datetime]
+
+    status: Optional[str]
+    call_booking_status: Optional[str]
     is_active: bool
 
     class Config:

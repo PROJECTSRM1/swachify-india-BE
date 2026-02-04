@@ -343,9 +343,9 @@ def get_customer_details_service(db: Session, customer_id: int):
         raise HTTPException(status_code=404, detail="Customer not found")
     
     # Import here to avoid circular imports
-    from models.master.master_gender import MasterGender
-    from models.master.master_state import MasterState
-    from models.master.master_district import MasterDistrict
+    from models.generated_models import MasterGender
+    from models.generated_models import MasterState
+    from models.generated_models import MasterDistrict
     
     state_name = db.query(MasterState.state_name).filter(
         MasterState.id == customer.state_id
