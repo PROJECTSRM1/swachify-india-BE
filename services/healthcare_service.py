@@ -62,6 +62,7 @@ def create_healthcare_appointment(
 
         labs_id=data.labs_id,
         pharmacies_id=data.pharmacies_id,
+        call_booking_status="CALL_PENDING",
 
         created_by=data.user_id,
         created_date=datetime.utcnow(),
