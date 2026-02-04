@@ -5,6 +5,10 @@ from datetime import datetime, time
 from decimal import Decimal
 import decimal
 
+class IdNameSchema(BaseModel):
+    id: int
+    name: str
+
 class AppointmentCreateSchema(BaseModel):
     user_id: int
     consultation_type_id: int
@@ -12,10 +16,6 @@ class AppointmentCreateSchema(BaseModel):
 
     doctor_id: Optional[int] = None
     doctor_specialization_id: Optional[int] = None
-    description: Optional[str] = None
-    days_of_suffering: Optional[int] = None
-
-    health_insurance: Optional[bool] = None
 
     required_ambulance: Optional[bool] = False
     ambulance_id: Optional[int] = None
@@ -27,49 +27,43 @@ class AppointmentCreateSchema(BaseModel):
     labs_id: Optional[int] = None
     pharmacies_id: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    call_booking_status: Optional[str] = "CALL_PENDING"
 
-class IdNameSchema(BaseModel):
-    id: int
-    name: str
-
-    class Config:
-        from_attributes = True
 class AppointmentResponseSchema(BaseModel):
     id: int
     user_id: int
     appointment_time: datetime
 
-    # ---------- IDs (existing) ----------
-    consultation_type_id: Optional[int] = None
-    consultation_type: Optional[IdNameSchema] = None
-    doctor_id: Optional[int] = None
-    doctor: Optional[IdNameSchema] = None
-    doctor_specialization_id: Optional[int] = None
-    doctor_specialization: Optional[IdNameSchema] = None
-    ambulance_id: Optional[int] = None
-    ambulance: Optional[IdNameSchema] = None
-    assistant_id: Optional[int] = None
-    assistant: Optional[IdNameSchema] = None
+    consultation_type_id: Optional[int]
+    consultation_type: Optional[IdNameSchema]
 
-    labs_id: Optional[int] = None
-    labs: Optional[IdNameSchema] = None
+    doctor_id: Optional[int]
+    doctor: Optional[IdNameSchema]
 
-    pharmacies_id: Optional[int] = None
-    pharmacies: Optional[IdNameSchema] = None
+    doctor_specialization_id: Optional[int]
+    doctor_specialization: Optional[IdNameSchema]
 
-    # ---------- Names (NEW) ----------
-    hospital: Optional[IdNameSchema] = None
+    ambulance_id: Optional[int]
+    ambulance: Optional[IdNameSchema]
 
-    # ---------- Other fields ----------
-    required_ambulance: Optional[bool] = None
-    required_assistant: Optional[bool] = None
-    pickup_time: Optional[datetime] = None
-    status: Optional[str] = None
+    assistant_id: Optional[int]
+    assistant: Optional[IdNameSchema]
+
+    labs_id: Optional[int]
+    labs: Optional[IdNameSchema]
+
+    pharmacies_id: Optional[int]
+    pharmacies: Optional[IdNameSchema]
+
+    hospital: Optional[IdNameSchema]
+
+    required_ambulance: Optional[bool]
+    required_assistant: Optional[bool]
+    pickup_time: Optional[datetime]
+
+    status: Optional[str]
+    call_booking_status: Optional[str]
     is_active: bool
-    call_booking_status: Optional[str] = None
-
 
     class Config:
         from_attributes = True
