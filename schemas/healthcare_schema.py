@@ -29,26 +29,47 @@ class AppointmentCreateSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class IdNameSchema(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
 class AppointmentResponseSchema(BaseModel):
     id: int
     user_id: int
-    consultation_type_id: Optional[int] = None
     appointment_time: datetime
 
-    doctor_id: Optional[int]
-    doctor_specialization_id: Optional[int]
+    # ---------- IDs (existing) ----------
+    consultation_type_id: Optional[int] = None
+    consultation_type: Optional[IdNameSchema] = None
+    doctor_id: Optional[int] = None
+    doctor: Optional[IdNameSchema] = None
+    doctor_specialization_id: Optional[int] = None
+    doctor_specialization: Optional[IdNameSchema] = None
+    ambulance_id: Optional[int] = None
+    ambulance: Optional[IdNameSchema] = None
+    assistant_id: Optional[int] = None
+    assistant: Optional[IdNameSchema] = None
 
-    required_ambulance: Optional[bool]
-    ambulance_id: Optional[int]
-    pickup_time: Optional[datetime]
+    labs_id: Optional[int] = None
+    labs: Optional[IdNameSchema] = None
 
-    required_assistant: Optional[bool]
-    assistant_id: Optional[int]
+    pharmacies_id: Optional[int] = None
+    pharmacies: Optional[IdNameSchema] = None
 
-    labs_id: Optional[int]
-    pharmacies_id: Optional[int]
+    # ---------- Names (NEW) ----------
+    hospital: Optional[IdNameSchema] = None
 
+    # ---------- Other fields ----------
+    required_ambulance: Optional[bool] = None
+    required_assistant: Optional[bool] = None
+    pickup_time: Optional[datetime] = None
+    status: Optional[str] = None
     is_active: bool
+    call_booking_status: Optional[str] = None
+
 
     class Config:
         from_attributes = True
