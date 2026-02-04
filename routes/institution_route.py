@@ -292,7 +292,7 @@ def fetch_fee_installments(
 
 # ---------- CREATE ----------
 @router.post(
-    "/",
+    "/sem-progress",
     response_model=StudentSemAcademicProgressResponse
 )
 def create_student_sem_progress(
@@ -306,7 +306,7 @@ def create_student_sem_progress(
 
 # ---------- GET BY STUDENT ID ----------
 @router.get(
-    "/student/{student_id}",
+    "/sem-progress/{student_id}",
     response_model=List[StudentSemAcademicProgressResponse]
 )
 def get_student_sem_progress_by_student(
