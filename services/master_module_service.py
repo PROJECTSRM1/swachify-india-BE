@@ -222,3 +222,33 @@ def create_master_mechanic(
     db.refresh(mechanic)
 
     return mechanic
+
+
+
+def get_home_service_booking_summary(
+    db: Session,
+    status_id: int = -1
+):
+    """
+    Fetch home service booking summary from DB VIEW
+    - status_id = -1 → all statuses
+    """
+
+
+    query = text("""
+        SELECT *
+        FROM vw_home_service_booking_summary
+        WHERE (:status_id = -1 OR status_id = :status_id)
+        ORDER BY preferred_date DESC
+    """)
+
+
+    result = db.execute(
+        query,
+        {
+            "status_id": status_id
+        }
+    )
+
+
+    return result.mappings().all()
