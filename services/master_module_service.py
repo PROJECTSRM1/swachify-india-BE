@@ -157,8 +157,6 @@ def create_home_service_booking(
 
     return booking
 
-
-
 def get_all_home_service_bookings(db: Session):
     query = text("""
         SELECT *
@@ -327,8 +325,6 @@ def get_payment_by_user_id(
         )
         .all()
     )
-
-
 
 def get_home_service_booking_summary(
     db: Session,
