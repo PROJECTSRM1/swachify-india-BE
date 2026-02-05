@@ -157,8 +157,6 @@ def create_home_service_booking(
 
     return booking
 
-
-
 def get_all_home_service_bookings(db: Session):
     query = text("""
         SELECT *
@@ -222,8 +220,6 @@ def create_master_mechanic(
     db.refresh(mechanic)
 
     return mechanic
-
-
 
 def get_home_service_booking_summary(
     db: Session,

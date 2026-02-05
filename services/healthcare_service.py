@@ -243,6 +243,42 @@ def get_available_doctors(db):
         DoctorProfile.is_available == True
     ).all()
 
+
+
+def get_hospital_doctors_service(
+    db: Session,
+    hospital_id: int,
+    specialization_id: int = -1
+):
+    """
+    Calls DB function: fn_get_hospital_doctors(p_hospital_id, p_specialization_id)
+    Returns list of doctors available in hospital
+    """
+
+    query = text("""
+        SELECT *
+        FROM fn_get_hospital_doctors(
+            :hospital_id,
+            :specialization_id
+        )
+    """)
+
+    result = db.execute(
+        query,
+        {
+            "hospital_id": hospital_id,
+            "specialization_id": specialization_id
+        }
+    ).mappings().all()
+
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail="No doctors found for this hospital"
+        )
+
+    return result
+
 def get_hospital_ambulance_list(db: Session, hospital_id: int):
     if hospital_id == -1:
         query = text("SELECT * FROM vw_nearby_ambulance_list")
