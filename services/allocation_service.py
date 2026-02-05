@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 from models.generated_models import (
          HomeServiceBooking,
          HomeServiceBookingBooking,
+    HomeServiceBooking,
     UserRegistration,
     UserServices
 )
@@ -23,11 +24,16 @@ def get_allocation_options(
     user_id: int
 ):
     # Validate booking ownership
-    booking = db.query(         HomeServiceBookingBooking,
+    booking = db.query(         
+        HomeServiceBookingBooking,
 ).filter(
             HomeServiceBookingBooking.id == booking_id,
              HomeServiceBooking.created_by == user_id,
             HomeServiceBookingBooking.is_active.is_(True)
+    booking = db.query(HomeServiceBooking).filter(
+        HomeServiceBooking.id == booking_id,
+        HomeServiceBooking.created_by == user_id,
+        HomeServiceBooking.is_active.is_(True)
     ).first()
 
     if not booking:
@@ -96,6 +102,10 @@ def auto_allocate_employee(
              HomeServiceBooking.id == booking_id,
              HomeServiceBooking.created_by == system_user_id,
              HomeServiceBooking.is_active.is_(True)
+    booking = db.query(HomeServiceBooking).filter(
+        HomeServiceBooking.id == booking_id,
+        HomeServiceBooking.created_by == system_user_id,
+        HomeServiceBooking.is_active.is_(True)
     ).first()
 
     if not booking:
@@ -124,6 +134,10 @@ def auto_allocate_employee(
             and_(
                      HomeServiceBooking.assigned_to == UserRegistration.id,
                      HomeServiceBooking.is_active.is_(True)
+            HomeServiceBooking,
+            and_(
+                HomeServiceBooking.assigned_to == UserRegistration.id,
+                HomeServiceBooking.is_active.is_(True)
             )
         )
         .filter(
@@ -135,6 +149,8 @@ def auto_allocate_employee(
         .order_by(
             asc(func.count(     HomeServiceBooking.id)),   # workload
             desc(func.coalesce(func.avg(     HomeServiceBooking.rating), 0))  # rating
+            asc(func.count(HomeServiceBooking.id)),   # workload
+            desc(func.coalesce(func.avg(HomeServiceBooking.rating), 0))  # rating
         )
         .first()
     )
@@ -173,6 +189,10 @@ def manual_allocate_employee(
              HomeServiceBooking.id == booking_id,
              HomeServiceBooking.created_by == current_user_id,
              HomeServiceBooking.is_active.is_(True)
+    booking = db.query(HomeServiceBooking).filter(
+        HomeServiceBooking.id == booking_id,
+        HomeServiceBooking.created_by == current_user_id,
+        HomeServiceBooking.is_active.is_(True)
     ).first()
 
     if not booking:
