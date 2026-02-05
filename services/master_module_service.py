@@ -99,6 +99,7 @@
 
 
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from models.generated_models import HomeServiceBooking, MasterGarage, MasterMechanic, UserRegistration
@@ -158,23 +159,15 @@ def create_home_service_booking(
 
 
 
+def get_all_home_service_bookings(db: Session):
+    query = text("""
+        SELECT *
+        FROM fn_get_all_home_service_bookings()
+    """)
 
-def get_home_service_bookings(
-    db: Session,
-    booking_id: int | None = None
-):
-    query = db.query(HomeServiceBooking).filter(
-        HomeServiceBooking.is_active == True
-    )
+    result = db.execute(query).mappings().all()
 
-    # 🔹 Fetch by booking id
-    if booking_id:
-        query = query.filter(HomeServiceBooking.id == booking_id)
-
-    return query.order_by(
-        HomeServiceBooking.created_date.desc()
-    ).all()
-
+    return result
 
 def create_master_mechanic(
     db: Session,
@@ -229,3 +222,33 @@ def create_master_mechanic(
     db.refresh(mechanic)
 
     return mechanic
+
+
+# ======================================================
+# HOME SERVICE BOOKING SUMMARY (VIEW)
+# ======================================================
+
+def get_home_service_booking_summary(
+    db: Session,
+    status_id: int = -1
+):
+    """
+    Fetch home service booking summary from DB VIEW
+    - status_id = -1 → all statuses
+    """
+
+    query = text("""
+        SELECT *
+        FROM vw_home_service_booking_summary
+        WHERE (:status_id = -1 OR status_id = :status_id)
+        ORDER BY preferred_date DESC
+    """)
+
+    result = db.execute(
+        query,
+        {
+            "status_id": status_id
+        }
+    )
+
+    return result.mappings().all()
