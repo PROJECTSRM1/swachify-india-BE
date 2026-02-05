@@ -4,7 +4,6 @@ from fastapi import HTTPException, status
 
 from models.generated_models import (
          HomeServiceBooking,
-         HomeServiceBookingBooking,
     HomeServiceBooking,
     UserRegistration,
     UserServices
@@ -24,17 +23,13 @@ def get_allocation_options(
     user_id: int
 ):
     # Validate booking ownership
-    booking = db.query(         
-        HomeServiceBookingBooking,
-).filter(
-            HomeServiceBookingBooking.id == booking_id,
-             HomeServiceBooking.created_by == user_id,
-            HomeServiceBookingBooking.is_active.is_(True)
+   # Validate booking ownership
     booking = db.query(HomeServiceBooking).filter(
         HomeServiceBooking.id == booking_id,
         HomeServiceBooking.created_by == user_id,
         HomeServiceBooking.is_active.is_(True)
     ).first()
+
 
     if not booking:
         raise HTTPException(
@@ -42,12 +37,13 @@ def get_allocation_options(
             detail="Unauthorized access"
         )
 
+
     if booking.assigned_to:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Booking already allocated"
         )
-
+    
     # ✅ SHOW ALL APPROVED FREELANCERS
     freelancers = (
         db.query(
@@ -98,15 +94,13 @@ def auto_allocate_employee(
     2. Highest rating
     """
 
-    booking = db.query(     HomeServiceBooking).filter(
-             HomeServiceBooking.id == booking_id,
-             HomeServiceBooking.created_by == system_user_id,
-             HomeServiceBooking.is_active.is_(True)
+
     booking = db.query(HomeServiceBooking).filter(
         HomeServiceBooking.id == booking_id,
         HomeServiceBooking.created_by == system_user_id,
         HomeServiceBooking.is_active.is_(True)
     ).first()
+
 
     if not booking:
         raise HTTPException(
@@ -114,11 +108,13 @@ def auto_allocate_employee(
             detail="Booking not found"
         )
 
+
     if booking.assigned_to:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Booking already allocated"
         )
+
 
     freelancer = (
         db.query(UserRegistration)
@@ -130,10 +126,6 @@ def auto_allocate_employee(
             )
         )
         .outerjoin(
-                 HomeServiceBooking,
-            and_(
-                     HomeServiceBooking.assigned_to == UserRegistration.id,
-                     HomeServiceBooking.is_active.is_(True)
             HomeServiceBooking,
             and_(
                 HomeServiceBooking.assigned_to == UserRegistration.id,
@@ -147,13 +139,12 @@ def auto_allocate_employee(
         )
         .group_by(UserRegistration.id)
         .order_by(
-            asc(func.count(     HomeServiceBooking.id)),   # workload
-            desc(func.coalesce(func.avg(     HomeServiceBooking.rating), 0))  # rating
             asc(func.count(HomeServiceBooking.id)),   # workload
             desc(func.coalesce(func.avg(HomeServiceBooking.rating), 0))  # rating
         )
         .first()
     )
+
 
     if not freelancer:
         raise HTTPException(
@@ -161,12 +152,15 @@ def auto_allocate_employee(
             detail="No freelancers available for this service"
         )
 
+
     booking.assigned_to = freelancer.id
     booking.status_id = BOOKING_STATUS_ASSIGNED
     booking.work_status_id = WORK_STATUS_ON_THE_WAY
 
+
     db.commit()
     db.refresh(booking)
+
 
     return {
         "message": "Employee auto-allocated successfully",
@@ -174,6 +168,7 @@ def auto_allocate_employee(
         "assigned_to": freelancer.id,
         "strategy": "Round-robin with rating priority"
     }
+
 
 
 # ---------------------------------------------------------
@@ -185,15 +180,12 @@ def manual_allocate_employee(
     employee_id: int,
     current_user_id: int
 ):
-    booking = db.query(     HomeServiceBooking).filter(
-             HomeServiceBooking.id == booking_id,
-             HomeServiceBooking.created_by == current_user_id,
-             HomeServiceBooking.is_active.is_(True)
     booking = db.query(HomeServiceBooking).filter(
         HomeServiceBooking.id == booking_id,
         HomeServiceBooking.created_by == current_user_id,
         HomeServiceBooking.is_active.is_(True)
     ).first()
+
 
     if not booking:
         raise HTTPException(
@@ -201,11 +193,13 @@ def manual_allocate_employee(
             detail="Booking not found"
         )
 
+
     if booking.assigned_to:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Booking already allocated"
         )
+
 
     freelancer = db.query(UserRegistration).filter(
         UserRegistration.id == employee_id,
@@ -214,22 +208,27 @@ def manual_allocate_employee(
         UserRegistration.is_active.is_(True)
     ).first()
 
+
     if not freelancer:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Freelancer not found or not approved"
         )
 
+
     booking.assigned_to = freelancer.id
     booking.status_id = BOOKING_STATUS_ASSIGNED   # ✅ FIXED (NO TUPLE)
     booking.work_status_id = WORK_STATUS_ON_THE_WAY
     booking.modified_by = current_user_id
 
+
     db.commit()
     db.refresh(booking)
+
 
     return {
         "message": "Employee manually allocated successfully",
         "booking_id": booking.id,
         "assigned_to": freelancer.id
     }
+
