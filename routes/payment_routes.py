@@ -5,7 +5,7 @@ import razorpay
 import os
 
 from core.database import get_db          
-from models.generated_models import HomeService
+from models.generated_models import HomeServiceBooking
 
 router = APIRouter(prefix="/api/payment", tags=["Payment"])
 
@@ -83,7 +83,7 @@ def verify_payment(
         })
 
        
-        booking = db.get(HomeService, req.home_service_id)
+        booking = db.get(HomeServiceBooking, req.home_service_id)
         if not booking:
             raise HTTPException(status_code=404, detail="Booking not found")
 
