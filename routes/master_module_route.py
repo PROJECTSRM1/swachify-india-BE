@@ -15,17 +15,22 @@ from schemas.home_schema import (
 )
 from services.master_module_service import (
     create_home_service_booking,
+    create_home_service_booking_add_on,
+    create_home_service_payment,
     create_master_mechanic,
+    get_all_home_service_booking_add_ons,
     get_all_home_service_bookings,
+    get_home_service_booking_summary,
     create_home_service_booking_add_on, 
     create_home_service_payment, 
     get_add_ons_by_booking_id,
       get_all_home_service_booking_add_ons, 
       get_all_home_service_payments, 
       get_payment_by_booking_id, 
-      get_payment_by_user_id
+      get_payment_by_user_id,
 
 
+    get_home_service_booking_summary,
 )
 
 router = APIRouter(prefix="/home-service/bookings",tags=["Home Service Booking"])
@@ -129,3 +134,19 @@ def get_all_payments(
 #     db: Session = Depends(get_db)
 # ):
 #     return get_payment_by_user_id(db, user_id)
+
+@router.get("/home-service-bookings-summary")
+def fetch_home_service_booking_summary(
+    status_id: int = Query(
+        -1,
+        description="Pass status_id or -1 for all"
+    ),
+    db: Session = Depends(get_db)
+):
+    return {
+        "status": True,
+        "data": get_home_service_booking_summary(
+            db=db,
+            status_id=status_id
+        )
+    }
