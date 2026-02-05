@@ -1,5 +1,3 @@
-
-
 # from sqlalchemy.orm import Session
 # from fastapi import HTTPException
 # from models.generated_models import MasterModule
@@ -159,25 +157,15 @@ def create_home_service_booking(
 
     return booking
 
+def get_all_home_service_bookings(db: Session):
+    query = text("""
+        SELECT *
+        FROM fn_get_all_home_service_bookings()
+    """)
 
+    result = db.execute(query).mappings().all()
 
-
-def get_home_service_bookings(
-    db: Session,
-    booking_id: int | None = None
-):
-    query = db.query(HomeServiceBooking).filter(
-        HomeServiceBooking.is_active == True
-    )
-
-    # 🔹 Fetch by booking id
-    if booking_id:
-        query = query.filter(HomeServiceBooking.id == booking_id)
-
-    return query.order_by(
-        HomeServiceBooking.created_date.desc()
-    ).all()
-
+    return result
 
 def create_master_mechanic(
     db: Session,
@@ -233,11 +221,30 @@ def create_master_mechanic(
 
     return mechanic
 
-def get_all_home_services(db: Session):
+def get_home_service_booking_summary(
+    db: Session,
+    status_id: int = -1
+):
+    """
+    Fetch home service booking summary from DB VIEW
+    - status_id = -1 → all statuses
+    """
+
+
     query = text("""
         SELECT *
         FROM vw_home_service_booking_summary
-        ORDER BY id DESC
+        WHERE (:status_id = -1 OR status_id = :status_id)
+        ORDER BY preferred_date DESC
     """)
 
-    return db.execute(query).mappings().all()
+
+    result = db.execute(
+        query,
+        {
+            "status_id": status_id
+        }
+    )
+
+
+    return result.mappings().all()
