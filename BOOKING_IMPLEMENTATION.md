@@ -16,7 +16,7 @@ from typing import Optional
 # ==================================================
 # 🔹 BASE SCHEMA (Shared Fields)
 # ==================================================
-class HomeServiceBase(BaseModel):
+class HomeServiceBookingBase(BaseModel):
     module_id: int
     sub_module_id: int
     service_id: int
@@ -50,7 +50,7 @@ class HomeServiceBase(BaseModel):
 # ==================================================
 # 🔹 CREATE SCHEMA (POST)
 # ==================================================
-class HomeServiceCreate(HomeServiceBase):
+class HomeServiceBookingBookingCreate(HomeServiceBase):
     """
     Used for POST /api/master/home-service
     created_by is NOT required from client - it's set automatically
@@ -61,7 +61,7 @@ class HomeServiceCreate(HomeServiceBase):
 # ==================================================
 # 🔹 UPDATE SCHEMA (PUT / PATCH)
 # ==================================================
-class HomeServiceUpdate(BaseModel):
+class HomeServiceBookingUpdate(BaseModel):
     full_name: Optional[str] = None
     email: Optional[EmailStr] = None
     mobile: Optional[str] = Field(None, pattern=r"^[6-9]\d{9}$")

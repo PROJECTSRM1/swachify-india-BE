@@ -3,7 +3,7 @@ from sqlalchemy import func, desc, asc, and_
 from fastapi import HTTPException, status
 
 from models.generated_models import (
-    Home_Service,
+    HomeService,
     UserRegistration,
     UserServices
 )
@@ -23,7 +23,7 @@ def get_allocation_options(
 ):
     # Validate booking ownership
     booking = db.query(HomeService).filter(
-        HomeService.id == booking_id,
+        HomeServiceB.id == booking_id,
         HomeService.created_by == user_id,
         HomeService.is_active.is_(True)
     ).first()
