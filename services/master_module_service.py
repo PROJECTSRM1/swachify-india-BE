@@ -99,6 +99,7 @@
 
 
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from models.generated_models import HomeServiceBooking, MasterGarage, MasterMechanic, UserRegistration
@@ -158,23 +159,15 @@ def create_home_service_booking(
 
 
 
+def get_all_home_service_bookings(db: Session):
+    query = text("""
+        SELECT *
+        FROM fn_get_all_home_service_bookings()
+    """)
 
-def get_home_service_bookings(
-    db: Session,
-    booking_id: int | None = None
-):
-    query = db.query(HomeServiceBooking).filter(
-        HomeServiceBooking.is_active == True
-    )
+    result = db.execute(query).mappings().all()
 
-    # 🔹 Fetch by booking id
-    if booking_id:
-        query = query.filter(HomeServiceBooking.id == booking_id)
-
-    return query.order_by(
-        HomeServiceBooking.created_date.desc()
-    ).all()
-
+    return result
 
 def create_master_mechanic(
     db: Session,
