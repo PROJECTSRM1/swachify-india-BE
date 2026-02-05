@@ -3,7 +3,8 @@ from sqlalchemy import func, desc, asc, and_
 from fastapi import HTTPException, status
 
 from models.generated_models import (
-    HomeService,
+         HomeServiceBooking,
+         HomeServiceBookingBooking,
     UserRegistration,
     UserServices
 )
@@ -22,10 +23,11 @@ def get_allocation_options(
     user_id: int
 ):
     # Validate booking ownership
-    booking = db.query(HomeService).filter(
-        HomeService.id == booking_id,
-        HomeService.created_by == user_id,
-        HomeService.is_active.is_(True)
+    booking = db.query(         HomeServiceBookingBooking,
+).filter(
+            HomeServiceBookingBooking.id == booking_id,
+             HomeServiceBooking.created_by == user_id,
+            HomeServiceBookingBooking.is_active.is_(True)
     ).first()
 
     if not booking:
@@ -47,13 +49,13 @@ def get_allocation_options(
             UserRegistration.first_name,
             UserRegistration.last_name,
             UserRegistration.address,
-            func.coalesce(func.avg(HomeService.rating), 0).label("avg_rating")
+            func.coalesce(func.avg(HomeServiceBooking.rating), 0).label("avg_rating")
         )
         .outerjoin(
-            HomeService,
+            HomeServiceBooking,
             and_(
-                HomeService.assigned_to == UserRegistration.id,
-                HomeService.is_active.is_(True)
+                HomeServiceBooking.assigned_to == UserRegistration.id,
+                HomeServiceBooking.is_active.is_(True)
             )
         )
         .filter(
@@ -90,10 +92,10 @@ def auto_allocate_employee(
     2. Highest rating
     """
 
-    booking = db.query(HomeService).filter(
-        HomeService.id == booking_id,
-        HomeService.created_by == system_user_id,
-        HomeService.is_active.is_(True)
+    booking = db.query(     HomeServiceBooking).filter(
+             HomeServiceBooking.id == booking_id,
+             HomeServiceBooking.created_by == system_user_id,
+             HomeServiceBooking.is_active.is_(True)
     ).first()
 
     if not booking:
@@ -118,10 +120,10 @@ def auto_allocate_employee(
             )
         )
         .outerjoin(
-            HomeService,
+                 HomeServiceBooking,
             and_(
-                HomeService.assigned_to == UserRegistration.id,
-                HomeService.is_active.is_(True)
+                     HomeServiceBooking.assigned_to == UserRegistration.id,
+                     HomeServiceBooking.is_active.is_(True)
             )
         )
         .filter(
@@ -131,8 +133,8 @@ def auto_allocate_employee(
         )
         .group_by(UserRegistration.id)
         .order_by(
-            asc(func.count(HomeService.id)),   # workload
-            desc(func.coalesce(func.avg(HomeService.rating), 0))  # rating
+            asc(func.count(     HomeServiceBooking.id)),   # workload
+            desc(func.coalesce(func.avg(     HomeServiceBooking.rating), 0))  # rating
         )
         .first()
     )
@@ -167,10 +169,10 @@ def manual_allocate_employee(
     employee_id: int,
     current_user_id: int
 ):
-    booking = db.query(HomeService).filter(
-        HomeService.id == booking_id,
-        HomeService.created_by == current_user_id,
-        HomeService.is_active.is_(True)
+    booking = db.query(     HomeServiceBooking).filter(
+             HomeServiceBooking.id == booking_id,
+             HomeServiceBooking.created_by == current_user_id,
+             HomeServiceBooking.is_active.is_(True)
     ).first()
 
     if not booking:
