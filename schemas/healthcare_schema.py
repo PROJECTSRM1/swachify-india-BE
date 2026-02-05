@@ -113,6 +113,27 @@ class DoctorResponseSchema(BaseModel):
     class Config:
         from_attributes = True
 
+class HospitalDoctorResponseSchema(BaseModel):
+    hospital_id: int
+    doctor_id: int
+    doctor_name: str
+
+    specialization_id: int
+    specialization_name: str
+
+    experience_years: Optional[int] = None
+    rating: Optional[float] = None
+    fees_per_hour: Optional[float] = None
+
+    available_from: Optional[time] = None
+    available_to: Optional[time] = None
+
+    is_available: bool
+
+    class Config:
+        from_attributes = True
+
+
 class HospitalAmbulanceResponseSchema(BaseModel):
     hospital_id: int
     hospital_name: str
