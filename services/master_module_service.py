@@ -336,32 +336,18 @@ def get_payment_by_user_id(
         .all()
     )
 
-def get_home_service_booking_summary(
-    db: Session,
-    status_id: int = -1
-):
+def get_home_service_booking_summary(db: Session):
     """
-    Fetch home service booking summary from DB VIEW
-    - status_id = -1 → all statuses
+    Fetch all home service booking summary from DB VIEW
     """
-
 
     query = text("""
         SELECT *
         FROM vw_home_service_booking_summary
-        WHERE (:status_id = -1 OR status_id = :status_id)
         ORDER BY preferred_date DESC
     """)
 
-
-    result = db.execute(
-        query,
-        {
-            "status_id": status_id
-        }
-    )
-
-
+    result = db.execute(query)
     return result.mappings().all()
 
 
