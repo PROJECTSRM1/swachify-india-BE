@@ -3,7 +3,7 @@ from sqlalchemy import func, desc, asc, and_
 from fastapi import HTTPException, status
 
 from models.generated_models import (
-    HomeService,
+    HomeServiceBooking,
     UserRegistration,
     UserServices
 )
