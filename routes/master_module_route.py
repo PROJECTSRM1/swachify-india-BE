@@ -31,45 +31,23 @@ from schemas.home_schema import (
 from services.master_module_service import (
     create_home_service_booking,
     create_master_mechanic,
-    get_home_service_bookings
+    get_all_home_service_bookings,
 )
 
-router = APIRouter(
-    prefix="/home-service/bookings",
-    tags=["Home Service Booking"]
-)
+router = APIRouter(prefix="/home-service/bookings",tags=["Home Service Booking"])
 
 
 @router.post("",response_model=HomeServiceBookingResponseSchema,status_code=201)
 def create_booking(payload: HomeServiceBookingCreateSchema,db: Session = Depends(get_db)):
-    booking = HomeServiceBooking(**payload.dict(),is_active=True)
-    db.add(booking)
-    db.commit()
-    db.refresh(booking)
-    return booking
+    return create_home_service_booking(db, payload)
 
+@router.get("/all")
+def fetch_all_home_service_bookings(db: Session = Depends(get_db)):
+    return {
+        "status": True,
+        "data": get_all_home_service_bookings(db)
+    }
 
-@router.get(
-    "",
-    response_model=List[HomeServiceBookingResponseSchema]
-)
-def fetch_bookings(
-    id: Optional[int] = Query(None, description="Fetch booking by id"),
-    db: Session = Depends(get_db)
-):
-    return get_home_service_bookings(
-        db=db,
-        booking_id=id
-    )
-
-
-@router.post(
-    "/mechanics",
-    response_model=MasterMechanicResponseSchema,
-    status_code=201
-)
-def create_mechanic(
-    payload: MasterMechanicCreateSchema,
-    db: Session = Depends(get_db)
-):
+@router.post("/mechanics",response_model=MasterMechanicResponseSchema,status_code=201)
+def create_mechanic(payload: MasterMechanicCreateSchema,db: Session = Depends(get_db)):
     return create_master_mechanic(db, payload)
