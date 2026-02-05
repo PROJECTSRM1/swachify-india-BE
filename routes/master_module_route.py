@@ -97,7 +97,6 @@ def get_all_add_ons(
 # -------- POST --------
 @router.post(
      "/home-service-payment",
-    "-payments",
     response_model=HomeServicePaymentResponse
 )
 def create_payment(
@@ -110,7 +109,6 @@ def create_payment(
 # -------- GET ALL --------
 @router.get(
     "/home-service-payment",
-    "-payments",
     response_model=list[HomeServicePaymentResponse]
 )
 def get_all_payments(
