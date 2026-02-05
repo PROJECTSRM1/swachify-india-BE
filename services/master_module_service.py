@@ -1,3 +1,5 @@
+
+
 # from sqlalchemy.orm import Session
 # from fastapi import HTTPException
 # from models.generated_models import MasterModule
@@ -99,6 +101,7 @@
 
 
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from models.generated_models import HomeServiceBooking, MasterGarage, MasterMechanic, UserRegistration
@@ -229,9 +232,6 @@ def create_master_mechanic(
     db.refresh(mechanic)
 
     return mechanic
-
-from sqlalchemy.orm import Session
-from sqlalchemy import text
 
 def get_all_home_services(db: Session):
     query = text("""
