@@ -102,8 +102,8 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from models.generated_models import HomeServiceBooking, MasterGarage, MasterMechanic, UserRegistration
-from schemas.home_schema import HomeServiceBookingCreateSchema, MasterMechanicCreateSchema
+from models.generated_models import HomeServiceBooking, HomeServiceBookingServiceMap, MasterGarage, MasterGarageService, MasterMechanic, UserRegistration
+from schemas.home_schema import HomeServiceBookingCreateSchema, HomeServiceBookingMapCreateSchema, MasterMechanicCreateSchema
 
 
 def create_home_service_booking(
@@ -252,3 +252,48 @@ def get_home_service_booking_summary(
 
 
     return result.mappings().all()
+
+
+def create_booking_service_map(db: Session, data: HomeServiceBookingMapCreateSchema):
+
+
+    # Validate booking exists
+    booking = db.query(HomeServiceBooking).filter(
+        HomeServiceBooking.id == data.home_service_booking_id
+    ).first()
+
+
+    if not booking:
+        raise HTTPException(status_code=400, detail="Home service booking not found")
+
+
+    # Validate garage service exists
+    service = db.query(MasterGarageService).filter(
+        MasterGarageService.id == data.garage_service_id
+    ).first()
+
+
+    if not service:
+        raise HTTPException(status_code=400, detail="Garage service not found")
+
+
+    new_map = HomeServiceBookingServiceMap(
+        home_service_booking_id=data.home_service_booking_id,
+        garage_service_id=data.garage_service_id,
+        quantity=data.quantity,
+        service_price=data.service_price,
+        created_by=data.created_by
+    )
+
+
+    db.add(new_map)
+    db.commit()
+    db.refresh(new_map)
+    return new_map
+
+
+
+def get_all_booking_service_maps(db: Session):
+    return db.query(HomeServiceBookingServiceMap).filter(
+        HomeServiceBookingServiceMap.is_active == True
+    ).all()

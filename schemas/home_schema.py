@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, Dict
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime
 
 
 class HomeServiceBookingCreateSchema(BaseModel):
@@ -74,6 +74,25 @@ class MasterMechanicResponseSchema(BaseModel):
     mechanic_name: Optional[str]
     rating: Optional[Decimal]
     is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+
+class HomeServiceBookingMapCreateSchema(BaseModel):
+    home_service_booking_id: int
+    garage_service_id: int
+    quantity: Optional[int] = 1
+    service_price: Optional[Decimal] = None
+    created_by: Optional[int] = None
+
+
+class HomeServiceBookingMapResponseSchema(HomeServiceBookingMapCreateSchema):
+    id: int
+    created_date: Optional[datetime]
+    is_active: Optional[bool]
+
 
     class Config:
         from_attributes = True
