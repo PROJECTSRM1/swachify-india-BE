@@ -59,7 +59,7 @@ class HomeServicePaymentResponse(BaseModel):
     is_active: Optional[bool]
 from typing import Optional, Dict
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime
 
 
 class HomeServiceBookingCreateSchema(BaseModel):
@@ -135,37 +135,22 @@ class MasterMechanicResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
-from pydantic import BaseModel
-from typing import Optional
-from datetime import date
 
-class HomeServiceBookingResponse(BaseModel):
+
+
+class HomeServiceBookingMapCreateSchema(BaseModel):
+    home_service_booking_id: int
+    garage_service_id: int
+    quantity: Optional[int] = 1
+    service_price: Optional[Decimal] = None
+    created_by: Optional[int] = None
+
+
+class HomeServiceBookingMapResponseSchema(HomeServiceBookingMapCreateSchema):
     id: int
-    full_name: Optional[str]
-    mobile: Optional[str]
-    email: Optional[str]
-    address: Optional[str]
-    others_address: Optional[str]
+    created_date: Optional[datetime]
+    is_active: Optional[bool]
 
-    preferred_date: Optional[date]
-    time_slot_id: Optional[int]
-    extra_hours: Optional[int]
-    special_instructions: Optional[str]
-
-    service_summary: Optional[str]
-    upload_photos: Optional[str]
-
-    item_total: Optional[float]
-    convenience_fee: Optional[float]
-    total_amount: Optional[float]
-    payment_done: Optional[bool]
-
-    status_id: Optional[int]
-
-    module_name: Optional[str]
-    sub_module_name: Optional[str]
-    service_name: Optional[str]
-    sub_service_name: Optional[str]
 
     class Config:
         from_attributes = True
