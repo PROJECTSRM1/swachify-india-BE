@@ -14,6 +14,7 @@ from services.master_module_service import (
     create_home_service_booking,
     create_master_mechanic,
     get_all_home_service_bookings,
+    get_home_service_booking_summary,
 )
 
 router = APIRouter(prefix="/home-service/bookings",tags=["Home Service Booking"])
@@ -34,3 +35,20 @@ def fetch_all_home_service_bookings(db: Session = Depends(get_db)):
 @router.post("/mechanics",response_model=MasterMechanicResponseSchema,status_code=201)
 def create_mechanic(payload: MasterMechanicCreateSchema,db: Session = Depends(get_db)):
     return create_master_mechanic(db, payload)
+
+
+@router.get("/home-service-bookings-summary")
+def fetch_home_service_booking_summary(
+    status_id: int = Query(
+        -1,
+        description="Pass status_id or -1 for all"
+    ),
+    db: Session = Depends(get_db)
+):
+    return {
+        "status": True,
+        "data": get_home_service_booking_summary(
+            db=db,
+            status_id=status_id
+        )
+    }
