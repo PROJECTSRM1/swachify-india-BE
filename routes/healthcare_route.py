@@ -14,6 +14,7 @@ from schemas.healthcare_schema import (
     DoctorCreateSchema,
     DoctorResponseSchema,
     HospitalAmbulanceResponseSchema,
+    HospitalDoctorResponseSchema,
     PaymentCreateSchema,
     PaymentResponseSchema,
     AvailablePharmacyCreate,
@@ -33,6 +34,7 @@ from services.healthcare_service import (
     create_doctor_profile,
     get_available_doctors,
     get_hospital_ambulance_list,
+    get_hospital_doctors_service,
     release_ambulance_booking,
     create_payment,
     get_doctor_bookings,
@@ -100,6 +102,26 @@ def fetch_available_doctors(
     db: Session = Depends(get_db)
 ):
     return get_available_doctors(db)
+
+@router.get(
+    "/hospital/{hospital_id}/doctors",
+    response_model=List[HospitalDoctorResponseSchema]
+)
+def get_hospital_doctors(
+    hospital_id: int,
+    specialization_id: int = -1,
+    db: Session = Depends(get_db)
+):
+    """
+    Get all available doctors in a hospital.
+    Optional filter: specialization_id
+    """
+
+    return get_hospital_doctors_service(
+        db=db,
+        hospital_id=hospital_id,
+        specialization_id=specialization_id
+    )
 
 @router.get("/available-pharmacies")
 def fetch_available_pharmacies(
