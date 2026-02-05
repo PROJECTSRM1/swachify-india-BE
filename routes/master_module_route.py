@@ -6,6 +6,8 @@ from core.database import get_db
 from models.generated_models import HomeServiceBooking
 from schemas.home_schema import (
     HomeServiceBookingCreateSchema,
+    HomeServiceBookingMapCreateSchema,
+    HomeServiceBookingMapResponseSchema,
     HomeServiceBookingResponseSchema,
     MasterMechanicCreateSchema,
     MasterMechanicResponseSchema, HomeServiceBookingAddOnCreate, 
@@ -14,11 +16,16 @@ from schemas.home_schema import (
       HomeServicePaymentResponse
 )
 from services.master_module_service import (
+    create_booking_service_map,
     create_home_service_booking,
     create_home_service_booking_add_on,
     create_home_service_payment,
     create_master_mechanic,
+<<<<<<< HEAD
+    get_all_booking_service_maps,
+=======
     get_all_home_service_booking_add_ons,
+>>>>>>> 3bec54a868058f7e50a6977542bd26826da8f29c
     get_all_home_service_bookings,
     get_home_service_booking_summary,
     create_home_service_booking_add_on, 
@@ -150,3 +157,20 @@ def fetch_home_service_booking_summary(
             status_id=status_id
         )
     }
+<<<<<<< HEAD
+
+
+@router.post("/home-booking-service-map", response_model=HomeServiceBookingMapResponseSchema)
+def create_booking_service(
+    data: HomeServiceBookingMapCreateSchema,
+    db: Session = Depends(get_db)
+):
+    return create_booking_service_map(db, data)
+
+
+
+@router.get("/home-booking-service-map", response_model=list[HomeServiceBookingMapResponseSchema])
+def get_all_booking_services(db: Session = Depends(get_db)):
+    return get_all_booking_service_maps(db)
+=======
+>>>>>>> 3bec54a868058f7e50a6977542bd26826da8f29c
