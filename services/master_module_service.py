@@ -255,6 +255,13 @@ def get_all_home_service_bookings(db: Session):
         FROM fn_get_all_home_service_bookings()
     """)
 
+    try:
+        result = db.execute(query).mappings().all()
+        return result
+    except Exception as e:
+        # optional: log error
+        raise Exception(f"Database function error: {str(e)}")
+
 # -------- GET BY BOOKING ID --------
 def get_add_ons_by_booking_id(
     db: Session,
