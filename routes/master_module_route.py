@@ -21,11 +21,9 @@ from services.master_module_service import (
     create_home_service_booking_add_on,
     create_home_service_payment,
     create_master_mechanic,
-<<<<<<< HEAD
+    get_all_home_service_bookings,
     get_all_booking_service_maps,
-=======
     get_all_home_service_booking_add_ons,
->>>>>>> 3bec54a868058f7e50a6977542bd26826da8f29c
     get_all_home_service_bookings,
     get_home_service_booking_summary,
     create_home_service_booking_add_on, 
@@ -40,7 +38,7 @@ from services.master_module_service import (
     get_home_service_booking_summary,
 )
 
-router = APIRouter(prefix="/home-service/bookings",tags=["Home Service Booking"])
+router = APIRouter(prefix="/api/home-service/bookings",tags=["Home Service Booking"])
 
 
 @router.post("",response_model=HomeServiceBookingResponseSchema,status_code=201)
@@ -98,7 +96,7 @@ def get_all_add_ons(
 
 # -------- POST --------
 @router.post(
-    "/",
+    "-payments",
     response_model=HomeServicePaymentResponse
 )
 def create_payment(
@@ -110,7 +108,7 @@ def create_payment(
 
 # -------- GET ALL --------
 @router.get(
-    "/",
+    "-payments",
     response_model=list[HomeServicePaymentResponse]
 )
 def get_all_payments(
@@ -157,7 +155,6 @@ def fetch_home_service_booking_summary(
             status_id=status_id
         )
     }
-<<<<<<< HEAD
 
 
 @router.post("/home-booking-service-map", response_model=HomeServiceBookingMapResponseSchema)
@@ -172,5 +169,3 @@ def create_booking_service(
 @router.get("/home-booking-service-map", response_model=list[HomeServiceBookingMapResponseSchema])
 def get_all_booking_services(db: Session = Depends(get_db)):
     return get_all_booking_service_maps(db)
-=======
->>>>>>> 3bec54a868058f7e50a6977542bd26826da8f29c

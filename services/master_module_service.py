@@ -101,15 +101,12 @@
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-<<<<<<< HEAD
 from fastapi import HTTPException
 from models.generated_models import HomeServiceBooking, HomeServiceBookingServiceMap, MasterGarage, MasterGarageService, MasterMechanic, UserRegistration
 from schemas.home_schema import HomeServiceBookingCreateSchema, HomeServiceBookingMapCreateSchema, MasterMechanicCreateSchema
-=======
 from fastapi import HTTPException, Query
 from models.generated_models import HomeServiceBooking, HomeServiceBookingAddOn, HomeServicePayment, MasterGarage, MasterMechanic, UserRegistration
 from schemas.home_schema import HomeServiceBookingAddOnCreate, HomeServiceBookingCreateSchema, HomeServicePaymentCreate, MasterMechanicCreateSchema
->>>>>>> 3bec54a868058f7e50a6977542bd26826da8f29c
 
 
 def create_home_service_booking(
