@@ -34,27 +34,13 @@ class AppointmentResponseSchema(BaseModel):
     user_id: int
     appointment_time: datetime
 
-    consultation_type_id: Optional[int]
     consultation_type: Optional[IdNameSchema]
-
-    doctor_id: Optional[int]
     doctor: Optional[IdNameSchema]
-
-    doctor_specialization_id: Optional[int]
     doctor_specialization: Optional[IdNameSchema]
-
-    ambulance_id: Optional[int]
     ambulance: Optional[IdNameSchema]
-
-    assistant_id: Optional[int]
     assistant: Optional[IdNameSchema]
-
-    labs_id: Optional[int]
     labs: Optional[IdNameSchema]
-
-    pharmacies_id: Optional[int]
     pharmacies: Optional[IdNameSchema]
-
     hospital: Optional[IdNameSchema]
 
     required_ambulance: Optional[bool]
@@ -67,6 +53,7 @@ class AppointmentResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 #doctor
 class DoctorCreateSchema(BaseModel):

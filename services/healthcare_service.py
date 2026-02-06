@@ -131,6 +131,7 @@ def create_healthcare_appointment(db: Session, data: AppointmentCreateSchema):
 
     return map_appointment_response(appointment)
 
+
 def get_healthcare_appointments_by_user(db: Session, user_id: int):
     appointments = (
         db.query(Appointments)
@@ -139,7 +140,7 @@ def get_healthcare_appointments_by_user(db: Session, user_id: int):
             joinedload(Appointments.doctor).joinedload(DoctorProfile.user),
             joinedload(Appointments.doctor_specialization),
             joinedload(Appointments.ambulance),
-            joinedload(Appointments.assistant),
+            joinedload(Appointments.assistants),     # ✅ PLURAL
             joinedload(Appointments.labs),
             joinedload(Appointments.pharmacies),
             joinedload(Appointments.hospital),
@@ -153,7 +154,69 @@ def get_healthcare_appointments_by_user(db: Session, user_id: int):
     )
 
     return [map_appointment_response(a) for a in appointments]
-#doctor
+def map_appointment_response(a: Appointments):
+    return {
+        "id": a.id,
+        "user_id": a.user_id,
+        "appointment_time": a.appointment_time,
+
+        "consultation_type_id": a.consultation_type_id,
+        "doctor_id": a.doctor_id,
+        "doctor_specialization_id": a.doctor_specialization_id,
+        "ambulance_id": a.ambulance_id,
+        "assistant_id": a.assistants_id,
+        "labs_id": a.labs_id,
+        "pharmacies_id": a.pharmacies_id,
+
+        "consultation_type": (
+            {"id": a.consultation_type.id, "name": a.consultation_type.consultation_type}
+            if a.consultation_type else None
+        ),
+
+        "doctor": (
+            {"id": a.doctor.id, "name": f"{a.doctor.user.first_name} {a.doctor.user.last_name}"}
+            if a.doctor and a.doctor.user else None
+        ),
+
+        "doctor_specialization": (
+            {"id": a.doctor_specialization.id, "name": a.doctor_specialization.specialization_name}
+            if a.doctor_specialization else None
+        ),
+
+        "ambulance": (
+            {"id": a.ambulance.id, "name": a.ambulance.service_provider}
+            if a.ambulance else None
+        ),
+
+        "assistant": (
+            {"id": a.assistants.id, "name": a.assistants.name}
+            if a.assistants else None
+        ),
+
+        "labs": (
+            {"id": a.labs.id, "name": a.labs.lab_name}
+            if a.labs else None
+        ),
+
+        "pharmacies": (
+            {"id": a.pharmacies.id, "name": a.pharmacies.pharmacy_name}
+            if a.pharmacies else None
+        ),
+
+        "hospital": (
+            {"id": a.hospital.id, "name": a.hospital.hospital_name}
+            if a.hospital else None
+        ),
+
+        "required_ambulance": a.required_ambulance,
+        "required_assistant": a.required_assistant,
+        "pickup_time": a.pickup_time,
+
+        "status": a.status,
+        "call_booking_status": a.call_booking_status,
+        "is_active": a.is_active,
+    }
+
 
 def create_doctor_profile(
     db: Session,

@@ -70,8 +70,6 @@ def get_user_appointments(
 ):
     return get_healthcare_appointments_by_user(db, user_id)
 
-
-
 # @router.get("/doctors/available",response_model=list[DoctorResponseSchema])
 # def fetch_available_doctors(db: Session = Depends(get_db)):
 #     return get_available_doctors(db)
