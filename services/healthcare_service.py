@@ -626,3 +626,47 @@ def get_appointments_by_doctor(
         raise HTTPException(status_code=404, detail="No appointments found")
 
     return data
+
+
+
+
+def get_all_master_assistants(db:Session):
+    return(
+        db.query(MasterAssistants)
+        .filter(MasterAssistants.is_active == True)
+        .order_by(MasterAssistants.name.desc())
+        .all()
+    )
+
+
+def assign_assistant_to_appointment(
+    db: Session,
+    appointment_id: int,
+    assistants_id: int
+):
+    # 1️⃣ Check appointment exists
+    appointment = db.query(Appointments).filter(
+        Appointments.id == appointment_id,
+        Appointments.is_active.is_(True)
+    ).first()
+
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    # 2️⃣ Check assistant exists & active
+    assistant = db.query(MasterAssistants).filter(
+        MasterAssistants.id == assistants_id,
+        MasterAssistants.is_active.is_(True)
+    ).first()
+
+    if not assistant:
+        raise HTTPException(status_code=404, detail="Assistant not found")
+
+    # 3️⃣ Update appointment
+    appointment.assistants_id = assistants_id
+    appointment.required_assistant = True
+
+    db.commit()
+    db.refresh(appointment)
+
+    return appointment
