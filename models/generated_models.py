@@ -223,22 +223,6 @@ class MasterApprovalType(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
 
-class MasterAssistants(Base):
-    __tablename__ = 'master_assistants'
-    __table_args__ = (
-        PrimaryKeyConstraint('id', name='pk_master_assistants_id'),
-        UniqueConstraint('name', name='uk_master_assistants_name')
-    )
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
-    role: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'Professional'::character varying"))
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-
-    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='assistant')
-
-
 class MasterAvailabilityStatus(Base):
     __tablename__ = 'master_availability_status'
     __table_args__ = (
@@ -504,6 +488,7 @@ class MasterHospital(Base):
     rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
 
     master_ambulance: Mapped[list['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='hospital')
+    master_assistants: Mapped[list['MasterAssistants']] = relationship('MasterAssistants', back_populates='hospital')
     doctor_profile: Mapped[list['DoctorProfile']] = relationship('DoctorProfile', back_populates='hospital')
     appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='hospital')
 
@@ -854,6 +839,19 @@ class MasterRole(Base):
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='role')
     freelancer_task_history: Mapped[list['FreelancerTaskHistory']] = relationship('FreelancerTaskHistory', back_populates='freelancer')
     user_role: Mapped[list['UserRole']] = relationship('UserRole', back_populates='role')
+
+
+class MasterSharingType(Base):
+    __tablename__ = 'master_sharing_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_sharing_type_id'),
+        UniqueConstraint('sharing_type', name='uk_master_sharing_type')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sharing_type: Mapped[int] = mapped_column(Integer, nullable=False)
+    price: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
 
 class MasterSkill(Base):
@@ -1385,6 +1383,29 @@ class MasterAmbulance(Base):
     ambulance_booking: Mapped[list['AmbulanceBooking']] = relationship('AmbulanceBooking', back_populates='ambulance')
 
 
+class MasterAssistants(Base):
+    __tablename__ = 'master_assistants'
+    __table_args__ = (
+        ForeignKeyConstraint(['hospital_id'], ['master_hospital.id'], name='fk_master_assistants_hospital_id'),
+        PrimaryKeyConstraint('id', name='pk_master_assistants_id'),
+        UniqueConstraint('name', 'hospital_id', name='uk_master_assistants_name_hospital_id'),
+        UniqueConstraint('services', 'hospital_id', 'name', name='uk_master_assistants_service_hospital_id_name')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    cost_per_visit: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    services: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    hospital_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    role: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'Professional'::character varying"))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    currency: Mapped[Optional[str]] = mapped_column(String(100))
+
+    hospital: Mapped['MasterHospital'] = relationship('MasterHospital', back_populates='master_assistants')
+    appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='assistants')
+
+
 class MasterDesignation(Base):
     __tablename__ = 'master_designation'
     __table_args__ = (
@@ -1633,7 +1654,6 @@ class MasterService(Base):
     home_service_booking: Mapped[list['HomeServiceBooking']] = relationship('HomeServiceBooking', back_populates='service')
     sub_module: Mapped['MasterSubModule'] = relationship('MasterSubModule', back_populates='master_service')
     master_sub_service: Mapped[list['MasterSubService']] = relationship('MasterSubService', back_populates='service')
-    property_sell_listing_service: Mapped[list['PropertySellListingService']] = relationship('PropertySellListingService', back_populates='service')
 
 
 class MasterSubDistrict(Base):
@@ -2164,6 +2184,16 @@ class PropertySellListing(Base):
     listing_type_id: Mapped[Optional[int]] = mapped_column(Integer)
     property_sqft: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
     user_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    rooms_per_floor: Mapped[Optional[int]] = mapped_column(Integer)
+    beds_per_room: Mapped[Optional[int]] = mapped_column(Integer)
+    sharing_type: Mapped[Optional[int]] = mapped_column(Integer)
+    current_bill_excluded: Mapped[Optional[bool]] = mapped_column(Boolean)
+    band_name: Mapped[Optional[str]] = mapped_column(String(255))
+    model_name: Mapped[Optional[str]] = mapped_column(String(255))
+    year: Mapped[Optional[int]] = mapped_column(Integer)
+    distance_km: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(9, 2))
+    owner_name: Mapped[Optional[str]] = mapped_column(String(255))
+    mobile_number: Mapped[Optional[str]] = mapped_column(String(255))
 
     bhk_type: Mapped['MasterBhkType'] = relationship('MasterBhkType', back_populates='property_sell_listing')
     user_registration: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[created_by], back_populates='property_sell_listing')
@@ -2177,7 +2207,6 @@ class PropertySellListing(Base):
     sub_module: Mapped['MasterSubModule'] = relationship('MasterSubModule', back_populates='property_sell_listing')
     user: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='property_sell_listing1')
     property_listing: Mapped[list['PropertyListing']] = relationship('PropertyListing', back_populates='property_sell_listing')
-    property_sell_listing_service: Mapped[list['PropertySellListingService']] = relationship('PropertySellListingService', back_populates='property_sell_listing')
 
 
 class StudentAttendance(Base):
@@ -2626,25 +2655,6 @@ class PropertyListing(Base):
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='property_listing1')
 
 
-class PropertySellListingService(Base):
-    __tablename__ = 'property_sell_listing_service'
-    __table_args__ = (
-        ForeignKeyConstraint(['property_sell_listing_id'], ['property_sell_listing.id'], name='fk_property_sell_listing_service_property_sell_listing_id'),
-        ForeignKeyConstraint(['service_id'], ['master_service.id'], name='fk_property_sell_listing_service_service_id'),
-        PrimaryKeyConstraint('id', name='pk_property_sell_listing_service_id'),
-        UniqueConstraint('property_sell_listing_id', 'service_id', name='uq_property_sell_listing_service')
-    )
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    property_sell_listing_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    service_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
-
-    property_sell_listing: Mapped['PropertySellListing'] = relationship('PropertySellListing', back_populates='property_sell_listing_service')
-    service: Mapped['MasterService'] = relationship('MasterService', back_populates='property_sell_listing_service')
-
-
 class ServiceRequests(Base):
     __tablename__ = 'service_requests'
     __table_args__ = (
@@ -2797,7 +2807,7 @@ class Appointments(Base):
     __table_args__ = (
         CheckConstraint("status::text = ANY (ARRAY['PENDING'::character varying, 'CONFIRMED'::character varying, 'CANCELLED'::character varying]::text[])", name='ck_appointments_status'),
         ForeignKeyConstraint(['ambulance_id'], ['master_ambulance.id'], name='fk_appointments_ambulance_id'),
-        ForeignKeyConstraint(['assistant_id'], ['master_assistants.id'], name='fk_appointments_assistant_id'),
+        ForeignKeyConstraint(['assistants_id'], ['master_assistants.id'], name='fk_appointments_assistants_id'),
         ForeignKeyConstraint(['consultation_type_id'], ['master_consultation_type.id'], name='fk_appointments_consultation_type_id'),
         ForeignKeyConstraint(['doctor_id'], ['doctor_profile.id'], name='fk_appointments_doctor_id'),
         ForeignKeyConstraint(['doctor_specialization_id'], ['master_doctor_specialization.id'], name='fk_appointments_doctor_specialization_id'),
@@ -2821,7 +2831,6 @@ class Appointments(Base):
     required_assistant: Mapped[Optional[bool]] = mapped_column(Boolean)
     ambulance_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     pickup_time: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-    assistant_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     pharmacies_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     labs_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
@@ -2834,9 +2843,10 @@ class Appointments(Base):
     hospital_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     status: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'PENDING'::character varying"))
     call_booking_status: Mapped[Optional[str]] = mapped_column(String(255))
+    assistants_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     ambulance: Mapped[Optional['MasterAmbulance']] = relationship('MasterAmbulance', back_populates='appointments')
-    assistant: Mapped[Optional['MasterAssistants']] = relationship('MasterAssistants', back_populates='appointments')
+    assistants: Mapped[Optional['MasterAssistants']] = relationship('MasterAssistants', back_populates='appointments')
     consultation_type: Mapped[Optional['MasterConsultationType']] = relationship('MasterConsultationType', back_populates='appointments')
     doctor: Mapped[Optional['DoctorProfile']] = relationship('DoctorProfile', back_populates='appointments')
     doctor_specialization: Mapped[Optional['MasterDoctorSpecialization']] = relationship('MasterDoctorSpecialization', back_populates='appointments')

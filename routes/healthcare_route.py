@@ -60,6 +60,7 @@ def book_healthcare_appointment(
     return create_healthcare_appointment(db, payload)
 
 
+
 @router.get(
     "/appointments/user/{user_id}",
     response_model=list[AppointmentResponseSchema]
@@ -69,8 +70,6 @@ def get_user_appointments(
     db: Session = Depends(get_db)
 ):
     return get_healthcare_appointments_by_user(db, user_id)
-
-
 
 # @router.get("/doctors/available",response_model=list[DoctorResponseSchema])
 # def fetch_available_doctors(db: Session = Depends(get_db)):

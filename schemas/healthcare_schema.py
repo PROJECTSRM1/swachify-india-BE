@@ -9,11 +9,14 @@ class IdNameSchema(BaseModel):
     id: int
     name: str
 
+
 class AppointmentCreateSchema(BaseModel):
+    # 🔴 REQUIRED
     user_id: int
     consultation_type_id: int
     appointment_time: datetime
 
+    # 🟡 OPTIONAL
     doctor_id: Optional[int] = None
     doctor_specialization_id: Optional[int] = None
 
@@ -22,10 +25,15 @@ class AppointmentCreateSchema(BaseModel):
     pickup_time: Optional[datetime] = None
 
     required_assistant: Optional[bool] = False
-    assistant_id: Optional[int] = None
+    assistants_id: Optional[int] = None
 
     labs_id: Optional[int] = None
     pharmacies_id: Optional[int] = None
+    hospital_id: Optional[int] = None
+
+    description: Optional[str] = None
+    days_of_suffering: Optional[int] = None
+    health_insurance: Optional[bool] = None
 
     call_booking_status: Optional[str] = "CALL_PENDING"
 
@@ -34,28 +42,29 @@ class AppointmentResponseSchema(BaseModel):
     user_id: int
     appointment_time: datetime
 
-    consultation_type_id: Optional[int]
-    consultation_type: Optional[IdNameSchema]
+    consultation_type_id: Optional[int] = None
+    consultation_type_name: Optional[str] = None
 
-    doctor_id: Optional[int]
-    doctor: Optional[IdNameSchema]
+    doctor_id: Optional[int] = None
+    doctor_name: Optional[str] = None
 
-    doctor_specialization_id: Optional[int]
-    doctor_specialization: Optional[IdNameSchema]
+    doctor_specialization_id: Optional[int] = None
+    doctor_specialization_name: Optional[str] = None
 
-    ambulance_id: Optional[int]
-    ambulance: Optional[IdNameSchema]
+    ambulance_id: Optional[int] = None
+    ambulance_name: Optional[str] = None
 
-    assistant_id: Optional[int]
-    assistant: Optional[IdNameSchema]
+    assistants_id: Optional[int] = None
+    assistant_name: Optional[str] = None
 
-    labs_id: Optional[int]
-    labs: Optional[IdNameSchema]
+    labs_id: Optional[int] = None
+    lab_name: Optional[str] = None
 
-    pharmacies_id: Optional[int]
-    pharmacies: Optional[IdNameSchema]
+    pharmacies_id: Optional[int] = None
+    pharmacy_name: Optional[str] = None
 
-    hospital: Optional[IdNameSchema]
+    hospital_id: Optional[int] = None
+    hospital_name: Optional[str] = None
 
     required_ambulance: Optional[bool]
     required_assistant: Optional[bool]
