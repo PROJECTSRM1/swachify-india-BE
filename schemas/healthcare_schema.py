@@ -1,5 +1,5 @@
 from pydantic import BaseModel,Field
-from typing import Optional,List
+from typing import Optional,List,Dict
 from datetime import datetime, time
 
 from decimal import Decimal
@@ -317,3 +317,19 @@ class DoctorAppointmentResponseSchema(BaseModel):
 
 class CallBookingStatusUpdateSchema(BaseModel):
     call_booking_status: str
+
+
+class AppointmentAssignAssistantSchema(BaseModel):
+    assistants_id: int
+class MasterAssistantResponseSchema(BaseModel):
+    id: int
+    name: str
+    cost_per_visit: decimal.Decimal
+    services: List[str] 
+    hospital_id:int
+    rating:Optional[decimal.Decimal]=None
+    role:Optional[str]=None
+    is_active:bool
+    currency:Optional[str]=None
+    class Config:
+        from_attributes = True

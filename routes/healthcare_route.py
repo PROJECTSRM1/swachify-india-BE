@@ -7,6 +7,7 @@ from models.generated_models import Appointments, DoctorProfile, UserRegistratio
 from schemas.healthcare_schema import (
     AmbulanceBookingCreateSchema,
     AmbulanceBookingResponseSchema,
+    AppointmentAssignAssistantSchema,
     AppointmentCreateSchema,
     AppointmentResponseSchema,
     AvailableLabCreate,
@@ -15,6 +16,7 @@ from schemas.healthcare_schema import (
     DoctorResponseSchema,
     HospitalAmbulanceResponseSchema,
     HospitalDoctorResponseSchema,
+    MasterAssistantResponseSchema,
     PaymentCreateSchema,
     PaymentResponseSchema,
     AvailablePharmacyCreate,
@@ -23,9 +25,11 @@ from schemas.healthcare_schema import (
     
 )
 from services.healthcare_service import (
+    assign_assistant_to_appointment,
     create_ambulance_booking,
     create_healthcare_appointment,
     create_lab_service,
+    get_all_master_assistants,
     get_available_hospitals,
     get_available_labs,
     get_available_labs_list_service,
@@ -149,6 +153,24 @@ def make_payment(
 ):
     return create_payment(db, data)
 
+
+@router.get("/available-assistants",response_model=list[MasterAssistantResponseSchema])
+def get_all_assistants(db: Session = Depends(get_db)):
+    return get_all_master_assistants(db)
+
+@router.put("/appointments/{appointment_id}/assign-assistant",summary="Assign assistant to appointment")
+def assign_assistant(appointment_id: int,payload: AppointmentAssignAssistantSchema,db: Session = Depends(get_db)):
+    appointment = assign_assistant_to_appointment(
+        db=db,
+        appointment_id=appointment_id,
+        assistants_id=payload.assistants_id
+    )
+
+    return {
+        "message": "Assistant assigned successfully",
+        "appointment_id": appointment.id,
+        "assistants_id": appointment.assistants_id
+    }
 
 @router.get("/bookings/view-my-bookings/{user_id}")
 def fetch_doctor_bookings(
