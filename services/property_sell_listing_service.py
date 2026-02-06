@@ -13,9 +13,10 @@ from schemas.property_sell_listing_schema import (
     PropertyListingCreate,
     PropertyListingUpdate
 )
-# =========================
+
+# ======================================================
 # CREATE
-# =========================
+# ======================================================
 
 def create_property_sell_listing(
     db: Session,
@@ -23,8 +24,7 @@ def create_property_sell_listing(
 ):
     listing = PropertySellListing(
         **payload.dict(exclude_unset=True),
-        created_date=datetime.utcnow(),
-        is_active=True
+        created_date=datetime.utcnow()
     )
 
     db.add(listing)
@@ -33,9 +33,9 @@ def create_property_sell_listing(
     return listing
 
 
-# =========================
+# ======================================================
 # GET BY ID
-# =========================
+# ======================================================
 
 def get_property_sell_listing_by_id(
     db: Session,
@@ -51,17 +51,14 @@ def get_property_sell_listing_by_id(
     )
 
     if not listing:
-        raise HTTPException(
-            status_code=404,
-            detail="Property sell listing not found"
-        )
+        raise HTTPException(status_code=404, detail="Property sell listing not found")
 
     return listing
 
 
-# =========================
+# ======================================================
 # GET ALL
-# =========================
+# ======================================================
 
 def get_all_property_sell_listings(db: Session):
     return (
@@ -72,9 +69,9 @@ def get_all_property_sell_listings(db: Session):
     )
 
 
-# =========================
+# ======================================================
 # UPDATE
-# =========================
+# ======================================================
 
 def update_property_sell_listing(
     db: Session,
@@ -83,27 +80,22 @@ def update_property_sell_listing(
 ):
     listing = get_property_sell_listing_by_id(db, listing_id)
 
-    update_data = payload.dict(exclude_unset=True)
+    data = payload.dict(exclude_unset=True)
+    if not data:
+        raise HTTPException(status_code=400, detail="No fields to update")
 
-    if not update_data:
-        raise HTTPException(
-            status_code=400,
-            detail="No fields provided for update"
-        )
-
-    for key, value in update_data.items():
+    for key, value in data.items():
         setattr(listing, key, value)
 
     listing.modified_date = datetime.utcnow()
-
     db.commit()
     db.refresh(listing)
     return listing
 
 
-# =========================
+# ======================================================
 # SOFT DELETE
-# =========================
+# ======================================================
 
 def delete_property_sell_listing(
     db: Session,
@@ -117,11 +109,7 @@ def delete_property_sell_listing(
     listing.modified_date = datetime.utcnow()
 
     db.commit()
-    return {
-        "message": "Property sell listing deleted successfully"
-    }
-
-
+    return {"message": "Property sell listing deleted successfully"}
 
 
 # =========================
@@ -134,14 +122,14 @@ def create_property_listing(
 ):
     listing = PropertyListing(
         **payload.dict(exclude_unset=True),
-        created_date=datetime.utcnow(),
-        is_active=True
+        created_date=datetime.utcnow()
     )
 
     db.add(listing)
     db.commit()
     db.refresh(listing)
     return listing
+
 
 
 # =========================
