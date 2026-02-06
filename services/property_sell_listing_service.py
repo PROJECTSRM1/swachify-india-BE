@@ -1,3 +1,4 @@
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from datetime import datetime
 from fastapi import HTTPException
@@ -231,7 +232,46 @@ def delete_property_listing(
         "message": "Property listing deleted successfully"
     }
 
+#filtered_property_sell_listings
 
+
+def get_filtered_property_sell_listings(
+    db: Session,
+    p_id: int = -1,
+    p_property_type_id: int = -1,
+    p_listing_type_id: int = -1,
+    p_updated_range: str = "-1",
+    p_min_rating: int = -1,
+    p_limit: int = 10,
+    p_offset: int = 0
+):
+    query = text("""
+        SELECT *
+        FROM public.fn_get_filtered_property_listings(
+            :p_id,
+            :p_property_type_id,
+            :p_listing_type_id,
+            :p_updated_range,
+            :p_min_rating,
+            :p_limit,
+            :p_offset
+        )
+    """)
+
+    result = db.execute(
+        query,
+        {
+            "p_id": p_id,
+            "p_property_type_id": p_property_type_id,
+            "p_listing_type_id": p_listing_type_id,
+            "p_updated_range": p_updated_range,
+            "p_min_rating": p_min_rating,
+            "p_limit": p_limit,
+            "p_offset": p_offset
+        }
+    ).mappings().all()
+
+    return result
 
 
 # from sqlalchemy.orm import Session
