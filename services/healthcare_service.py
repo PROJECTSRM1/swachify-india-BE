@@ -20,116 +20,49 @@ from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentC
 from schemas.healthcare_schema import PaymentCreateSchema,AvailablePharmacyCreate
 from models.generated_models import Payments, ServiceRequests,AvailablePharmacies
 
-def map_appointment_response(a: Appointments) -> AppointmentResponseSchema:
-    return AppointmentResponseSchema(
-        id=a.id,
-        user_id=a.user_id,
-        appointment_time=a.appointment_time,
 
-        consultation_type_id=a.consultation_type_id,
-        doctor_id=a.doctor_id,
-        doctor_specialization_id=a.doctor_specialization_id,
-        ambulance_id=a.ambulance_id,
-        assistant_id=a.assistant_id,
-        labs_id=a.labs_id,
-        pharmacies_id=a.pharmacies_id,
+from sqlalchemy.orm import Session
+from models.generated_models import Appointments
+from schemas.healthcare_schema import AppointmentCreateSchema
 
-        consultation_type=(
-            IdNameSchema(
-                id=a.consultation_type.id,
-                name=a.consultation_type.consultation_type
-            ) if a.consultation_type else None
-        ),
 
-        doctor=(
-            IdNameSchema(
-                id=a.doctor.id,
-                name=f"{a.doctor.user.first_name} {a.doctor.user.last_name}"
-            ) if a.doctor and a.doctor.user else None
-        ),
-
-        doctor_specialization=(
-            IdNameSchema(
-                id=a.doctor_specialization.id,
-                name=a.doctor_specialization.specialization_name
-            ) if a.doctor_specialization else None
-        ),
-
-        ambulance=(
-            IdNameSchema(
-                id=a.ambulance.id,
-                name=a.ambulance.vehicle_number
-            ) if a.ambulance else None
-        ),
-
-        assistant=(
-            IdNameSchema(
-                id=a.assistant.id,
-                name=a.assistant.name
-            ) if a.assistant else None
-        ),
-
-        labs=(
-            IdNameSchema(
-                id=a.labs.id,
-                name=a.labs.lab_name
-            ) if a.labs else None
-        ),
-
-        pharmacies=(
-            IdNameSchema(
-                id=a.pharmacies.id,
-                name=a.pharmacies.pharmacy_name
-            ) if a.pharmacies else None
-        ),
-
-        hospital=(
-            IdNameSchema(
-                id=a.hospital.id,
-                name=a.hospital.hospital_name
-            ) if a.hospital else None
-        ),
-
-        required_ambulance=a.required_ambulance,
-        required_assistant=a.required_assistant,
-        pickup_time=a.pickup_time,
-        status=a.status,
-        call_booking_status=a.call_booking_status,
-        is_active=a.is_active
-    )
-
-def create_healthcare_appointment(db: Session, data: AppointmentCreateSchema):
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == data.user_id,
-        UserRegistration.is_active.is_(True)
-    ).first()
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid user")
-
+def create_healthcare_appointment(
+    db: Session,
+    data: AppointmentCreateSchema
+):
     appointment = Appointments(
         user_id=data.user_id,
         consultation_type_id=data.consultation_type_id,
         appointment_time=data.appointment_time,
+
         doctor_id=data.doctor_id,
         doctor_specialization_id=data.doctor_specialization_id,
+
         required_ambulance=data.required_ambulance,
         ambulance_id=data.ambulance_id if data.required_ambulance else None,
         pickup_time=data.pickup_time if data.required_ambulance else None,
+
         required_assistant=data.required_assistant,
-        assistant_id=data.assistant_id if data.required_assistant else None,
+        assistants_id=data.assistants_id if data.required_assistant else None,
+
         labs_id=data.labs_id,
         pharmacies_id=data.pharmacies_id,
+        hospital_id=data.hospital_id,
+
+        description=data.description,
+        days_of_suffering=data.days_of_suffering,
+        health_insurance=data.health_insurance,
+
         call_booking_status=data.call_booking_status,
-        created_by=data.user_id,
-        is_active=True
     )
 
     db.add(appointment)
     db.commit()
     db.refresh(appointment)
+    return appointment
 
-    return map_appointment_response(appointment)
+
+
 
 def get_healthcare_appointments_by_user(db: Session, user_id: int):
     appointments = (
@@ -139,7 +72,7 @@ def get_healthcare_appointments_by_user(db: Session, user_id: int):
             joinedload(Appointments.doctor).joinedload(DoctorProfile.user),
             joinedload(Appointments.doctor_specialization),
             joinedload(Appointments.ambulance),
-            joinedload(Appointments.assistant),
+            joinedload(Appointments.assistants),   # ✅ PLURAL
             joinedload(Appointments.labs),
             joinedload(Appointments.pharmacies),
             joinedload(Appointments.hospital),
@@ -153,7 +86,74 @@ def get_healthcare_appointments_by_user(db: Session, user_id: int):
     )
 
     return [map_appointment_response(a) for a in appointments]
-#doctor
+
+
+def map_appointment_response(a: Appointments):
+    return {
+        "id": a.id,
+        "user_id": a.user_id,
+        "appointment_time": a.appointment_time,
+
+        # ---------- IDs ----------
+        "consultation_type_id": a.consultation_type_id,
+        "doctor_id": a.doctor_id,
+        "doctor_specialization_id": a.doctor_specialization_id,
+        "ambulance_id": a.ambulance_id,
+        "assistants_id": a.assistants_id,
+        "labs_id": a.labs_id,
+        "pharmacies_id": a.pharmacies_id,
+        "hospital_id": a.hospital_id,
+
+        # ---------- NAMES ----------
+        "consultation_type_name": (
+            a.consultation_type.consultation_type
+            if a.consultation_type else None
+        ),
+
+        "doctor_name": (
+            f"{a.doctor.user.first_name} {a.doctor.user.last_name}"
+            if a.doctor and a.doctor.user else None
+        ),
+
+        "doctor_specialization_name": (
+            a.doctor_specialization.specialization_name
+            if a.doctor_specialization else None
+        ),
+
+        "ambulance_name": (
+            a.ambulance.service_provider
+            if a.ambulance else None
+        ),
+
+        "assistant_name": (
+            a.assistants.name
+            if a.assistants else None
+        ),
+
+        "lab_name": (
+            a.labs.lab_name
+            if a.labs else None
+        ),
+
+        "pharmacy_name": (
+            a.pharmacies.pharmacy_name
+            if a.pharmacies else None
+        ),
+
+        "hospital_name": (
+            a.hospital.hospital_name
+            if a.hospital else None
+        ),
+
+        # ---------- STATUS ----------
+        "required_ambulance": a.required_ambulance,
+        "required_assistant": a.required_assistant,
+        "pickup_time": a.pickup_time,
+        "status": a.status,
+        "call_booking_status": a.call_booking_status,
+        "is_active": a.is_active,
+    }
+
 
 def create_doctor_profile(
     db: Session,
