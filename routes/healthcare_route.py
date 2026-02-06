@@ -60,6 +60,7 @@ def book_healthcare_appointment(
     return create_healthcare_appointment(db, payload)
 
 
+
 @router.get(
     "/appointments/user/{user_id}",
     response_model=list[AppointmentResponseSchema]
