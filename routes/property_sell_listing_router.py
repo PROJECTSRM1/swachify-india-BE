@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,Query
+from requests import session
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -24,6 +25,7 @@ from schemas.property_sell_listing_schema import (
 from services.property_sell_listing_service import (
     create_property_sell_listing,
     get_property_sell_listing_by_id,
+    get_filtered_property_sell_listings,
     get_all_property_sell_listings,
     update_property_sell_listing,
     delete_property_sell_listing
@@ -129,7 +131,32 @@ def get_listing_by_id(
 ):
     return get_property_listing_by_id(db, listing_id)
 
+@router.get("/filter")
+def fetch_filter_property_sell_listing(
+    p_id:int = Query(-1),
+    p_property_type_id: int = Query(-1),
+    p_listing_type_id: int = Query(-1),
+    p_updated_range: str = Query("-1"),
+    p_min_rating:int = Query(-1),
+    p_limit: int = Query(10),
+    p_offset: int = Query(0),
+    db:session = Depends(get_db)
 
+):
+    return{
+        "status":True,
+        "data": get_filtered_property_sell_listings(
+            db=db,
+            p_id=p_id,
+            p_property_type_id=p_property_type_id,
+            p_listing_type_id=p_listing_type_id,
+            p_updated_range=p_updated_range,
+            p_min_rating=p_min_rating,
+            p_limit=p_limit,
+            p_offset=p_offset
+        )
+
+    }
 # @router.get(
 #     "/listing",
 #     response_model=List[PropertyListingResponse]
