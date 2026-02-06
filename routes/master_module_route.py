@@ -21,7 +21,7 @@ from services.master_module_service import (
     create_home_service_booking_add_on,
     create_home_service_payment,
     create_master_mechanic,
-    get_all_home_service_bookings,
+
     get_all_booking_service_maps,
     get_all_home_service_booking_add_ons,
     get_all_home_service_bookings,
@@ -140,21 +140,15 @@ def get_all_payments(
 # ):
 #     return get_payment_by_user_id(db, user_id)
 
-@router.get("/home-service-bookings-summary")
+@router.get("/home-service-booking-summary")
 def fetch_home_service_booking_summary(
-    status_id: int = Query(
-        -1,
-        description="Pass status_id or -1 for all"
-    ),
     db: Session = Depends(get_db)
 ):
     return {
         "status": True,
-        "data": get_home_service_booking_summary(
-            db=db,
-            status_id=status_id
-        )
+        "data": get_home_service_booking_summary(db)
     }
+
 
 
 @router.post("/home-booking-service-map", response_model=HomeServiceBookingMapResponseSchema)
@@ -169,3 +163,4 @@ def create_booking_service(
 @router.get("/home-booking-service-map", response_model=list[HomeServiceBookingMapResponseSchema])
 def get_all_booking_services(db: Session = Depends(get_db)):
     return get_all_booking_service_maps(db)
+
