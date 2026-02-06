@@ -43,7 +43,7 @@ from services.property_sell_listing_service import (
 
 router = APIRouter(
     prefix="/property",
-    tags=["Property"]
+    tags=["Buy/Sell/Rental"]
 )
 
 # ======================================================
@@ -72,14 +72,14 @@ def get_sell_listing_by_id(
     return get_property_sell_listing_by_id(db, listing_id)
 
 
-@router.get(
-    "/sell-listing",
-    response_model=List[PropertySellListingResponse]
-)
-def get_all_sell_listings(
-    db: Session = Depends(get_db)
-):
-    return get_all_property_sell_listings(db)
+# @router.get(
+#     "/sell-listing",
+#     response_model=List[PropertySellListingResponse]
+# )
+# def get_all_sell_listings(
+#     db: Session = Depends(get_db)
+# ):
+#     return get_all_property_sell_listings(db)
 
 
 # @router.put(
@@ -130,14 +130,14 @@ def get_listing_by_id(
     return get_property_listing_by_id(db, listing_id)
 
 
-@router.get(
-    "/listing",
-    response_model=List[PropertyListingResponse]
-)
-def get_all_listings(
-    db: Session = Depends(get_db)
-):
-    return get_all_property_listings(db)
+# @router.get(
+#     "/listing",
+#     response_model=List[PropertyListingResponse]
+# )
+# def get_all_listings(
+#     db: Session = Depends(get_db)
+# ):
+#     return get_all_property_listings(db)
 
 
 # @router.put(
