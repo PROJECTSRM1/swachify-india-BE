@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-
 from models.generated_models import MasterModule,MasterSubModule,MasterService,MasterSubService,MasterSubGroup,MasterServiceType
 
 def get_master_data(db: Session):

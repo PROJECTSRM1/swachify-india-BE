@@ -86,7 +86,6 @@ def get_full_student_profile(student_id: int,db: Session = Depends(get_db)):
             location=student.address,
             service_name="Education",
 
-            # ✅ FAMILY MERGE
             family_members=[
                 StudentFamilyMemberResponse(
                     id=fm.id,
@@ -112,18 +111,8 @@ def get_full_student_profile(student_id: int,db: Session = Depends(get_db)):
         }
     }
 
-# =====================================================
-# ADD FULL STUDENT PROFILE DATA
-# =====================================================
-
-@router.post(
-    "/students/{student_id}/full-profile"
-    )
-def add_full_student_profile(
-    student_id: int,
-    payload: StudentEducationFullCreate,
-    db: Session = Depends(get_db),
-):
+@router.post("/students/{student_id}/full-profile")
+def add_full_student_profile(student_id: int,payload: StudentEducationFullCreate,db: Session = Depends(get_db),):
     results = {}
 
     if payload.education:
@@ -163,69 +152,32 @@ def add_full_student_profile(
     }
 
 
-@router.post(
-    "/students/{student_id}/attendance",
-    response_model=StudentAttendanceResponse,
-)
-def update_student_attendance(
-    student_id: int,
-    payload: StudentAttendanceCreate,
-    db: Session = Depends(get_db),
-):
+@router.post("/students/{student_id}/attendance",response_model=StudentAttendanceResponse,)
+def update_student_attendance(student_id: int,payload: StudentAttendanceCreate,db: Session = Depends(get_db),):
     return upsert_student_attendance(
         db=db,
         user_id=student_id,
         attendance_percentage=payload.attendance_percentage,
     )
 
-@router.post(
-    "/students/{student_id}/internship-status",
-    response_model=StudentInternshipStatusResponse,
-)
-def update_student_internship_status(
-    student_id: int,
-    payload: StudentInternshipStatusCreate,
-    db: Session = Depends(get_db),
-):
+@router.post("/students/{student_id}/internship-status",response_model=StudentInternshipStatusResponse,)
+def update_student_internship_status(student_id: int,payload: StudentInternshipStatusCreate,db: Session = Depends(get_db),):
     return upsert_student_internship(
         db=db,
         user_id=student_id,
         internship_status=payload.internship_status,
     )
 
-@router.get(
-    "/students/top-performers",
-    response_model=List[StudentListResponse],
-)
-def get_top_performers(
-    limit: int = 10,
-    db: Session = Depends(get_db)
-):
+@router.get("/students/top-performers",response_model=List[StudentListResponse],)
+def get_top_performers(limit: int = 10,db: Session = Depends(get_db)):
     return get_top_performers_service(db, limit)
 
-@router.get(
-    "/students/recent-joiners",
-    response_model=List[StudentListResponse],
-)
-def get_recent_joiners(
-    limit: int = 10,
-    db: Session = Depends(get_db)
-):
+@router.get("/students/recent-joiners",response_model=List[StudentListResponse],)
+def get_recent_joiners(limit: int = 10,db: Session = Depends(get_db)):
     return get_recent_joiners_service(db, limit)
 
-# =============================
-# ADD FAMILY MEMBER
-# =============================
-
-@router.post(
-    "/{student_id}/family-members",
-    response_model=StudentFamilyMemberResponse
-)
-def add_family_member(
-    student_id: int,
-    payload: StudentFamilyMemberCreate,
-    db: Session = Depends(get_db),
-):
+@router.post("/{student_id}/family-members",response_model=StudentFamilyMemberResponse)
+def add_family_member(student_id: int,payload: StudentFamilyMemberCreate,db: Session = Depends(get_db),):
     record = add_family_member_service(
         db=db,
         student_id=student_id,
@@ -244,19 +196,8 @@ def add_family_member(
         "is_active": record.is_active,
     }
 
-# =============================
-# UPDATE FAMILY MEMBER
-# =============================
-
-@router.put(
-    "/family-members/{member_id}",
-    response_model=StudentFamilyMemberResponse
-)
-def update_family_member(
-    member_id: int,
-    payload: StudentFamilyMemberUpdate,
-    db: Session = Depends(get_db),
-):
+@router.put("/family-members/{member_id}",response_model=StudentFamilyMemberResponse)
+def update_family_member(member_id: int,payload: StudentFamilyMemberUpdate,db: Session = Depends(get_db),):
     record = update_family_member_service(
         db=db,
         member_id=member_id,
@@ -275,35 +216,9 @@ def update_family_member(
         "is_active": record.is_active,
     }
 
-# @router.delete(
-#     "/family-members/{member_id}/hard",
-# )
-# def hard_delete_family_member(
-#     member_id: int,
-#     db: Session = Depends(get_db),
-# ):
-#     """
-#     Permanently delete a student family member
-#     """
-#     return hard_delete_family_member_service(
-#         db=db,
-#         member_id=member_id
-#     )
-
-# =============================
-# LIST FAMILY MEMBERS
-# =============================
-
-@router.get(
-    "/{student_id}/family-members",
-    response_model=List[StudentFamilyMemberResponse]
-)
-def list_family_members(
-    student_id: int,
-    db: Session = Depends(get_db),
-):
+@router.get("/{student_id}/family-members",response_model=List[StudentFamilyMemberResponse])
+def list_family_members(student_id: int,db: Session = Depends(get_db),):
     records = list_family_members_service(db, student_id)
-
     return [
         {
             "id": r.id,

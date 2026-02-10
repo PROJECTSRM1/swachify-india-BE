@@ -3,19 +3,12 @@ from sqlalchemy.orm import Session, joinedload
 from core.database import get_db
 from core.constants import ADMIN_ROLE_ID, CUSTOMER_ROLE_ID, FREELANCER_ROLE_ID
 from schemas.admin_schema import (RegisterAdmin, UserBase, AdminLogin, AdminLogout,AdminRegisterResponse, AdminUpdateResponse)
-from services.admin_service import (
-    register_admin_service, admin_login_service, admin_update_service,
-    admin_delete_service, admin_hard_delete_service, get_pending_freelancers_service,
-    approve_freelancer_service, reject_freelancer_service,
-    get_all_customers_service, get_customer_details_service
-)
+from services.admin_service import (register_admin_service, admin_login_service, admin_update_service,admin_delete_service, admin_hard_delete_service, get_pending_freelancers_service,approve_freelancer_service, reject_freelancer_service,get_all_customers_service, get_customer_details_service)
 from utils.jwt_utils import verify_admin_token, verify_token
 import json
 from models.generated_models import MasterGender,MasterSkill, MasterState, MasterDistrict,UserRegistration
 
-
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
-
 
 @router.post("/register", response_model=AdminRegisterResponse)
 def register_admin(request: RegisterAdmin, db: Session = Depends(get_db)):
@@ -29,7 +22,6 @@ def admin_login(request: AdminLogin, db: Session = Depends(get_db), req: Request
 @router.get("/admin/profile")
 def get_admin_profile(payload = Depends(verify_admin_token)):
     return {"message": "Authorized", "admin": payload}
-
 
 @router.put("/update/{admin_id}", response_model=AdminUpdateResponse)
 def update_admin(admin_id: int, payload: dict, db: Session = Depends(get_db)):
@@ -46,31 +38,24 @@ def hard_delete_admin(admin_id: int, db: Session = Depends(get_db)):
 def get_current_admin(token: str) -> dict:
     payload = verify_token(token)
     if payload.get("role_id") != ADMIN_ROLE_ID:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Admin access required")
     return payload
 
 @router.get("/pending")
 def get_pending_freelancers(token: str, db: Session = Depends(get_db)):
-    """Fetch all freelancers with PENDING approval status."""
     admin = get_current_admin(token)
     return get_pending_freelancers_service(db)
 
 
 @router.put("/{freelancer_id}/approve")
 def approve_freelancer(freelancer_id: int, token: str, db: Session = Depends(get_db)):
-    """Approve a PENDING freelancer (status: PENDING → APPROVED)."""
     admin = get_current_admin(token)
-    admin_id = int(admin["user_id"])  # Extract from JWT token
+    admin_id = int(admin["user_id"])
     return approve_freelancer_service(db, freelancer_id, admin_id)
 
 
 @router.put("/{freelancer_id}/reject")
 def reject_freelancer(freelancer_id: int, token: str, db: Session = Depends(get_db)):
-    """Reject a PENDING freelancer (status: PENDING → REJECTED)."""
     admin = get_current_admin(token)
     admin_id = int(admin["user_id"]) 
     return reject_freelancer_service(db, freelancer_id, admin_id)
@@ -154,7 +139,6 @@ def get_freelancer_full_details(freelancer_id: int, db: Session = Depends(get_db
 
 @router.get("/freelancers")
 def get_freelancer_list(db: Session = Depends(get_db)):
-    """Fetch all active freelancers."""
     freelancers = db.query(UserRegistration).filter(
         UserRegistration.role_id == FREELANCER_ROLE_ID,
         UserRegistration.is_active == True
@@ -162,11 +146,9 @@ def get_freelancer_list(db: Session = Depends(get_db)):
 
     return freelancers
 
-
 @router.get("/customers")
 def get_all_customers(db: Session = Depends(get_db)):
     return get_all_customers_service(db)
-
 
 @router.get("/customer/{customer_id}")
 def get_customer_full_details(customer_id: int, db: Session = Depends(get_db)):

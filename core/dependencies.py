@@ -1,7 +1,6 @@
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-
 from core.database import get_db
 from core.security import bearer_scheme
 from utils.jwt_utils import verify_token

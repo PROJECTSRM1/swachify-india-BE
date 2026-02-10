@@ -9,79 +9,56 @@ class IdNameSchema(BaseModel):
     id: int
     name: str
 
-
 class AppointmentCreateSchema(BaseModel):
-    # 🔴 REQUIRED
     user_id: int
     consultation_type_id: int
     appointment_time: datetime
-
-    # 🟡 OPTIONAL
     doctor_id: Optional[int] = None
     doctor_specialization_id: Optional[int] = None
-
     required_ambulance: Optional[bool] = False
     ambulance_id: Optional[int] = None
     pickup_time: Optional[datetime] = None
-
     required_assistant: Optional[bool] = False
     assistants_id: Optional[int] = None
-
     labs_id: Optional[int] = None
     pharmacies_id: Optional[int] = None
     hospital_id: Optional[int] = None
-
     description: Optional[str] = None
     days_of_suffering: Optional[int] = None
     health_insurance: Optional[bool] = None
-
     call_booking_status: Optional[str] = "CALL_PENDING"
 
 class AppointmentResponseSchema(BaseModel):
     id: int
     user_id: int
     appointment_time: datetime
-
     consultation_type_id: Optional[int] = None
     consultation_type_name: Optional[str] = None
-
     doctor_id: Optional[int] = None
     doctor_name: Optional[str] = None
-
     doctor_specialization_id: Optional[int] = None
     doctor_specialization_name: Optional[str] = None
-
     ambulance_id: Optional[int] = None
     ambulance_name: Optional[str] = None
-
     assistants_id: Optional[int] = None
     assistant_name: Optional[str] = None
-
     labs_id: Optional[int] = None
     lab_name: Optional[str] = None
-
     pharmacies_id: Optional[int] = None
     pharmacy_name: Optional[str] = None
-
     hospital_id: Optional[int] = None
     hospital_name: Optional[str] = None
-
     required_ambulance: Optional[bool]
     required_assistant: Optional[bool]
     pickup_time: Optional[datetime]
-
     status: Optional[str]
     call_booking_status: Optional[str]
     is_active: bool
-
     class Config:
         from_attributes = True
-
-#doctor
 class DoctorCreateSchema(BaseModel):
     user_id: int
     specialization_id: int
-
     experience_years: Optional[int] = Field(None, ge=0)
     rating: Optional[Decimal] = Field(
         None,
@@ -89,15 +66,11 @@ class DoctorCreateSchema(BaseModel):
         le=Decimal("5.0")
     )
     fees_per_hour: Optional[Decimal] = None
-
-
     available_from: Optional[time] = None
     available_to: Optional[time] = None
     is_available: Optional[bool] = True
-
     hospital_id: Optional[int] = None
     consultation_type_id: Optional[int] = None
-
     class Config:
         from_attributes = True
 
@@ -105,7 +78,6 @@ class DoctorResponseSchema(BaseModel):
     id: int
     user_id: int
     specialization_id: int
-
     experience_years: Optional[int]
     rating: Optional[Decimal] 
     fees_per_hour: Optional[Decimal]
@@ -173,8 +145,6 @@ class AmbulanceBookingResponseSchema(BaseModel):
     patient_name: Optional[str] = None
     aadhar_number: Optional[str] = None
     is_active: Optional[bool] = None
-
-    # From MasterAmbulance
     service_provider: Optional[str] = None
     contact_number: Optional[str] = None
 
@@ -186,7 +156,7 @@ class PaymentCreateSchema(BaseModel):
     service_request_id: int
     user_id: int
     amount: Decimal = Field(..., gt=0)
-    payment_method: str  # CARD | UPI | CASH
+    payment_method: str 
     appointment_id: Optional[int] = None
     transaction_id: Optional[str] = None
     remarks: Optional[str] = None
@@ -209,10 +179,6 @@ class PaymentResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-#available_pharmacies:
-
 class AvailablePharmacyCreate(BaseModel):
     
     pharmacy_name: str
@@ -232,8 +198,6 @@ class AvailablePharmacyCreate(BaseModel):
 
     home_delivery: Optional[bool] = False
     created_by: Optional[int] = None
-
-
 
 class AvailablePharmacyResponse(BaseModel):
     id: int
@@ -259,9 +223,6 @@ class AvailablePharmacyResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-
-# -------- CREATE SCHEMA (POST) --------
 class AvailableLabCreate(BaseModel):
     lab_name: str
     services: Optional[str] = None

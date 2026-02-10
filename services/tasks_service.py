@@ -11,14 +11,9 @@ from models.generated_models import (
     UserRegistration,
     t_vw_students_get_list
 )
-
-from schemas.task_schema import (
-    TaskCreate,
-    TaskHistoryCreate
-)
+from schemas.task_schema import (TaskCreate,TaskHistoryCreate)
 
 def create_task(db: Session,payload: TaskCreate,created_by: int):
-
     if not db.query(MasterProject).filter(
         MasterProject.id == payload.project_id,
         MasterProject.is_active == True

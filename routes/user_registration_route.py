@@ -169,9 +169,11 @@
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+from services.user_registration_service import forgot_password_service
 
 from core.database import get_db
 from schemas.user_schema import (
+    ForgotPasswordRequest,
     RegisterUser,
     RegisterResponse,
     LoginRequest,
@@ -199,3 +201,8 @@ def register(payload: RegisterUser, db: Session = Depends(get_db)):
 )
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     return login_user(db, payload)
+
+
+@router.post("/forgot-password")
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    return forgot_password_service(db, payload)

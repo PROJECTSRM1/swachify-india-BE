@@ -25,11 +25,7 @@ def allocation_options(booking_id: int,db: Session = Depends(get_db),user:UserRe
 
 @router.post("/auto/{booking_id}")
 def auto_allocate(booking_id: int,db: Session = Depends(get_db),current_user=Depends(get_current_user)):
-    return auto_allocate_employee(
-        db=db,
-        booking_id=booking_id,
-        system_user_id=current_user.id
-    )
+    return auto_allocate_employee(db=db,booking_id=booking_id,system_user_id=current_user.id)
 
 @router.post("/manual/{booking_id}/{employee_id}")
 def manual_allocate(booking_id: int,employee_id: int,db: Session = Depends(get_db),current_user=Depends(get_current_user)):

@@ -6,10 +6,7 @@ from passlib.context import CryptContext
 import uuid
 import re
 
-pwd_context = CryptContext(
-    schemes=["sha256_crypt"],
-    deprecated="auto"
-)
+pwd_context = CryptContext(schemes=["sha256_crypt"],deprecated="auto")
 
 def hash_password(password: str):
     return pwd_context.hash(password)
@@ -25,18 +22,14 @@ def format_mobile(mobile: str) -> str:
         )
     return mobile
 
-
 async def register_user_controller(db: Session, payload: RegisterUser):
-
     if payload.password != payload.confirm_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Passwords do not match"
         )
-
     mobile = format_mobile(payload.mobile)
     generated_unique_id = str(uuid.uuid4())
-
     params = {
         "p_unique_id": generated_unique_id,
         "p_first_name": payload.first_name,
@@ -60,13 +53,11 @@ async def register_user_controller(db: Session, payload: RegisterUser):
     }
 
     result = execute_create_user_function(db, params)
-
     if not result:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email already registered"
         )
-
     return {
         "user_id": result.id if hasattr(result, "id") else result[0]
     }

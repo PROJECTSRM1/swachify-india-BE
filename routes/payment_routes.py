@@ -3,13 +3,11 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import razorpay
 import os
-
 from core.database import get_db          
 from models.generated_models import HomeServiceBooking
 
 router = APIRouter(prefix="/api/payment", tags=["Payment"])
 
-# Razorpay client
 client = razorpay.Client(
     auth=(
         os.getenv("RAZORPAY_KEY_ID"),
@@ -17,23 +15,16 @@ client = razorpay.Client(
     )
 )
 
-
-
-
 class CreateOrderRequest(BaseModel):
     amount: int
     bookingId: int
-
 
 class VerifyPaymentRequest(BaseModel):
     order_id: str
     payment_id: str
     signature: str
     home_service_id: int  
-
-
-
-
+    
 @router.post("/create-order")
 def create_order(req: CreateOrderRequest):
     """

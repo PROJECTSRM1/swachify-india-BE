@@ -46,33 +46,18 @@ from services.healthcare_service import (
     create_pharmacy_service
 )
 
-
 router = APIRouter(prefix="/healthcare",tags=["Healthcare"])
 
 @router.post("/doctors",response_model=DoctorResponseSchema,status_code=201)
 def create_doctor(data: DoctorCreateSchema,db: Session = Depends(get_db)):
     return create_doctor_profile(db, data)
 
-@router.post(
-    "/appointments",
-    response_model=AppointmentResponseSchema
-)
-def book_healthcare_appointment(
-    payload: AppointmentCreateSchema,
-    db: Session = Depends(get_db)
-):
+@router.post("/appointments",response_model=AppointmentResponseSchema)
+def book_healthcare_appointment(payload: AppointmentCreateSchema,db: Session = Depends(get_db)):
     return create_healthcare_appointment(db, payload)
 
-
-
-@router.get(
-    "/appointments/user/{user_id}",
-    response_model=list[AppointmentResponseSchema]
-)
-def get_user_appointments(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
+@router.get("/appointments/user/{user_id}",response_model=list[AppointmentResponseSchema])
+def get_user_appointments(user_id: int,db: Session = Depends(get_db)):
     return get_healthcare_appointments_by_user(db, user_id)
 
 # @router.get("/doctors/available",response_model=list[DoctorResponseSchema])
@@ -101,30 +86,12 @@ def fetch_available_hospitals(db: Session = Depends(get_db)):
 #     return get_available_labs(db)
 
 @router.get("/available-doctors")
-def fetch_available_doctors(
-    db: Session = Depends(get_db)
-):
+def fetch_available_doctors(db: Session = Depends(get_db)):
     return get_available_doctors(db)
 
-@router.get(
-    "/hospital/{hospital_id}/doctors",
-    response_model=List[HospitalDoctorResponseSchema]
-)
-def get_hospital_doctors(
-    hospital_id: int,
-    specialization_id: int = -1,
-    db: Session = Depends(get_db)
-):
-    """
-    Get all available doctors in a hospital.
-    Optional filter: specialization_id
-    """
-
-    return get_hospital_doctors_service(
-        db=db,
-        hospital_id=hospital_id,
-        specialization_id=specialization_id
-    )
+@router.get("/hospital/{hospital_id}/doctors",response_model=List[HospitalDoctorResponseSchema])
+def get_hospital_doctors(hospital_id: int,specialization_id: int = -1,db: Session = Depends(get_db)):
+    return get_hospital_doctors_service(db=db,hospital_id=hospital_id,specialization_id=specialization_id)
 
 @router.get("/available-pharmacies")
 def fetch_available_pharmacies(
@@ -142,17 +109,9 @@ def fetch_available_pharmacies(
 ):
     return get_available_pharmacies_service(db, filter_type)
 
-@router.post(
-    "/payments",
-    response_model=PaymentResponseSchema,
-    status_code=201
-)
-def make_payment(
-    data: PaymentCreateSchema,
-    db: Session = Depends(get_db)
-):
+@router.post("/payments",response_model=PaymentResponseSchema,status_code=201)
+def make_payment(data: PaymentCreateSchema,db: Session = Depends(get_db)):
     return create_payment(db, data)
-
 
 @router.get("/available-assistants",response_model=list[MasterAssistantResponseSchema])
 def get_all_assistants(db: Session = Depends(get_db)):
@@ -160,11 +119,7 @@ def get_all_assistants(db: Session = Depends(get_db)):
 
 @router.put("/appointments/{appointment_id}/assign-assistant",summary="Assign assistant to appointment")
 def assign_assistant(appointment_id: int,payload: AppointmentAssignAssistantSchema,db: Session = Depends(get_db)):
-    appointment = assign_assistant_to_appointment(
-        db=db,
-        appointment_id=appointment_id,
-        assistants_id=payload.assistants_id
-    )
+    appointment = assign_assistant_to_appointment(db=db,appointment_id=appointment_id,assistants_id=payload.assistants_id)
 
     return {
         "message": "Assistant assigned successfully",
@@ -173,11 +128,9 @@ def assign_assistant(appointment_id: int,payload: AppointmentAssignAssistantSche
     }
 
 @router.get("/bookings/view-my-bookings/{user_id}")
-def fetch_doctor_bookings(
-    user_id: int = Path(..., gt=0),
-    db: Session = Depends(get_db)
-):
+def fetch_doctor_bookings(user_id: int = Path(..., gt=0),db: Session = Depends(get_db)):
     return get_doctor_bookings(db, user_id)
+
 @router.get("/available-labs")
 def fetch_available_labs_list(
     filter_type: str = Query(
@@ -194,15 +147,9 @@ def fetch_available_labs_list(
 ):
     return get_available_labs_list_service(db, filter_type)
 
-#avialbile_pharamcies
-
-
 
 @router.post("/available-pharmacies")
-def create_pharmacy_api(
-    pharmacy_data: AvailablePharmacyCreate,
-    db: Session = Depends(get_db)
-):
+def create_pharmacy_api(pharmacy_data: AvailablePharmacyCreate,db: Session = Depends(get_db)):
     return create_pharmacy_service(db, pharmacy_data)
 
 
@@ -214,21 +161,12 @@ def create_pharmacy_api(
 
 # -------- POST --------
 @router.post("/available-labs", response_model=AvailableLabResponse)
-def create_lab(
-    lab: AvailableLabCreate,
-    db: Session = Depends(get_db)
-):
+def create_lab(lab: AvailableLabCreate,db: Session = Depends(get_db)):
     return create_lab_service(db, lab)
 
 from sqlalchemy import func
 @router.get("/doctor/{doctor_id}")
-def get_doctor_appointments_and_update_status(
-    doctor_id: int,
-    appointment_id: int | None = None,
-    call_booking_status: str | None = None,
-    db: Session = Depends(get_db)
-):
-    # 🔴 OPTIONAL UPDATE
+def get_doctor_appointments_and_update_status(doctor_id: int,appointment_id: int | None = None,call_booking_status: str | None = None,db: Session = Depends(get_db)):
     if appointment_id and call_booking_status:
         appointment = db.query(Appointments).filter(
             Appointments.id == appointment_id,
@@ -239,8 +177,6 @@ def get_doctor_appointments_and_update_status(
         if appointment:
             appointment.call_booking_status = call_booking_status
             db.commit()
-
-    # 🟢 FETCH
     rows = (
         db.query(
             Appointments.id.label("appointment_id"),
@@ -258,8 +194,6 @@ def get_doctor_appointments_and_update_status(
         )
         .all()
     )
-
-    # ✅ CONVERT TO JSON-SAFE FORMAT
     data = [
         {
             "appointment_id": r.appointment_id,
@@ -277,13 +211,8 @@ def get_doctor_appointments_and_update_status(
 
 
 @router.patch("/appointments/{appointment_id}/call-booking-status")
-def update_call_booking_status(
-    appointment_id: int,
-    call_booking_status: str,
-    db: Session = Depends(get_db)
-):
+def update_call_booking_status(appointment_id: int,call_booking_status: str,db: Session = Depends(get_db)):
     allowed = ["Booked", "Consulted", "Medicines", "Lab tests"]
-
     if call_booking_status not in allowed:
         raise HTTPException(
             status_code=400,

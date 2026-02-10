@@ -161,19 +161,14 @@ def send_forgot_password_otp(
 
     body = f"""
 Dear {name},
-
 Your OTP to reset your Swachify India password is:
-
 OTP: {otp}
-
 This OTP is valid for 10 minutes.
 If you did not request this, please ignore this email.
-
 Regards,
 Swachify India Team
 """
     return send_email(email, subject, body)
-
 
 def send_sms(mobile: str, message: str, template_id: str) -> bool:
     try:
@@ -186,7 +181,6 @@ def send_sms(mobile: str, message: str, template_id: str) -> bool:
             "mobileNumber": mobile,
             "message": message,
         }
-
         response = requests.post(
             os.getenv("ADWINGS_SMS_URL"),
             json=payload,
@@ -200,7 +194,6 @@ def send_sms(mobile: str, message: str, template_id: str) -> bool:
         print("SMS ERROR:", str(e))
         return False
 
-
 def send_welcome_sms(mobile: str, user_name: str) -> bool:
     text = os.getenv("WELCOME_SMS_TEXT").replace("*", user_name)
 
@@ -209,9 +202,6 @@ def send_welcome_sms(mobile: str, user_name: str) -> bool:
         message=text,
         template_id=os.getenv("ADWINGS_WELCOME_TEMPLATE_ID")
     )
-
-
-
 
 def send_email_otp(email: str, otp: str):
     message = Mail(

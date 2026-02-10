@@ -62,7 +62,7 @@ class AdminLogin(BaseModel):
     def validate_identifier(cls, value):
         value = value.strip()
         email_pattern = r"^\S+@\S+\.\S+$"
-        username_pattern = r"^[a-zA-Z0-9._-]{4,50}$"   # admin usernames allowed
+        username_pattern = r"^[a-zA-Z0-9._-]{4,50}$"
 
         if not (re.match(email_pattern, value) or re.match(username_pattern, value)):
             raise ValueError("Enter valid email or valid username (4–50 chars)")
