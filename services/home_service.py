@@ -44,9 +44,10 @@ def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
     # -----------------------------
     # 1. Convert frontend 0 → None
     # -----------------------------
-    for key, value in payload.items():
-        if value == 0:
-            payload[key] = None
+   for key, value in payload.items():
+    if key.endswith("_id"):
+        payload[key] = sanitize_fk(value)
+
 
     # -----------------------------
     # 2. REQUIRED FIELD SAFETY
