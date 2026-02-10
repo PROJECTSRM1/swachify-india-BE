@@ -5,20 +5,30 @@ from fastapi import HTTPException
 from models.generated_models import PropertySellListing
 from schemas.property_sell_listing_schema import (PropertySellListingCreate,PropertySellListingUpdate)
 from models.generated_models import PropertyListing
-from schemas.property_sell_listing_schema import (PropertyListingCreate,PropertyListingUpdate)
+from schemas.property_sell_listing_schema import (
+    PropertyListingCreate,
+    PropertyListingUpdate
+)
+
+# ======================================================
+# CREATE
+# ======================================================
 
 def create_property_sell_listing(db: Session,payload: PropertySellListingCreate):
     listing = PropertySellListing(
         **payload.dict(exclude_unset=True),
-        created_date=datetime.utcnow(),
-        is_active=True
+        created_date=datetime.utcnow()
     )
     db.add(listing)
     db.commit()
     db.refresh(listing)
     return listing
 
-def get_property_sell_listing_by_id(db: Session,listing_id: int):
+
+def get_property_sell_listing_by_id(
+    db: Session,
+    listing_id: int
+):
     listing = (
         db.query(PropertySellListing)
         .filter(
@@ -29,12 +39,14 @@ def get_property_sell_listing_by_id(db: Session,listing_id: int):
     )
 
     if not listing:
-        raise HTTPException(
-            status_code=404,
-            detail="Property sell listing not found"
-        )
+        raise HTTPException(status_code=404, detail="Property sell listing not found")
 
     return listing
+
+
+# ======================================================
+# GET ALL
+# ======================================================
 
 def get_all_property_sell_listings(db: Session):
     return (
@@ -44,44 +56,75 @@ def get_all_property_sell_listings(db: Session):
         .all()
     )
 
-def update_property_sell_listing(db: Session,listing_id: int,payload: PropertySellListingUpdate):
+
+# ======================================================
+# UPDATE
+# ======================================================
+
+def update_property_sell_listing(
+    db: Session,
+    listing_id: int,
+    payload: PropertySellListingUpdate
+):
     listing = get_property_sell_listing_by_id(db, listing_id)
-    update_data = payload.dict(exclude_unset=True)
-    if not update_data:
-        raise HTTPException(
-            status_code=400,
-            detail="No fields provided for update"
-        )
-    for key, value in update_data.items():
+
+    data = payload.dict(exclude_unset=True)
+    if not data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    for key, value in data.items():
         setattr(listing, key, value)
     listing.modified_date = datetime.utcnow()
     db.commit()
     db.refresh(listing)
     return listing
 
-def delete_property_sell_listing(db: Session,listing_id: int,modified_by: int):
+
+# ======================================================
+# SOFT DELETE
+# ======================================================
+
+def delete_property_sell_listing(
+    db: Session,
+    listing_id: int,
+    modified_by: int
+):
     listing = get_property_sell_listing_by_id(db, listing_id)
     listing.is_active = False
     listing.modified_by = modified_by
     listing.modified_date = datetime.utcnow()
 
     db.commit()
-    return {
-        "message": "Property sell listing deleted successfully"
-    }
+    return {"message": "Property sell listing deleted successfully"}
 
-def create_property_listing(db: Session,payload: PropertyListingCreate):
+
+# =========================
+# CREATE
+# =========================
+
+def create_property_listing(
+    db: Session,
+    payload: PropertyListingCreate
+):
     listing = PropertyListing(
         **payload.dict(exclude_unset=True),
-        created_date=datetime.utcnow(),
-        is_active=True
+        created_date=datetime.utcnow()
     )
     db.add(listing)
     db.commit()
     db.refresh(listing)
     return listing
 
-def get_property_listing_by_id(db: Session,listing_id: int):
+
+
+# =========================
+# GET BY ID
+# =========================
+
+def get_property_listing_by_id(
+    db: Session,
+    listing_id: int
+):
     listing = (
         db.query(PropertyListing)
         .filter(
