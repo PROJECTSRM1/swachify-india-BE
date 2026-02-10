@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy import text
-
 from models.generated_models import (
     UserRegistration,
     StudentQualification,
@@ -9,7 +8,6 @@ from models.generated_models import (
     JobOpenings,
     JobApplication,
 )
-
 from schemas.student_education_schema import (
     StudentCertificateCreate,
     StudentNOCUpdate,
@@ -25,17 +23,14 @@ def create_job_openings(db: Session, data: JobOpeningCreate, user_id: int) -> Jo
     db.refresh(job)
     return job
 
-
 def get_job_openings(db: Session) -> list[JobOpenings]:
     return db.query(JobOpenings).filter(JobOpenings.is_active == True).all()
-
 
 def get_job_opening(db: Session, job_id: int) -> JobOpenings:
     job = db.query(JobOpenings).filter(JobOpenings.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
-
 
 def delete_job_opening_service(db: Session, opening_id: int, user_id: int) -> dict:
     job_opening = (
@@ -63,8 +58,6 @@ def apply_job_service(db: Session, payload: JobApplicationCreate, user_id: int) 
     db.refresh(application)
     return application
 
-
-# ================= CERTIFICATION =================
 def create_student_certificate(
     db: Session,
     student_id: int,
@@ -78,8 +71,6 @@ def create_student_certificate(
     )
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
-
-    # ✅ DUPLICATE CHECK
     existing = (
         db.query(StudentCertificate)
         .filter(
@@ -110,14 +101,7 @@ def create_student_certificate(
     db.refresh(record)
     return record
 
-
-# ================= NOC =================
-
-def update_student_noc(
-    db: Session,
-    student_id: int,
-    payload: StudentNOCUpdate
-) -> UserRegistration:
+def update_student_noc(db: Session,student_id: int,payload: StudentNOCUpdate) -> UserRegistration:
 
     user = (
         db.query(UserRegistration)
@@ -141,14 +125,7 @@ def update_student_noc(
     return user
 
 
-# ================= EDUCATION / QUALIFICATION =================
-
-def add_student_education_service(
-    db: Session,
-    student_id: int,
-    payload: StudentEducationCreate
-) -> StudentQualification:
-
+def add_student_education_service(db: Session,student_id: int,payload: StudentEducationCreate) -> StudentQualification:
     student = (
         db.query(UserRegistration)
         .filter(UserRegistration.id == student_id, UserRegistration.is_active == True)
@@ -156,8 +133,6 @@ def add_student_education_service(
     )
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
-
-    # ✅ DUPLICATE CHECK
     existing = (
         db.query(StudentQualification)
         .filter(
@@ -193,11 +168,8 @@ def get_students_list_service(
     skill_id: int | None = None,
     aggregate: str | None = None,
     internship_status: str | None = None,
-    sort_by: str | None = None,   # expected value: "both"
+    sort_by: str | None = None, 
 ):
-    # =====================================================
-    # 1️⃣ Student summary (from VIEW)
-    # =====================================================
     rows = db.execute(
         text("""
             SELECT *
@@ -232,7 +204,6 @@ def get_students_list_service(
                 "rating": row["rating"],
                 "education": [],
                 "certificates": [],
-                # internal sets for deduplication
                 "_edu_keys": set(),
                 "_cert_keys": set(),
             }
@@ -241,10 +212,6 @@ def get_students_list_service(
         return []
 
     user_ids = list(students.keys())
-
-    # =====================================================
-    # 2️⃣ Education (TABLE) — with de-duplication
-    # =====================================================
     educations = (
         db.query(StudentQualification)
         .filter(
@@ -265,9 +232,6 @@ def get_students_list_service(
                 "percentage": edu.percentage,
             })
 
-    # =====================================================
-    # 3️⃣ Certificates (TABLE) — with de-duplication
-    # =====================================================
     certificates = (
         db.query(StudentCertificate)
         .filter(
@@ -296,18 +260,12 @@ def get_students_list_service(
                 "is_active": cert.is_active,
             })
 
-    # =====================================================
-    # 4️⃣ Remove internal dedup keys
-    # =====================================================
     for s in students.values():
         s.pop("_edu_keys")
         s.pop("_cert_keys")
 
     students_list = list(students.values())
 
-    # =====================================================
-    # 5️⃣ SORT BY BOTH (rating → attendance)
-    # =====================================================
     if sort_by == "both":
         students_list.sort(
             key=lambda s: (
@@ -324,9 +282,6 @@ def get_top_performers_service(
     limit: int = 10,
     min_attendance: float = 80.0
 ):
-    """
-    Top performers = students sorted by BOTH (rating + attendance)
-    """
     students = get_students_list_service(
         db=db,
         sort_by="both"   
@@ -394,8 +349,6 @@ def get_internship_list_service(db: Session,category_id: int,work_type_id: int):
             "work_type_id": work_type_id
         }
     )
-
-    # Return as list of dicts
     return result.mappings().all()
 
 # # get_students_by_branch service

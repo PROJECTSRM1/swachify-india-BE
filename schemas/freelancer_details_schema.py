@@ -1,4 +1,3 @@
-# schemas/freelancer_detail_schema.py
 from typing import Optional, List
 from pydantic import BaseModel
 

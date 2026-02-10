@@ -1,7 +1,5 @@
 from pydantic import BaseModel
 from typing import List, Optional
-
-
 class EmployeeCard(BaseModel):
     employee_id: int
     name: str
@@ -9,7 +7,6 @@ class EmployeeCard(BaseModel):
     distance_km: float
     experience_years: int
     available_slots: List[str]
-
 class AutoAssignResponse(BaseModel):
     booking_id: int
     assigned_employee_id: int
@@ -17,10 +14,8 @@ class AutoAssignResponse(BaseModel):
     allocation_type: str
     message: str
 
-
 class ManualAssignRequest(BaseModel):
     employee_id: int
-
 
 class ManualAssignResponse(BaseModel):
     booking_id: int

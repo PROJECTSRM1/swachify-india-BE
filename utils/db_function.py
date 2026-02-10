@@ -28,24 +28,19 @@ def execute_create_user_function(db: Session, params: dict):
                 :p_address
             );
         """)
-
         result = db.execute(query, params).fetchone()
         db.commit()
         return result
-
     except Exception as e:
         db.rollback()
         raise e
-
 
 def execute_function_raw(db, query, params):
     try:
         result = db.execute(text(query), params).fetchone()
         db.commit()
-
         if not result:
             return None
-
         return dict(result._mapping)  
     except Exception as e:
         db.rollback()

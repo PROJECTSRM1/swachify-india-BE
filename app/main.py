@@ -25,18 +25,9 @@ from routes.student_education_route import router as student_profile_router
 from routes.institute_management_route import router as institute_management_router
 
 load_dotenv()
-
 Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="Swachify India API",version="1.0.0")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_credentials=False,allow_methods=["*"],allow_headers=["*"],)
 
 @app.on_event("startup")
 def startup_event():

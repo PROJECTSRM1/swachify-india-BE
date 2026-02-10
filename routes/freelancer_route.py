@@ -11,14 +11,7 @@ from utils.sms_agent import send_welcome_sms
 from utils.jwt_utils import verify_token
 from utils.auth_dependencies import get_current_freelancer
 from schemas.freelancer_schema import FreelancerLogin
-from services.freelancer_service import (
-    freelancer_login_service,
-    freelancer_update_service,
-    freelancer_delete_service,
-    freelancer_status_service,
-    get_freelancer_by_id,
-    freelancer_complete_job_service,
-)
+from services.freelancer_service import (freelancer_login_service,freelancer_update_service,freelancer_delete_service,freelancer_status_service,get_freelancer_by_id,freelancer_complete_job_service)
 
 router = APIRouter(prefix="/api/freelancer", tags=["Freelancer"])
 
@@ -38,16 +31,11 @@ def get_freelancer_details(freelancer_id: int,db: Session = Depends(get_db)):
 def update_freelancer(freelancer_id: int,db: Session = Depends(get_db),freelancer = Depends(get_current_freelancer)):
     return freelancer_update_service(db, freelancer_id, None)
 
-
 @router.delete("/delete/{freelancer_id}")
 def delete_freelancer(freelancer_id: int, db: Session = Depends(get_db)):
     return freelancer_delete_service(db, freelancer_id)
 
 @router.put("/services/{service_id}/complete", response_model=None)
 def complete_service(service_id: int,db: Session = Depends(get_db),freelancer = Depends(get_current_freelancer)):
-    return freelancer_complete_job_service(
-        db=db,
-        freelancer_id=freelancer["user_id"],
-        service_id=service_id
-    )
+    return freelancer_complete_job_service(db=db,freelancer_id=freelancer["user_id"],service_id=service_id)
 

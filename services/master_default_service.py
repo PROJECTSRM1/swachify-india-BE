@@ -14,9 +14,6 @@ def fetch_default_district(db: Session, state_id: int):
     ).first()
 
 def fetch_default_gender(db: Session):
-    """
-    Returns the first active gender from master_gender table.
-    """
     return db.query(MasterGender).filter(
         MasterGender.is_active == True
     ).order_by(MasterGender.id.asc()).first()

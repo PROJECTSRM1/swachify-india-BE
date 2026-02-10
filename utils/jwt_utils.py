@@ -27,7 +27,6 @@ def create_access_token(subject: dict) -> str:
 def create_refresh_token(subject: dict) -> str:
     now = datetime.utcnow()
     expire = now + timedelta(days=REFRESH_EXPIRE_DAYS)
-
     payload = subject.copy()  
     payload.update({
         "iat": int(now.timestamp()),
@@ -40,7 +39,6 @@ def create_refresh_token(subject: dict) -> str:
 def create_reset_token(subject: dict, expires_minutes: int = RESET_EXPIRE_MINUTES) -> str:
     now = datetime.now(timezone.utc)
     expire = now + timedelta(minutes=expires_minutes)
-
     payload = {
         "sub": str(subject["user_id"]),
         "email": subject.get("email"),
@@ -50,7 +48,6 @@ def create_reset_token(subject: dict, expires_minutes: int = RESET_EXPIRE_MINUTE
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-
 
 def verify_token(token: str) -> dict:
     print("\n========== VERIFY TOKEN CALLED ==========")
@@ -72,17 +69,12 @@ def verify_token(token: str) -> dict:
         print("ERROR TYPE:", type(e).__name__)
         print("ERROR MESSAGE:", str(e))
         raise HTTPException(status_code=401, detail="Invalid token")
-
-
-
-def is_admin_already_logged_in(request: Request):
-    from core.constants import ADMIN_ROLE_ID
     
+def is_admin_already_logged_in(request: Request):
+    from core.constants import ADMIN_ROLE_ID 
     token = request.headers.get("Authorization")
-
     if not token:
         return False
-
     try:
         token = token.replace("Bearer ", "")
         payload = verify_token(token)

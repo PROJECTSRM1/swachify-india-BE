@@ -222,18 +222,8 @@ def get_students_by_branch_api(branch_id: int = Query(..., gt=0),db: Session = D
 
 
 @router.get("/full-details")
-def fetch_student_full_details(
-    student_id: str = Query("-1", description="Student ID or -1 for all"),
-    branch_id: int = Query(-1, description="Branch ID or -1 for all"),
-    db: Session = Depends(get_db)
-):
-    return get_student_full_details_service(
-        db=db,
-        student_id=student_id,
-        branch_id=branch_id
-    )
-
-#student profile
+def fetch_student_full_details(student_id: str = Query("-1", description="Student ID or -1 for all"),branch_id: int = Query(-1, description="Branch ID or -1 for all"),db: Session = Depends(get_db)):
+    return get_student_full_details_service(db=db,student_id=student_id,branch_id=branch_id)
 
 @router.get("/{student_id}",response_model=StudentProfileResponse)
 def get_student_api(student_id: int = Path(..., gt=0),db: Session = Depends(get_db)):
@@ -266,53 +256,20 @@ def get_student_api(student_id: int = Path(..., gt=0),db: Session = Depends(get_
 #     return create_payment(db, data)
 
 
-@router.post(
-    "/installments",
-    response_model=StudentFeeInstallmentResponseSchema,
-    status_code=201
-)
-def create_fee_installment(
-    payload: StudentFeeInstallmentCreateSchema,
-    db: Session = Depends(get_db)
-):
+@router.post("/installments",response_model=StudentFeeInstallmentResponseSchema,status_code=201)
+def create_fee_installment(payload: StudentFeeInstallmentCreateSchema,db: Session = Depends(get_db)):
     return create_student_fee_installment(db, payload)
 
-
-@router.get(
-    "/installments/{student_id}",
-    response_model=List[StudentFeeInstallmentResponseSchema]
-)
-def fetch_fee_installments(
-    student_id: str,
-    db: Session = Depends(get_db)
-):
+@router.get("/installments/{student_id}",response_model=List[StudentFeeInstallmentResponseSchema])
+def fetch_fee_installments(student_id: str,db: Session = Depends(get_db)):
     return get_student_fee_installments(db, student_id)
 
-
-
-# ---------- CREATE ----------
-@router.post(
-    "/sem-progress",
-    response_model=StudentSemAcademicProgressResponse
-)
-def create_student_sem_progress(
-    data: StudentSemAcademicProgressCreate,
-    db: Session = Depends(get_db)
-):
+@router.post("/sem-progress",response_model=StudentSemAcademicProgressResponse)
+def create_student_sem_progress(data: StudentSemAcademicProgressCreate,db: Session = Depends(get_db)):
     return create_student_sem_academic_progress(db, data)
 
-
-
-
-# ---------- GET BY STUDENT ID ----------
-@router.get(
-    "/sem-progress/{student_id}",
-    response_model=List[StudentSemAcademicProgressResponse]
-)
-def get_student_sem_progress_by_student(
-    student_id: str,
-    db: Session = Depends(get_db)
-):
+@router.get("/sem-progress/{student_id}",response_model=List[StudentSemAcademicProgressResponse])
+def get_student_sem_progress_by_student(student_id: str,db: Session = Depends(get_db)):
     return get_student_sem_academic_progress_by_student_id(db, student_id)
 
 

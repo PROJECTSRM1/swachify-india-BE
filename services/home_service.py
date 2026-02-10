@@ -205,11 +205,6 @@ def delete_home_service(db: Session, service_id: int):
 
     return {"message": "Service deleted successfully"}
 
-
-# =====================================================
-# RATING
-# =====================================================
-
 def update_home_service_rating(
     db: Session,
     service_id: int,

@@ -1,11 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from models.generated_models import MasterSubService
-from schemas.master_sub_service_schema import (
-    SubServiceCreate,
-    SubServiceUpdate
-)
-
+from schemas.master_sub_service_schema import (SubServiceCreate,SubServiceUpdate)
 
 def get_sub_services(db: Session, service_id: int):
     return (

@@ -92,28 +92,12 @@ def get_all_add_ons(
 #     return get_add_ons_by_booking_id(db, home_service_booking_id)
 
 
-#HomeServicePayment
-
-# -------- POST --------
-@router.post(
-     "/home-service-payment",
-    response_model=HomeServicePaymentResponse
-)
-def create_payment(
-    data: HomeServicePaymentCreate,
-    db: Session = Depends(get_db)
-):
+@router.post("/home-service-payment",response_model=HomeServicePaymentResponse)
+def create_payment(data: HomeServicePaymentCreate,db: Session = Depends(get_db)):
     return create_home_service_payment(db, data)
 
-
-# -------- GET ALL --------
-@router.get(
-    "/home-service-payment",
-    response_model=list[HomeServicePaymentResponse]
-)
-def get_all_payments(
-    db: Session = Depends(get_db)
-):
+@router.get("/home-service-payment",response_model=list[HomeServicePaymentResponse])
+def get_all_payments(db: Session = Depends(get_db)):
     return get_all_home_service_payments(db)
 
 
@@ -141,9 +125,7 @@ def get_all_payments(
 #     return get_payment_by_user_id(db, user_id)
 
 @router.get("/home-service-booking-summary")
-def fetch_home_service_booking_summary(
-    db: Session = Depends(get_db)
-):
+def fetch_home_service_booking_summary(db: Session = Depends(get_db)):
     return {
         "status": True,
         "data": get_home_service_booking_summary(db)

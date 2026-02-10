@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
 class Settings:
     DB_HOST: str = os.getenv("DB_HOST")
     DB_PORT: int = int(os.getenv("DB_PORT"))

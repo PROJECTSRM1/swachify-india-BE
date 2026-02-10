@@ -868,9 +868,10 @@ from models.generated_models import (
     UserSkill
 )
 
-from schemas.user_schema import RegisterUser, LoginRequest, LoginResponse
+from schemas.user_schema import ForgotPasswordRequest, RegisterUser, LoginRequest, LoginResponse, ResetPasswordRequest
 from utils.hash_utils import hash_password, verify_password
 from utils.jwt_utils import create_access_token, create_refresh_token
+from datetime import datetime, timedelta
 
 from core.constants import (
     CUSTOMER_ROLE_ID,
@@ -993,10 +994,6 @@ def register_user(db: Session, payload: RegisterUser):
         "refresh_expires_in": 86400
     }
 
-
-# -----------------------------
-# Login
-# -----------------------------
 def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
 
     user = db.query(UserRegistration).filter(
@@ -1042,3 +1039,48 @@ def login_user(db: Session, payload: LoginRequest) -> LoginResponse:
         refresh_expires_in=86400,
         role=role
     )
+
+
+def forgot_password_service(db: Session, payload: ForgotPasswordRequest):
+
+    user = db.query(UserRegistration).filter(
+        (UserRegistration.email == payload.email_or_phone) |
+        (UserRegistration.mobile == payload.email_or_phone)
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    reset_token = str(uuid.uuid4())
+    reset_expiry = datetime.utcnow() + timedelta(minutes=15)
+
+    user.reset_token = reset_token
+    user.reset_token_expiry = reset_expiry
+
+    db.commit()
+    return {
+        "message": "Password reset token sent",
+        "reset_token": reset_token,  
+        "expires_in": 900
+    }
+
+
+def reset_password_service(db: Session, payload: ResetPasswordRequest):
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.reset_token == payload.reset_token,
+        UserRegistration.reset_token_expiry > datetime.utcnow()
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+    user.password = hash_password(payload.new_password)
+    user.reset_token = None
+    user.reset_token_expiry = None
+
+    db.commit()
+
+    return {
+        "message": "Password reset successful"
+    }
