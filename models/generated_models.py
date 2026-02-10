@@ -2242,11 +2242,11 @@ class PropertySellListing(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     module_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    sub_module_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     bhk_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
     furnishing_id: Mapped[int] = mapped_column(Integer, nullable=False)
     locality_area: Mapped[str] = mapped_column(String(255), nullable=False)
     upload_photos: Mapped[str] = mapped_column(String(500), nullable=False)
+    sub_module_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     property_type_id: Mapped[Optional[int]] = mapped_column(Integer)
     expected_price: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
     monthly_rent: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
@@ -2302,7 +2302,7 @@ class PropertySellListing(Base):
     registration_status: Mapped[Optional['MasterRegistrationStatus']] = relationship('MasterRegistrationStatus', back_populates='property_sell_listing')
     room_type: Mapped[Optional['MasterRoomType']] = relationship('MasterRoomType', back_populates='property_sell_listing')
     star_rating: Mapped[Optional['MasterStarRating']] = relationship('MasterStarRating', back_populates='property_sell_listing')
-    sub_module: Mapped['MasterSubModule'] = relationship('MasterSubModule', back_populates='property_sell_listing')
+    sub_module: Mapped[Optional['MasterSubModule']] = relationship('MasterSubModule', back_populates='property_sell_listing')
     user: Mapped[Optional['UserRegistration']] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='property_sell_listing1')
     property_listing: Mapped[list['PropertyListing']] = relationship('PropertyListing', back_populates='property_sell_listing')
 

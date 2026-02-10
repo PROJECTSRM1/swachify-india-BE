@@ -18,7 +18,6 @@ import base64
 
 class PropertySellListingBase(BaseModel):
     module_id: int
-    sub_module_id: int
     bhk_type_id: int
     furnishing_id: int
     locality_area: str
