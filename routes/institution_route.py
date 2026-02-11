@@ -279,8 +279,12 @@ def get_student_sem_progress_by_student(student_id: str,db: Session = Depends(ge
 
 #student_academic_finance
 
+
+# ===============================
+# CREATE
+# ===============================
 @router.post(
-    "/student-academic-finance",
+    "/academic-finance",
     response_model=StudentAcademicFinanceResponse
 )
 def create_student_academic_finance_api(
@@ -291,7 +295,7 @@ def create_student_academic_finance_api(
 
 
 # ===============================
-# GET BY STUDENT ID
+# GET
 # ===============================
 @router.get(
     "/academic-finance/{student_id}",

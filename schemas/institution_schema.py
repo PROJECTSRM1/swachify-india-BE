@@ -583,7 +583,7 @@ class StudentSemAcademicProgressResponse(BaseModel):
 #student_academic_finance
 class StudentAcademicFinanceCreate(BaseModel):
     student_id: str
-    father_name: Optional[str] = None
+    father_name: str
     background: Optional[str] = None
     admission_date: Optional[date] = None
     aadhaar_number: Optional[str] = None
@@ -593,9 +593,7 @@ class StudentAcademicFinanceCreate(BaseModel):
     sgpa: Optional[Decimal] = None
     attendance_percent: Optional[int] = None
     backlogs: Optional[int] = None
-    created_by: Optional[int] = None   # ✅ optional
-
-    
+    created_by: Optional[int] = None
 
 
 # ===============================
