@@ -19,9 +19,11 @@ from models.generated_models import (
     SalaryEarnings,
     StaffPayslip,
     StaffProfile,
+    StudentAcademicFinance,
     StudentFeeInstallments,
     StudentProfile,
-    StudentSemAcademicProgress
+    StudentSemAcademicProgress,
+    UserRegistration
 )
 from sqlalchemy import text
 from typing import List
@@ -43,6 +45,7 @@ from schemas.institution_schema import (
     StaffPayslipCreate,
     StaffProfileCreate,
     StudentAcademicDetailsSchema,
+    StudentAcademicFinanceCreate,
     StudentFeeInstallmentCreateSchema,
     StudentProfileCreate,
     StudentProfileUpdate,
@@ -655,3 +658,60 @@ def get_student_sem_academic_progress_by_student_id(db: Session,student_id: str)
         .all()
     )
 
+#student_academic_finance
+
+def create_student_academic_finance(
+    db: Session,
+    data: StudentAcademicFinanceCreate
+):
+    # Check student exists
+    student = db.query(StudentProfile).filter(
+        StudentProfile.student_id == data.student_id,
+        StudentProfile.is_active == True
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student profile not found"
+        )
+
+    # Create record
+    record = StudentAcademicFinance(
+        student_id=data.student_id,
+        father_name=data.father_name,
+        background=data.background,
+        admission_date=data.admission_date,
+        aadhaar_number=data.aadhaar_number,
+        pan_number=data.pan_number,
+        scholarship_amount=data.scholarship_amount,
+        scholarship_disbursed_date=data.scholarship_disbursed_date,
+        sgpa=data.sgpa,
+        attendance_percent=data.attendance_percent,
+        backlogs=data.backlogs,
+        created_by=data.created_by,   # ✅ optional
+        is_active=True
+    )
+
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+
+    return record
+
+
+# ===============================
+# GET BY STUDENT ID
+# ===============================
+def get_student_academic_finance_by_student_id(
+    db: Session,
+    student_id: str
+):
+    return (
+        db.query(StudentAcademicFinance)
+        .filter(
+            StudentAcademicFinance.student_id == student_id,
+            StudentAcademicFinance.is_active == True
+        )
+        .first()
+    )

@@ -579,3 +579,43 @@ class StudentSemAcademicProgressResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+#student_academic_finance
+class StudentAcademicFinanceCreate(BaseModel):
+    student_id: str
+    father_name: Optional[str] = None
+    background: Optional[str] = None
+    admission_date: Optional[date] = None
+    aadhaar_number: Optional[str] = None
+    pan_number: Optional[str] = None
+    scholarship_amount: Optional[Decimal] = None
+    scholarship_disbursed_date: Optional[date] = None
+    sgpa: Optional[Decimal] = None
+    attendance_percent: Optional[int] = None
+    backlogs: Optional[int] = None
+    created_by: Optional[int] = None   # ✅ optional
+
+    
+
+
+# ===============================
+# RESPONSE SCHEMA
+# ===============================
+class StudentAcademicFinanceResponse(BaseModel):
+    id: int
+    student_id: str
+    father_name: Optional[str]
+    background: Optional[str]
+    admission_date: Optional[date]
+    aadhaar_number: Optional[str]
+    pan_number: Optional[str]
+    scholarship_amount: Optional[Decimal]
+    scholarship_disbursed_date: Optional[date]
+    sgpa: Optional[Decimal]
+    attendance_percent: Optional[int]
+    backlogs: Optional[int]
+    created_by: Optional[int]
+    is_active: bool
+
+    class Config:
+        from_attributes = True

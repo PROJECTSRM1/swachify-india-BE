@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime, timedelta
 import random
-from models.generated_models import InstitutionRegistration
+from core.dependencies import get_current_user
+from models.generated_models import InstitutionRegistration, UserRegistration
 
 from core.database import get_db
 
@@ -23,6 +24,8 @@ from schemas.institution_schema import (
     InstitutionBranchCreate,
     InstitutionBranchResponse,
     StudentAcademicDetailsSchema,
+    StudentAcademicFinanceCreate,
+    StudentAcademicFinanceResponse,
     StudentFeeInstallmentCreateSchema,
     StudentFeeInstallmentResponseSchema,
     StudentProfileCreate,
@@ -49,6 +52,7 @@ from services.institution_service import (
     create_enrollment_status,
     create_exam_schedule,
     create_institution,
+    create_student_academic_finance,
     create_student_fee_installment,
     fetch_exam_schedule,
     get_all_alerts,
@@ -56,6 +60,7 @@ from services.institution_service import (
     get_institution_by_id,
     create_institution_branch,
     get_branches_by_institution,
+    get_student_academic_finance_by_student_id,
     get_student_fee_installments,
     get_student_full_academic_details,
     get_all_branches,
@@ -272,4 +277,28 @@ def create_student_sem_progress(data: StudentSemAcademicProgressCreate,db: Sessi
 def get_student_sem_progress_by_student(student_id: str,db: Session = Depends(get_db)):
     return get_student_sem_academic_progress_by_student_id(db, student_id)
 
+#student_academic_finance
 
+@router.post(
+    "/student-academic-finance",
+    response_model=StudentAcademicFinanceResponse
+)
+def create_student_academic_finance_api(
+    payload: StudentAcademicFinanceCreate,
+    db: Session = Depends(get_db)
+):
+    return create_student_academic_finance(db, payload)
+
+
+# ===============================
+# GET BY STUDENT ID
+# ===============================
+@router.get(
+    "/academic-finance/{student_id}",
+    response_model=StudentAcademicFinanceResponse
+)
+def get_student_academic_finance_api(
+    student_id: str = Path(...),
+    db: Session = Depends(get_db)
+):
+    return get_student_academic_finance_by_student_id(db, student_id)
