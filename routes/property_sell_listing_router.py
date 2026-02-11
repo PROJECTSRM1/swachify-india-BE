@@ -33,18 +33,27 @@ router = APIRouter(prefix="/property",tags=["Buy/Sell/Rental"])
 def create_sell_listing(payload: PropertySellListingCreate,db: Session = Depends(get_db)):
     return create_property_sell_listing(db, payload)
 
-@router.get("/sell-listing/{listing_id}",response_model=PropertySellListingResponse)
-def get_sell_listing_by_id(listing_id: int,db: Session = Depends(get_db)):
-    return get_property_sell_listing_by_id(db, listing_id)
+@router.get("/sell-listing/all",response_model=list[PropertySellListingResponse])
+def get_sell_listing_all(db:Session = Depends(get_db)):
+    return get_all_property_sell_listings(db)
+
+# @router.get("/sell-listing/{listing_id}",response_model=PropertySellListingResponse)
+# def get_sell_listing_by_id(listing_id: int,db: Session = Depends(get_db)):
+#     return get_property_sell_listing_by_id(db, listing_id)
+
 
 @router.post("/listing",response_model=PropertyListingResponse)
 def create_listing(payload: PropertyListingCreate,db: Session = Depends(get_db)):
     return create_property_listing(db, payload)
 
+@router.get("/listing/all",response_model=list[PropertyListingResponse])
+def get_listing_by_id(db: Session = Depends(get_db)):
+    return get_all_property_listings(db)
 
-@router.get("/listing/{listing_id}",response_model=PropertyListingResponse)
-def get_listing_by_id(listing_id: int,db: Session = Depends(get_db)):
-    return get_property_listing_by_id(db, listing_id)
+
+# @router.get("/listing/{listing_id}",response_model=PropertyListingResponse)
+# def get_listing_by_id(listing_id: int,db: Session = Depends(get_db)):
+#     return get_property_listing_by_id(db, listing_id)
 
 @router.get("/filter")
 def fetch_filter_property_sell_listing(
