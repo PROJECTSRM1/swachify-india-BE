@@ -19,9 +19,11 @@ from models.generated_models import (
     SalaryEarnings,
     StaffPayslip,
     StaffProfile,
+    StudentAcademicFinance,
     StudentFeeInstallments,
     StudentProfile,
-    StudentSemAcademicProgress
+    StudentSemAcademicProgress,
+    UserRegistration
 )
 from sqlalchemy import text
 from typing import List
@@ -43,6 +45,7 @@ from schemas.institution_schema import (
     StaffPayslipCreate,
     StaffProfileCreate,
     StudentAcademicDetailsSchema,
+    StudentAcademicFinanceCreate,
     StudentFeeInstallmentCreateSchema,
     StudentProfileCreate,
     StudentProfileUpdate,
@@ -655,3 +658,59 @@ def get_student_sem_academic_progress_by_student_id(db: Session,student_id: str)
         .all()
     )
 
+#student_academic_finance
+def create_student_academic_finance(
+    db: Session,
+    data: StudentAcademicFinanceCreate
+):
+    # Check student exists
+    student = db.query(StudentProfile).filter(
+        StudentProfile.student_id == data.student_id,
+        StudentProfile.is_active == True
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student profile not found"
+        )
+
+    # Check duplicate
+    existing = db.query(StudentAcademicFinance).filter(
+        StudentAcademicFinance.student_id == data.student_id
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Academic finance record already exists for this student"
+        )
+
+    record = StudentAcademicFinance(**data.dict())
+
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+
+    return record
+
+
+# ===============================
+# GET BY STUDENT ID
+# ===============================
+def get_student_academic_finance_by_student_id(
+    db: Session,
+    student_id: str
+):
+    record = db.query(StudentAcademicFinance).filter(
+        StudentAcademicFinance.student_id == student_id,
+        StudentAcademicFinance.is_active == True
+    ).first()
+
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail="Academic finance record not found"
+        )
+
+    return record

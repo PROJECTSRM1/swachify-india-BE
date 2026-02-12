@@ -31,6 +31,12 @@ class PropertySellListingBase(BaseModel):
         except Exception:
             raise ValueError("upload_photos must be a valid base64 string")
         return value
+    module_id: int   # NOT NULL in table → required
+
+    bhk_type_id: Optional[int] = None
+    furnishing_id: Optional[int] = None
+    locality_area: Optional[str] = None
+    upload_photos: Optional[str] = None
 
     property_type_id: Optional[int] = None
     listing_type_id: Optional[int] = None
@@ -75,6 +81,7 @@ class PropertySellListingBase(BaseModel):
 
     user_id: Optional[int] = None
     is_active: Optional[bool] = True
+
 
 
 class PropertySellListingCreate(PropertySellListingBase):
