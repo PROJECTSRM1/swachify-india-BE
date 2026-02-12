@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 
 from pydantic import BaseModel,  Field
-=======
 from pydantic import BaseModel,Field
->>>>>>> 0d48c0551498e0a7ef53e922f2f1c4551e4c9ce6
 from typing import Optional
 from datetime import date, datetime
 from decimal import Decimal
@@ -55,7 +52,6 @@ class ProductRegistrationResponse(ProductRegistrationBase):
     class Config:
         from_attributes = True
 
-<<<<<<< HEAD
 # =====================================================
 # TASK SCHEMAS
 # =====================================================
@@ -106,7 +102,6 @@ class TaskResponse(BaseModel):
 class TaskStatusUpdate(BaseModel):
     status_id: int = Field(..., description="New status ID")
     
-=======
 
 # ===============================
 # CREATE ORDER
@@ -142,4 +137,3 @@ class ProductOrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
->>>>>>> 0d48c0551498e0a7ef53e922f2f1c4551e4c9ce6
