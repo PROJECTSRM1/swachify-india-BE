@@ -1,19 +1,11 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 from fastapi import HTTPException
-
 from models.generated_models import ProductRegistration
-from schemas.swachify_products_schema import (
-    ProductRegistrationCreate,
-    ProductRegistrationUpdate
-)
+from schemas.swachify_products_schema import (ProductRegistrationCreate,ProductRegistrationUpdate)
 
 def create_product_registration(db: Session,payload: ProductRegistrationCreate):
-    product = ProductRegistration(
-        **payload.dict(),
-        created_date=datetime.utcnow()
-    )
-
+    product = ProductRegistration(**payload.dict(),created_date=datetime.utcnow())
     db.add(product)
     db.commit()
     db.refresh(product)

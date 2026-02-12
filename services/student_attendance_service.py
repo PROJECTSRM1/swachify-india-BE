@@ -1,18 +1,12 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-
 from models.generated_models import (
     StudentAttendance,
     UserRegistration
 )
 
 
-def upsert_student_attendance(
-    db: Session,
-    user_id: int,
-    attendance_percentage
-) -> StudentAttendance:
-
+def upsert_student_attendance(db: Session,user_id: int,attendance_percentage) -> StudentAttendance:
     student = (
         db.query(UserRegistration)
         .filter(

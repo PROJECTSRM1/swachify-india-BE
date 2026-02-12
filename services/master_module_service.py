@@ -1,104 +1,3 @@
-# from sqlalchemy.orm import Session
-# from fastapi import HTTPException
-# from models.generated_models import MasterModule
-# from schemas.master_module_schema import (MasterModuleCreate,MasterModuleUpdate)
-# from models.generated_models import VehicleServiceBooking, VehicleBrandFuel, BookingServiceMapping
-
-# def get_all_vehicle_service_bookings(db: Session):
-#     return db.query(VehicleServiceBooking).order_by(
-#         VehicleServiceBooking.id.desc()
-#     ).all()
-
-
-
-# def create_module_service(db: Session, data: MasterModuleCreate):
-#     obj = MasterModule(**data.model_dump())
-#     db.add(obj)
-#     db.commit()
-#     db.refresh(obj)
-#     return obj
-
-
-# def update_module_service(db: Session,module_id: int,data: MasterModuleUpdate):
-#     obj = db.get(MasterModule, module_id)
-
-#     if not obj:
-#         raise HTTPException(status_code=404, detail="Module not found")
-
-#     update_data = data.model_dump(exclude_unset=True)
-
-#     for key, value in update_data.items():
-#         setattr(obj, key, value)
-
-#     db.commit()
-#     db.refresh(obj)
-#     return obj
-
-
-# def delete_module_service(db: Session, module_id: int):
-#     obj = db.get(MasterModule, module_id)
-
-#     if not obj:
-#         raise HTTPException(status_code=404, detail="Module not found")
-
-#     if not obj.is_active:
-#         return {"message": "Module already deleted"}
-
-#     obj.is_active = False
-#     db.commit()
-#     db.refresh(obj)
-
-#     return {"message": "Module deleted successfully"}
-
-
-
-
-# # ✅ CREATE BOOKING
-# def create_vehicle_service_booking(db: Session, payload):
-#     booking = VehicleServiceBooking(**payload.dict())
-#     db.add(booking)
-#     db.commit()
-#     db.refresh(booking)
-#     return booking
-
-
-# # ✅ GET ALL BOOKINGS
-# def get_all_vehicle_service_bookings(db: Session):
-#     return db.query(VehicleServiceBooking).order_by(
-#         VehicleServiceBooking.id.desc()
-#     ).all()
-
-
-# def create_vehicle_brand_fuel(db: Session, payload):
-#     obj = VehicleBrandFuel(**payload.model_dump())
-#     db.add(obj)
-#     db.commit()
-#     db.refresh(obj)
-#     return obj
-
-
-# def get_all_vehicle_brand_fuel(db: Session):
-#     return db.query(VehicleBrandFuel).order_by(
-#         VehicleBrandFuel.id.desc()
-#     ).all()
-    
-    
-# def create_booking_service_mapping(db: Session, payload):
-#     obj = BookingServiceMapping(**payload.model_dump())
-#     db.add(obj)
-#     db.commit()
-#     db.refresh(obj)
-#     return obj
-
-
-# def get_all_booking_service_mapping(db: Session):
-#     return db.query(BookingServiceMapping).order_by(
-#         BookingServiceMapping.id.desc()
-#     ).all()
-
-
-
-
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -109,10 +8,7 @@ from models.generated_models import HomeServiceBooking, HomeServiceBookingAddOn,
 from schemas.home_schema import HomeServiceBookingAddOnCreate, HomeServiceBookingCreateSchema, HomeServicePaymentCreate, MasterMechanicCreateSchema
 
 
-def create_home_service_booking(
-    db: Session,
-    data: HomeServiceBookingCreateSchema
-):
+def create_home_service_booking(db: Session,data: HomeServiceBookingCreateSchema):
     booking = HomeServiceBooking(
         module_id=data.module_id,
         sub_module_id=data.sub_module_id,
@@ -153,11 +49,9 @@ def create_home_service_booking(
         created_by=data.created_by,
         is_active=True
     )
-
     db.add(booking)
     db.commit()
     db.refresh(booking)
-
     return booking
 
 def get_all_home_service_bookings(db: Session):
@@ -170,11 +64,7 @@ def get_all_home_service_bookings(db: Session):
 
     return result
 
-def create_master_mechanic(
-    db: Session,
-    data: MasterMechanicCreateSchema
-):
-    # ✅ Validate garage
+def create_master_mechanic(db: Session,data: MasterMechanicCreateSchema):
     garage = db.query(MasterGarage).filter(
         MasterGarage.id == data.garage_id,
         MasterGarage.is_active == True
@@ -186,7 +76,6 @@ def create_master_mechanic(
             detail=f"Garage ID {data.garage_id} does not exist"
         )
 
-    # ✅ Validate user
     user = db.query(UserRegistration).filter(
         UserRegistration.id == data.user_id,
         UserRegistration.is_active == True
@@ -198,7 +87,6 @@ def create_master_mechanic(
             detail=f"User ID {data.user_id} does not exist"
         )
 
-    # ✅ Prevent duplicate (garage_id + user_id)
     existing = db.query(MasterMechanic).filter(
         MasterMechanic.garage_id == data.garage_id,
         MasterMechanic.user_id == data.user_id
@@ -223,12 +111,8 @@ def create_master_mechanic(
     db.refresh(mechanic)
 
     return mechanic
-#home_service_booking_add_on
-# -------- CREATE --------
-def create_home_service_booking_add_on(
-    db: Session,
-    data: HomeServiceBookingAddOnCreate
-):
+
+def create_home_service_booking_add_on(db: Session,data: HomeServiceBookingAddOnCreate):
     add_on = HomeServiceBookingAddOn(
         home_service_booking_id=data.home_service_booking_id,
         add_on_id=data.add_on_id,
@@ -236,14 +120,11 @@ def create_home_service_booking_add_on(
         created_by=data.created_by,
         is_active=True
     )
-
     db.add(add_on)
     db.commit()
     db.refresh(add_on)
     return add_on
 
-
-# -------- GET ALL --------
 def get_all_home_service_booking_add_ons(db: Session):
     return db.query(HomeServiceBookingAddOn)\
              .filter(HomeServiceBookingAddOn.is_active == True)\
@@ -259,28 +140,16 @@ def get_all_home_service_bookings(db: Session):
         result = db.execute(query).mappings().all()
         return result
     except Exception as e:
-        # optional: log error
         raise Exception(f"Database function error: {str(e)}")
 
-# -------- GET BY BOOKING ID --------
-def get_add_ons_by_booking_id(
-    db: Session,
-    home_service_booking_id: int
-):
+def get_add_ons_by_booking_id(db: Session,home_service_booking_id: int):
     return db.query(HomeServiceBookingAddOn)\
              .filter(
                  HomeServiceBookingAddOn.home_service_booking_id == home_service_booking_id,
                  HomeServiceBookingAddOn.is_active == True
              ).all()
 
-#home_service_payment
-
-
-# -------- CREATE --------
-def create_home_service_payment(
-    db: Session,
-    data: HomeServicePaymentCreate
-):
+def create_home_service_payment(db: Session,data: HomeServicePaymentCreate):
     payment = HomeServicePayment(
         booking_id=data.booking_id,
         user_id=data.user_id,
@@ -294,13 +163,11 @@ def create_home_service_payment(
         created_by=data.created_by,
         is_active=True
     )
-
     db.add(payment)
     db.commit()
     db.refresh(payment)
     return payment
 
-# -------- GET ALL --------
 def get_all_home_service_payments(db: Session):
     return (
         db.query(HomeServicePayment)
@@ -308,11 +175,7 @@ def get_all_home_service_payments(db: Session):
         .all()
     )
 
-# -------- GET BY BOOKING ID --------
-def get_payment_by_booking_id(
-    db: Session,
-    booking_id: int
-):
+def get_payment_by_booking_id(db: Session,booking_id: int):
     return (
         db.query(HomeServicePayment)
         .filter(
@@ -322,11 +185,7 @@ def get_payment_by_booking_id(
         .all()
     )
 
-# -------- GET BY USER ID --------
-def get_payment_by_user_id(
-    db: Session,
-    user_id: int
-):
+def get_payment_by_user_id(db: Session,user_id: int):
     return (
         db.query(HomeServicePayment)
         .filter(
@@ -337,10 +196,6 @@ def get_payment_by_user_id(
     )
 
 def get_home_service_booking_summary(db: Session):
-    """
-    Fetch all home service booking summary from DB VIEW
-    """
-
     query = text("""
         SELECT *
         FROM vw_home_service_booking_summary
@@ -352,28 +207,16 @@ def get_home_service_booking_summary(db: Session):
 
 
 def create_booking_service_map(db: Session, data: HomeServiceBookingMapCreateSchema):
-
-
-    # Validate booking exists
     booking = db.query(HomeServiceBooking).filter(
         HomeServiceBooking.id == data.home_service_booking_id
     ).first()
-
-
     if not booking:
         raise HTTPException(status_code=400, detail="Home service booking not found")
-
-
-    # Validate garage service exists
     service = db.query(MasterGarageService).filter(
         MasterGarageService.id == data.garage_service_id
     ).first()
-
-
     if not service:
         raise HTTPException(status_code=400, detail="Garage service not found")
-
-
     new_map = HomeServiceBookingServiceMap(
         home_service_booking_id=data.home_service_booking_id,
         garage_service_id=data.garage_service_id,
@@ -381,14 +224,10 @@ def create_booking_service_map(db: Session, data: HomeServiceBookingMapCreateSch
         service_price=data.service_price,
         created_by=data.created_by
     )
-
-
     db.add(new_map)
     db.commit()
     db.refresh(new_map)
     return new_map
-
-
 
 def get_all_booking_service_maps(db: Session):
     return db.query(HomeServiceBookingServiceMap).filter(

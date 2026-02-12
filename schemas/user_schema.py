@@ -382,3 +382,19 @@ class LoginResponse(BaseModel):
     refresh_expires_in: int
     role: str
     
+class ForgotPasswordRequest(BaseModel):
+    email_or_phone: str
+
+
+class ResetPasswordRequest(BaseModel):
+    reset_token: str
+    new_password: str
+    confirm_password: str
+
+    @field_validator("confirm_password")
+    @classmethod
+    def passwords_match(cls, v, info):
+        if v != info.data.get("new_password"):
+            raise ValueError("Passwords do not match")
+        return v
+

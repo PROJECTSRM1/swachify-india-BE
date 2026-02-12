@@ -4,14 +4,7 @@ from models.generated_models import RawMaterialDetails
 from schemas.raw_material_schema import RawMaterialCreate
 
 
-# ====================================
-# CREATE RAW MATERIAL (POST)
-# ====================================
-def create_raw_material(
-    db: Session,
-    data: RawMaterialCreate,
-    user_id: int | None = None
-):
+def create_raw_material(db: Session,data: RawMaterialCreate,user_id: int | None = None):
     raw_material = RawMaterialDetails(
         module_id=data.module_id,
         raw_material_type_id=data.raw_material_type_id,
@@ -28,10 +21,6 @@ def create_raw_material(
 
     return raw_material
 
-
-# ====================================
-# GET ALL RAW MATERIALS
-# ====================================
 def get_all_raw_materials(db: Session):
     materials = (
         db.query(RawMaterialDetails)

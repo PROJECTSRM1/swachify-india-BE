@@ -1,16 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-
-from models.generated_models import (
-    StudentFamilyMembers,
-    UserRegistration,
-    MasterRelation,
-)
-
-from schemas.student_family_schema import (
-    StudentFamilyMemberCreate,
-    StudentFamilyMemberUpdate,
-)
+from models.generated_models import (StudentFamilyMembers,UserRegistration,MasterRelation,)
+from schemas.student_family_schema import (StudentFamilyMemberCreate,StudentFamilyMemberUpdate,)
 
 
 def add_family_member_service(db: Session,student_id: int,payload: StudentFamilyMemberCreate,created_by: int | None = None):

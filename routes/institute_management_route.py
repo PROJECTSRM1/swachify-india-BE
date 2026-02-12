@@ -276,15 +276,5 @@ def create_salary_earnings_api(
 
 
 @router.get("/salary-summary")
-def get_salary_summary(
-    year: int | None = Query(None),
-    month: str | None = Query(None),
-    status: str | None = Query(None),
-    db: Session = Depends(get_db),
-):
-    return get_salary_summary_service(
-        db=db,
-        year=year,
-        month=month,
-        status=status,
-    )
+def get_salary_summary(year: int | None = Query(None),month: str | None = Query(None),status: str | None = Query(None),db: Session = Depends(get_db)):
+    return get_salary_summary_service(db=db,year=year,month=month,status=status,)

@@ -46,11 +46,7 @@ def trending_students(db: Session = Depends(get_db)):
     return get_trending_students(db)
 
 @router.get("/internship")
-def get_job_data(
-    master_job_id: int | None = Query(None, description="Fetch Master Job Only"),
-    job_id: int | None = Query(None, description="Fetch UI Success Card"),
-    db: Session = Depends(get_db)
-):
+def get_job_data(master_job_id: int | None = Query(None, description="Fetch Master Job Only"),job_id: int | None = Query(None, description="Fetch UI Success Card"),db: Session = Depends(get_db)):
     if master_job_id and job_id:
         raise HTTPException(
             status_code=400,
@@ -84,10 +80,7 @@ def update_application_api(user_id: int, payload: ApplicationUpdateRequest):
 
 
 @router.delete("/{id}")
-def delete_record(
-    id: int,
-    db: Session = Depends(get_db)
-):
+def delete_record(id: int,db: Session = Depends(get_db)):
     delete_by_id(db, id)
     return {
         "status": True,

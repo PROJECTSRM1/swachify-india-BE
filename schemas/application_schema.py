@@ -4,7 +4,6 @@ from typing import Optional
 from datetime import date
 from decimal import Decimal
 
-### Added
 class JobOpeningCreateSchema(BaseModel):
     job_id: int
     company_name: str
@@ -19,7 +18,6 @@ class JobOpeningCreateSchema(BaseModel):
     stipend_type_id: int
     internship_stipend: bool
     created_by: int
-
 
 class JobOpeningResponseSchema(BaseModel):
     id: int
@@ -40,7 +38,6 @@ class JobOpeningResponseSchema(BaseModel):
     class Config:
         from_attibutes = True
 
-
 class ApplicationReviewResponse(BaseModel):
     application_code: str
     status: str
@@ -56,36 +53,16 @@ class ApplicationReviewResponse(BaseModel):
     email: str
     phone: str
 
-    # internship_title: str
-    # company: str
-    # location: str
-
-
-
-
 
 class ApplicationUpdateRequest(BaseModel):
-    
-    # application_code: Optional[str]
-    # status: Optional[str]
-
     full_name: Optional[str]
     dob: Optional[str]
     gender: Optional[str]
-
     degree: Optional[str]
     institute: Optional[str]
     percentage: Optional[str]
-
     email: Optional[str]
     phone: Optional[str]
-
-    # internship_title: Optional[str]
-    # company: Optional[str]
-    # location: Optional[str]
-
-
-
 class TrendingStudentResponse(BaseModel):
     full_name: str
     institute: str
@@ -93,11 +70,6 @@ class TrendingStudentResponse(BaseModel):
     attendance_percentage: float
     active: bool
     
-    
-    
-
-
-# MASTER JOB RESPONSE
 class MasterJobResponse(BaseModel):
     id: int
     job_name: Optional[str]
@@ -106,16 +78,11 @@ class MasterJobResponse(BaseModel):
     class Config:
         from_attibutes = True
 
-
-# UI APPLICATION DETAILS
 class ApplicationDetailsSchema(BaseModel):
     position: Optional[str]
     company: Optional[str]
     application_id: str
-    # status: str
 
-
-# UI SUCCESS RESPONSE
 class JobSuccessResponse(BaseModel):
     success: bool
     title: str

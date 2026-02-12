@@ -16,12 +16,12 @@ from decimal import Decimal
 # ======================================================
 
 class PropertySellListingBase(BaseModel):
-    module_id: int
-    sub_module_id: int
-    bhk_type_id: int
-    furnishing_id: int
-    locality_area: str
-    upload_photos: str
+    module_id: int   # NOT NULL in table → required
+
+    bhk_type_id: Optional[int] = None
+    furnishing_id: Optional[int] = None
+    locality_area: Optional[str] = None
+    upload_photos: Optional[str] = None
 
     property_type_id: Optional[int] = None
     listing_type_id: Optional[int] = None
@@ -66,6 +66,7 @@ class PropertySellListingBase(BaseModel):
 
     user_id: Optional[int] = None
     is_active: Optional[bool] = True
+
 
 
 class PropertySellListingCreate(PropertySellListingBase):

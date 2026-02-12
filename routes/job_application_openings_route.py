@@ -30,11 +30,7 @@ bearer_scheme = HTTPBearer()
 # job openings
 @router.post("/openings", response_model=JobOpeningResponse)
 def create_opening(payload: JobOpeningCreate,db: Session = Depends(get_db),current_user: UserRegistration = Depends(get_current_user)):
-    return create_job_openings(
-        db=db,
-        data=payload,            
-        user_id=current_user.id
-    )
+    return create_job_openings(db=db,data=payload,            user_id=current_user.id)
 @router.get("/openings",response_model=list[JobOpeningResponse])
 def list_openings(db: Session = Depends(get_db)):
     return get_job_openings(db)
@@ -49,10 +45,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 @router.get("/active")
-def get_all_active_jobs(
-    category_id: int = Query(-1, description="Pass category_id to filter, -1 for all"),
-    db: Session = Depends(get_db)
-):
+def get_all_active_jobs(category_id: int = Query(-1, description="Pass category_id to filter, -1 for all"),db: Session = Depends(get_db)):
     return get_active_job_openings(db, category_id)
 
 
@@ -64,18 +57,9 @@ def delete_job_opening(opening_id: int,db: Session = Depends(get_db),current_use
         user_id=current_user.id
     )
 
-
-
-#JOB APPLICATIONS
-
 @router.post("/apply",response_model=JobApplicationResponse)
 def apply_job(payload: JobApplicationCreate,db: Session = Depends(get_db),current_user: UserRegistration = Depends(get_current_user)):
-    return apply_job_service(
-        db=db,
-        payload=payload,
-        user_id=current_user.id
-    )
-
+    return apply_job_service(db=db,payload=payload,user_id=current_user.id)
 
 @router.get("/jobs/applications",response_model=list[JobApplicationResponse])
 def get_my_job_applications(db: Session = Depends(get_db),current_user: UserRegistration = Depends(get_current_user)):

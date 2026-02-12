@@ -3,10 +3,6 @@
 from pydantic import BaseModel, field_validator
 import re
 class FreelancerLogin(BaseModel):
-    """
-    Freelancer login request.
-    Note: Freelancer registration is handled by unified /api/auth/register endpoint with work_type=2
-    """
     email_or_phone: str
     password: str
     

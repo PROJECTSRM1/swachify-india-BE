@@ -1,10 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-
-from models.generated_models import (
-    MasterInternshipStatus,
-    UserRegistration
-)
+from models.generated_models import (MasterInternshipStatus,UserRegistration)
 
 
 def upsert_student_internship(db: Session,user_id: int,internship_status: str) -> MasterInternshipStatus:

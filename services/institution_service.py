@@ -19,9 +19,11 @@ from models.generated_models import (
     SalaryEarnings,
     StaffPayslip,
     StaffProfile,
+    StudentAcademicFinance,
     StudentFeeInstallments,
     StudentProfile,
-    StudentSemAcademicProgress
+    StudentSemAcademicProgress,
+    UserRegistration
 )
 from sqlalchemy import text
 from typing import List
@@ -43,6 +45,7 @@ from schemas.institution_schema import (
     StaffPayslipCreate,
     StaffProfileCreate,
     StudentAcademicDetailsSchema,
+    StudentAcademicFinanceCreate,
     StudentFeeInstallmentCreateSchema,
     StudentProfileCreate,
     StudentProfileUpdate,
@@ -50,16 +53,7 @@ from schemas.institution_schema import (
     
 )
 
-
-
-# ======================================================
-# INSTITUTION REGISTRATION SERVICES
-# ======================================================
-
-def create_institution(
-    db: Session,
-    payload: InstitutionRegistrationCreate
-):
+def create_institution(db: Session,payload: InstitutionRegistrationCreate):
     institution = InstitutionRegistration(
         **payload.dict(),
         created_date=datetime.utcnow()
@@ -72,10 +66,7 @@ def create_institution(
 def get_all_branches(db: Session):
     return db.query(InstitutionBranch).all()
 
-def get_institution_by_id(
-    db: Session,
-    institution_id: int
-):
+def get_institution_by_id(db: Session,institution_id: int):
     institution = db.query(InstitutionRegistration).filter(
         InstitutionRegistration.id == institution_id,
         InstitutionRegistration.is_active == True
@@ -86,19 +77,7 @@ def get_institution_by_id(
 
     return institution
 
-
-# def get_all_branches(db: Session):
-#     return db.query(InstitutionBranch).all()
-
-
-# ======================================================
-# INSTITUTION BRANCH SERVICES
-# ======================================================
-
-def create_institution_branch(
-    db: Session,
-    payload: InstitutionBranchCreate
-):
+def create_institution_branch(db: Session,payload: InstitutionBranchCreate):
     branch = InstitutionBranch(
         **payload.dict(),
         created_date=datetime.utcnow()
@@ -109,29 +88,13 @@ def create_institution_branch(
     return branch
 
 
-def get_branches_by_institution(
-    db: Session,
-    institution_id: int
-):
+def get_branches_by_institution(db: Session,institution_id: int):
     return db.query(InstitutionBranch).filter(
         InstitutionBranch.institution_id == institution_id,
         InstitutionBranch.is_active == True
     ).all()
 
-# ======================================================
-# STUDENT ACADEMIC DETAILS
-# ======================================================
-
-def get_student_full_academic_details(
-    db: Session,
-    student_id: str = "-1",
-    institution_id: int = -1
-) -> List[StudentAcademicDetailsSchema]:
-    """
-    Fetch full student academic details using DB function
-    fn_get_student_full_details
-    """
-
+def get_student_full_academic_details(db: Session,student_id: str = "-1",institution_id: int = -1) -> List[StudentAcademicDetailsSchema]:
     query = text("""
         SELECT *
         FROM fn_get_student_full_details(:student_id, :institution_id)
@@ -144,9 +107,7 @@ def get_student_full_academic_details(
             "institution_id": institution_id
         }
     )
-
     rows = result.mappings().all()
-
     return [StudentAcademicDetailsSchema(**row) for row in rows]
 
 
@@ -157,7 +118,7 @@ def create_student_profile(db: Session, payload: StudentProfileCreate):
 
     if existing:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, # type: ignore
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Student profile already exists"
         )
 
@@ -194,11 +155,7 @@ def get_student_by_id(db: Session, student_id: int):
     return student
 
 
-def update_student_profile(
-    db: Session,
-    student_id: int,
-    payload: StudentProfileUpdate
-):
+def update_student_profile(db: Session,student_id: int,payload: StudentProfileUpdate):
     student = get_student_by_id(db, student_id)
 
     for key, value in payload.dict(exclude_unset=True).items():
@@ -218,9 +175,6 @@ def delete_student_profile(db: Session, student_id: int):
     db.commit()
     return {"message": "Student profile deactivated successfully"}
 
-
-# get_students_by_branch service
-
 def fetch_students_by_branch(db, branch_id: int):
     query = text("""
         SELECT * FROM fn_get_students_by_branch(:branch_id)
@@ -228,7 +182,6 @@ def fetch_students_by_branch(db, branch_id: int):
     result = db.execute(query, {"branch_id": branch_id})
     return result.mappings().all()   
 
-#ExamSchedule service
 
 from sqlalchemy import text
 
@@ -273,9 +226,6 @@ def create_exam_schedule(db, data):
     db.commit()
     return result.fetchone()[0]
 
-
-
-# Exam List Service
 def fetch_exam_schedule(db, exam_type: str, institution_id: int):
     query = text("""
         SELECT * 
@@ -289,7 +239,6 @@ def fetch_exam_schedule(db, exam_type: str, institution_id: int):
             "institution_id": institution_id
         }
     )
-
     return result.mappings().all()
 
 def get_bus_fleet(db: Session):
@@ -300,41 +249,8 @@ def get_bus_fleet(db: Session):
     """)
     return db.execute(query).mappings().all()
 
-
-
-
-#management
-
-# def get_management_overview(
-#     db: Session,
-#     institution_id: int,
-#     academic_year: str
-# ):
-#     query = text("""
-#         SELECT * 
-#         FROM fn_get_management_overview(:institution_id, :academic_year)
-#     """)
-
-#     result = db.execute(
-#         query,
-#         {
-#             "institution_id": institution_id,
-#             "academic_year": academic_year
-#         }
-        
-#     )
-
-#     return result.mappings().all()
-def get_management_overview(
-    db: Session,
-    institution_id: int | None = None,
-    academic_year: str | None = None
-):
-    query = text("""
-        SELECT *
-        FROM public.fn_get_management_overview(:institution_id, :academic_year)
-    """)
-
+def get_management_overview(db: Session,institution_id: int | None = None,academic_year: str | None = None):
+    query = text("""SELECT * FROM public.fn_get_management_overview(:institution_id, :academic_year)""")
     params = {
         "institution_id": institution_id if institution_id is not None else -1,
         "academic_year": academic_year if academic_year is not None else "-1"
@@ -361,10 +277,6 @@ def create_bus(db:Session,payload):
     db.commit()
     db.refresh(bus)
     return bus
-
-# def get_all_buses(db: Session):
-#     return db.query(BusFleet).filter(BusFleet.is_active == True).all()
-
 
 def create_bus_alert(db: Session, payload: BusAlertCreate):
     alert = BusAlertLog(
@@ -431,7 +343,6 @@ def get_payslips_by_staff(db: Session, staff_id: str):
     ).all()
 
 def create_payroll_summary(db: Session,payload: PayrollSummaryCreate):
-    # check duplicate payroll month
     existing = db.query(PayrollSummary).filter(
         PayrollSummary.payroll_month == payload.payroll_month,
         PayrollSummary.is_active == True
@@ -459,10 +370,7 @@ def get_staff_payslip_summary(db: Session):
     result = db.execute(query).mappings().all()
     return result
 
-def create_maintenance_budget_service(
-    payload: MaintenanceBudgetCreate,
-    db: Session
-):
+def create_maintenance_budget_service(payload: MaintenanceBudgetCreate,db: Session):
     budget = MaintenanceBudget(
         institute_id=payload.institute_id,
         budget_limit=payload.budget_limit,
@@ -478,25 +386,18 @@ def create_maintenance_budget_service(
 
 
 
-def create_exam_notification(
-    db: Session,
-    payload: ExamNotificationCreate
-):
+def create_exam_notification(db: Session,payload: ExamNotificationCreate):
     notification = ExamNotificationLog(
         **payload.dict(exclude_unset=True),
         created_date=datetime.utcnow()
     )
-
     db.add(notification)
     db.commit()
     db.refresh(notification)
     return notification
 
 
-def get_exam_notifications_by_schedule(
-    db: Session,
-    exam_schedule_id: int
-):
+def get_exam_notifications_by_schedule(db: Session,exam_schedule_id: int):
     return db.query(ExamNotificationLog).filter(
         ExamNotificationLog.exam_schedule_id == exam_schedule_id,
         ExamNotificationLog.is_active == True
@@ -505,11 +406,7 @@ def get_exam_notifications_by_schedule(
     ).all()
 
 
-def update_exam_notification(
-    db: Session,
-    notification_id: int,
-    payload: ExamNotificationUpdate
-):
+def update_exam_notification(db: Session,notification_id: int,payload: ExamNotificationUpdate):
     notification = db.query(ExamNotificationLog).filter(
         ExamNotificationLog.id == notification_id,
         ExamNotificationLog.is_active == True
@@ -526,10 +423,7 @@ def update_exam_notification(
     db.refresh(notification)
     return notification
 
-def get_exam_notification_by_id(
-    db: Session,
-    notification_id: int
-):
+def get_exam_notification_by_id(db: Session,notification_id: int):
     notification = db.query(ExamNotificationLog).filter(
         ExamNotificationLog.id == notification_id,
         ExamNotificationLog.is_active == True
@@ -543,8 +437,6 @@ def get_exam_notification_by_id(
 
     return notification
 
-#payroll period
-
 def create_payroll_period(db: Session, data: PayrollPeriodCreate):
     payroll_period = PayrollPeriod(
         month=data.month,
@@ -557,13 +449,11 @@ def create_payroll_period(db: Session, data: PayrollPeriodCreate):
 
     db.add(payroll_period)
     db.commit()
-    db.refresh(payroll_period)  # fetch id, created_date from DB
-
+    db.refresh(payroll_period)
     return payroll_period
 
 
 def create_exam_reminder_service(db: Session, payload: ExamReminderCreate):
-
     reminder = ExamReminderSettings(
         exam_schedule_id=payload.exam_schedule_id,
         enable_notifications=payload.enable_notifications,
@@ -572,16 +462,13 @@ def create_exam_reminder_service(db: Session, payload: ExamReminderCreate):
         created_by=payload.created_by,
         is_active=payload.is_active,
     )
-
     db.add(reminder)
     db.commit()
     db.refresh(reminder)
-
     return reminder
 
 
 def get_all_exam_reminders_service(db: Session):
-
     reminders = db.query(ExamReminderSettings).filter(
         ExamReminderSettings.is_active == True
     ).all()
@@ -591,12 +478,7 @@ def get_all_exam_reminders_service(db: Session):
 
     return reminders
 
-
-
-def create_exam_invigilation_assignment(
-    db: Session,
-    payload: ExamInvigilationAssignmentCreate
-):
+def create_exam_invigilation_assignment(db: Session,payload: ExamInvigilationAssignmentCreate):
     assignment = ExamInvigilationAssignment(**payload.dict())
     db.add(assignment)
     db.commit()
@@ -610,47 +492,32 @@ def get_all_exam_invigilation_assignments(db: Session):
     ).all()
 
 
-def get_exam_invigilation_assignment_by_id(
-    db: Session,
-    assignment_id: int
-):
+def get_exam_invigilation_assignment_by_id(db: Session,assignment_id: int):
     assignment = db.query(ExamInvigilationAssignment).filter(
         ExamInvigilationAssignment.id == assignment_id
     ).first()
 
     if not assignment:
         raise HTTPException(status_code=404, detail="Invigilation assignment not found")
-
     return assignment
 
 
-def update_exam_invigilation_assignment(
-    db: Session,
-    assignment_id: int,
-    payload: ExamInvigilationAssignmentUpdate
-):
+def update_exam_invigilation_assignment(db: Session,assignment_id: int,payload: ExamInvigilationAssignmentUpdate):
     assignment = get_exam_invigilation_assignment_by_id(db, assignment_id)
-
     for key, value in payload.dict(exclude_unset=True).items():
         setattr(assignment, key, value)
-
     assignment.modified_date = datetime.utcnow()
     db.commit()
     db.refresh(assignment)
     return assignment
 
 
-def delete_exam_invigilation_assignment(
-    db: Session,
-    assignment_id: int
-):
+def delete_exam_invigilation_assignment(db: Session,assignment_id: int):
     assignment = get_exam_invigilation_assignment_by_id(db, assignment_id)
     assignment.is_active = False
     assignment.modified_date = datetime.utcnow()
     db.commit()
     return {"message": "Exam invigilation assignment deactivated"}
-
-
 
 
 def get_salary_summary_service(
@@ -708,11 +575,7 @@ def create_salary_earnings(db: Session, data: SalaryEarningsCreate):
     return earnings
 
 
-def get_student_full_details_service(
-    db: Session,
-    student_id: str,
-    branch_id: int
-):
+def get_student_full_details_service(db: Session,student_id: str,branch_id: int):
     query = text("""
         SELECT *
         FROM fn_get_student_full_details(:student_id, :branch_id)
@@ -726,11 +589,7 @@ def get_student_full_details_service(
         }
     ).mappings().all()
 
-def create_student_fee_installment(
-    db: Session,
-    data: StudentFeeInstallmentCreateSchema
-):
-    # Check duplicate installment
+def create_student_fee_installment(db: Session,data: StudentFeeInstallmentCreateSchema):
     existing = db.query(StudentFeeInstallments).filter(
         StudentFeeInstallments.student_id == data.student_id,
         StudentFeeInstallments.installment_no == data.installment_no,
@@ -759,10 +618,7 @@ def create_student_fee_installment(
 
     return installment
 
-def get_student_fee_installments(
-    db: Session,
-    student_id: str
-):
+def get_student_fee_installments(db: Session,student_id: str):
     data = db.query(StudentFeeInstallments).filter(
         StudentFeeInstallments.student_id == student_id,
         StudentFeeInstallments.is_active == True
@@ -776,12 +632,7 @@ def get_student_fee_installments(
 
     return data
 
-
-#post student_sem_academic_progress
-def create_student_sem_academic_progress(
-    db: Session,
-    data: StudentSemAcademicProgressCreate
-):
+def create_student_sem_academic_progress(db: Session,data: StudentSemAcademicProgressCreate):
     record = StudentSemAcademicProgress(
         student_id=data.student_id,
         academic_year=data.academic_year,
@@ -797,15 +648,7 @@ def create_student_sem_academic_progress(
     db.refresh(record)
     return record
 
-
-
-
-
-# ---------- GET BY STUDENT ID ----------
-def get_student_sem_academic_progress_by_student_id(
-    db: Session,
-    student_id: str
-):
+def get_student_sem_academic_progress_by_student_id(db: Session,student_id: str):
     return (
         db.query(StudentSemAcademicProgress)
         .filter(
@@ -815,3 +658,59 @@ def get_student_sem_academic_progress_by_student_id(
         .all()
     )
 
+#student_academic_finance
+def create_student_academic_finance(
+    db: Session,
+    data: StudentAcademicFinanceCreate
+):
+    # Check student exists
+    student = db.query(StudentProfile).filter(
+        StudentProfile.student_id == data.student_id,
+        StudentProfile.is_active == True
+    ).first()
+
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student profile not found"
+        )
+
+    # Check duplicate
+    existing = db.query(StudentAcademicFinance).filter(
+        StudentAcademicFinance.student_id == data.student_id
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Academic finance record already exists for this student"
+        )
+
+    record = StudentAcademicFinance(**data.dict())
+
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+
+    return record
+
+
+# ===============================
+# GET BY STUDENT ID
+# ===============================
+def get_student_academic_finance_by_student_id(
+    db: Session,
+    student_id: str
+):
+    record = db.query(StudentAcademicFinance).filter(
+        StudentAcademicFinance.student_id == student_id,
+        StudentAcademicFinance.is_active == True
+    ).first()
+
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail="Academic finance record not found"
+        )
+
+    return record
