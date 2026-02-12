@@ -2,6 +2,9 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from decimal import Decimal
+import base64
+from pydantic import field_validator
+
 
 #HomeServiceBookingAddOn
 # -------- CREATE --------
@@ -91,7 +94,18 @@ class HomeServiceBookingCreateSchema(BaseModel):
     mechanic_id: Optional[int] = None
 
     special_instructions: Optional[str] = None
-    upload_photos: Optional[str] = None
+    upload_photos: Optional[str] = None  # base64 string
+
+    @field_validator("upload_photos")
+    @classmethod
+    def validate_base64(cls, value):
+        if value is None:
+            return value
+        try:
+            base64.b64decode(value, validate=True)
+        except Exception:
+            raise ValueError("upload_photos must be a valid base64 string")
+        return value
 
     payment_done: Optional[bool] = False
     status_id: Optional[int] = None

@@ -1,26 +1,36 @@
 from asyncio import create_task
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 from core.database import get_db
 from schemas.swachify_products_schema import (
+    ProductOrderCreate,
+    ProductOrderResponse,
     ProductRegistrationCreate,
     # ProductRegistrationUpdate,
     ProductRegistrationResponse,
     TaskCreate,
     TaskResponse,
-    TaskStatusUpdate
+    TaskStatusUpdate,
+    TaskCreate,
+    TaskResponse,
+    TaskStatusUpdate,
+    ProductOrderCreate,
+    ProductOrderResponse
 )
 from services.swachify_products_service import (
     create_product_registration,
     get_product_registration_by_id,
     get_all_product_registrations,
+    update_task_status,
     create_task,
     get_task_by_id,
     update_task_status,
 
     # update_product_registration,
-    # delete_product_registration
+    # delete_product_registration,
+    create_product_order,
+    get_product_order_by_id
 )
 
 router = APIRouter(prefix="/product-registration",tags=["Swachify Products"])
@@ -66,3 +76,22 @@ def update_task_status_api(task_id: int,payload: TaskStatusUpdate,user_id: int =
 @router.get("/task/{task_id}", response_model=TaskResponse, summary="Get Task By ID")
 def get_task_by_id_api(task_id: int, db: Session = Depends(get_db)):
     return get_task_by_id(db=db, task_id=task_id)
+# ===============================
+# POST - CREATE ORDER
+# ===============================
+
+@router.post("/orders", response_model=ProductOrderResponse)
+def create_order(order: ProductOrderCreate, db: Session = Depends(get_db)):
+    return create_product_order(db, order)
+
+
+# ===============================
+# GET - ORDER BY ID
+# ===============================
+
+@router.get("/orders/{order_id}", response_model=ProductOrderResponse)
+def get_order(order_id: int, db: Session = Depends(get_db)):
+    order = get_product_order_by_id(db, order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Product order not found")
+    return order

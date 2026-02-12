@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 
 from pydantic import BaseModel,  Field
+=======
+from pydantic import BaseModel,Field
+>>>>>>> 0d48c0551498e0a7ef53e922f2f1c4551e4c9ce6
 from typing import Optional
 from datetime import date, datetime
 from decimal import Decimal
@@ -51,6 +55,7 @@ class ProductRegistrationResponse(ProductRegistrationBase):
     class Config:
         from_attributes = True
 
+<<<<<<< HEAD
 # =====================================================
 # TASK SCHEMAS
 # =====================================================
@@ -101,3 +106,40 @@ class TaskResponse(BaseModel):
 class TaskStatusUpdate(BaseModel):
     status_id: int = Field(..., description="New status ID")
     
+=======
+
+# ===============================
+# CREATE ORDER
+# ===============================
+
+class ProductOrderCreate(BaseModel):
+    user_id: int
+    product_id: int
+    full_name: str = Field(..., max_length=255)
+    phone_number: str = Field(..., max_length=20)
+    delivery_address: str
+    quantity: str
+    vehicle_type_id: Optional[int] = None
+    created_by: Optional[int] = None
+
+
+# ===============================
+# RESPONSE SCHEMA
+# ===============================
+
+class ProductOrderResponse(BaseModel):
+    id: int
+    user_id: int
+    product_id: int
+    full_name: str
+    phone_number: str
+    delivery_address: str
+    quantity: str
+    vehicle_type_id: Optional[int]
+    order_date: Optional[datetime]
+    status: Optional[str]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attributes = True
+>>>>>>> 0d48c0551498e0a7ef53e922f2f1c4551e4c9ce6
