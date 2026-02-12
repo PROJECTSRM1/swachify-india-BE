@@ -33,8 +33,11 @@ router = APIRouter(prefix="/property",tags=["Buy/Sell/Rental"])
 def create_sell_listing(payload: PropertySellListingCreate,db: Session = Depends(get_db)):
     return create_property_sell_listing(db, payload)
 
-@router.get("/sell-listing/all",response_model=list[PropertySellListingResponse])
-def get_sell_listing_all(db:Session = Depends(get_db)):
+@router.get(
+    "/sell-listing/all",
+    response_model=list[PropertySellListingResponse]
+)
+def get_sell_listing_all(db: Session = Depends(get_db)):
     return get_all_property_sell_listings(db)
 
 # @router.get("/sell-listing/{listing_id}",response_model=PropertySellListingResponse)
