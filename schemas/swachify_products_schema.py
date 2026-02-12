@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+
+from pydantic import BaseModel,  Field
 from typing import Optional
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 # ======================
@@ -49,3 +50,54 @@ class ProductRegistrationResponse(ProductRegistrationBase):
 
     class Config:
         from_attributes = True
+
+# =====================================================
+# TASK SCHEMAS
+# =====================================================
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+    task_type_id: int = Field(..., description="Master task type ID")
+    project_id: int = Field(..., description="Master project ID")
+
+    # Student / Assignee
+    user_id: int = Field(..., description="Student user ID")
+
+    reporting_manager_id: Optional[int] = None
+    task_manager_id: Optional[int] = None
+
+    status_id: int = Field(..., description="Master status ID")
+
+    due_date: date
+    efforts_in_days: Optional[int] = None
+
+
+class TaskResponse(BaseModel):
+    id: int
+    title: str
+    description: str
+
+    task_type_id: int
+    project_id: int
+
+    user_id: int  # assignee
+    reporting_manager_id: Optional[int]
+    task_manager_id: Optional[int]
+
+    status_id: int
+    due_date: date
+    efforts_in_days: Optional[int]
+
+    created_by: int
+    created_date: datetime
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+class TaskStatusUpdate(BaseModel):
+    status_id: int = Field(..., description="New status ID")
+    

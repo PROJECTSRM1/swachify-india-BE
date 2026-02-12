@@ -1,16 +1,24 @@
-from fastapi import APIRouter, Depends
+from asyncio import create_task
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List
 from core.database import get_db
 from schemas.swachify_products_schema import (
     ProductRegistrationCreate,
     # ProductRegistrationUpdate,
-    ProductRegistrationResponse
+    ProductRegistrationResponse,
+    TaskCreate,
+    TaskResponse,
+    TaskStatusUpdate
 )
 from services.swachify_products_service import (
     create_product_registration,
     get_product_registration_by_id,
-    get_all_product_registrations
+    get_all_product_registrations,
+    create_task,
+    get_task_by_id,
+    update_task_status,
+
     # update_product_registration,
     # delete_product_registration
 )
@@ -41,3 +49,20 @@ def get_products(db: Session = Depends(get_db)):
 #     db: Session = Depends(get_db)
 # ):
 #     return delete_product_registration(db, product_id, modified_by)
+
+@router.post("/task",response_model=TaskResponse,summary="Create Task")
+def create_task_api(payload: TaskCreate,user_id: int = Query(..., description="Logged-in user ID"),db: Session = Depends(get_db)):
+    return create_task(db=db, payload=payload, created_by=user_id)
+
+@router.put("/{task_id}/status",response_model=TaskResponse,summary="Update Task Status")
+def update_task_status_api(task_id: int,payload: TaskStatusUpdate,user_id: int = Query(..., description="Logged-in user ID"),db: Session = Depends(get_db)):
+    return update_task_status(
+        db=db,
+        task_id=task_id,
+        status_id=payload.status_id,
+        modified_by=user_id
+    )
+
+@router.get("/task/{task_id}", response_model=TaskResponse, summary="Get Task By ID")
+def get_task_by_id_api(task_id: int, db: Session = Depends(get_db)):
+    return get_task_by_id(db=db, task_id=task_id)
