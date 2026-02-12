@@ -16,6 +16,8 @@ class ProductRegistrationBase(BaseModel):
     product_price: Optional[Decimal] = None
     description: Optional[str] = None
     product_image: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     is_active: Optional[bool] = True
 
 
@@ -24,8 +26,7 @@ class ProductRegistrationBase(BaseModel):
 # ======================
 
 class ProductRegistrationCreate(ProductRegistrationBase):
-    created_by: Optional[int] = None
-
+      pass
 
 # ======================
 # UPDATE
