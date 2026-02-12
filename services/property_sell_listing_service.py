@@ -44,17 +44,16 @@ def get_property_sell_listing_by_id(
     return listing
 
 
-# ======================================================
-# GET ALL
-# ======================================================
 
 def get_all_property_sell_listings(db: Session):
+
     return (
         db.query(PropertySellListing)
         .filter(PropertySellListing.is_active == True)
         .order_by(PropertySellListing.created_date.desc())
         .all()
     )
+
 
 
 # ======================================================
