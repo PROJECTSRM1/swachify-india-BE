@@ -16,22 +16,10 @@ import base64
 # PROPERTY SELL LISTING SCHEMAS
 # ======================================================
 
-class PropertySellListingBase(BaseModel):
-    module_id: int
-    bhk_type_id: int
-    furnishing_id: int
-    locality_area: str
-    upload_photos: str   # still string, but validated
 
-    @field_validator("upload_photos")
-    @classmethod
-    def validate_base64(cls, value: str):
-        try:
-            base64.b64decode(value, validate=True)
-        except Exception:
-            raise ValueError("upload_photos must be a valid base64 string")
-        return value
-    module_id: int   # NOT NULL in table → required
+class PropertySellListingBase(BaseModel):
+
+    module_id: int
 
     bhk_type_id: Optional[int] = None
     furnishing_id: Optional[int] = None
@@ -82,8 +70,17 @@ class PropertySellListingBase(BaseModel):
     user_id: Optional[int] = None
     is_active: Optional[bool] = True
 
-
-
+    # ✅ Base64 Validator
+    @field_validator("upload_photos")
+    @classmethod
+    def validate_base64(cls, value):
+        if value is None:
+            return value
+        try:
+            base64.b64decode(value, validate=True)
+            return value
+        except Exception:
+            raise ValueError("upload_photos must be a valid base64 string")
 class PropertySellListingCreate(PropertySellListingBase):
     created_by: Optional[int] = None
 

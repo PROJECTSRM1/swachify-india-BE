@@ -2249,7 +2249,7 @@ class PropertySellListing(Base):
     bhk_type_id: Mapped[Optional[int]] = mapped_column(Integer)
     furnishing_id: Mapped[Optional[int]] = mapped_column(Integer)
     locality_area: Mapped[Optional[str]] = mapped_column(String(255))
-    upload_photos: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_photos: Mapped[Optional[str]] = mapped_column(Text)
     property_description: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
