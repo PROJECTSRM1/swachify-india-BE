@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field ,field_validator
 from typing import Optional
 from datetime import datetime, time
 from decimal import Decimal
+import base64
 
 # ======================================================
 # PROPERTY SELL LISTING SCHEMAS
@@ -16,6 +17,20 @@ from decimal import Decimal
 # ======================================================
 
 class PropertySellListingBase(BaseModel):
+    module_id: int
+    bhk_type_id: int
+    furnishing_id: int
+    locality_area: str
+    upload_photos: str   # still string, but validated
+
+    @field_validator("upload_photos")
+    @classmethod
+    def validate_base64(cls, value: str):
+        try:
+            base64.b64decode(value, validate=True)
+        except Exception:
+            raise ValueError("upload_photos must be a valid base64 string")
+        return value
     module_id: int   # NOT NULL in table → required
 
     bhk_type_id: Optional[int] = None
