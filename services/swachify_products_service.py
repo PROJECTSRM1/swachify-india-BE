@@ -5,12 +5,31 @@ from fastapi import HTTPException
 from models.generated_models import ProductRegistration,ProductOrder,UserRegistration,MasterVehicleType
 from schemas.swachify_products_schema import (ProductRegistrationCreate,ProductRegistrationUpdate,ProductOrderCreate)
 
-def create_product_registration(db: Session,payload: ProductRegistrationCreate):
-    product = ProductRegistration(**payload.dict(),created_date=datetime.utcnow())
-    db.add(product)
+def create_product_registration(db: Session, request: ProductRegistrationCreate):
+
+    new_product = ProductRegistration(
+        user_id=request.user_id,
+        category_id=request.category_id,
+        company_name=request.company_name,
+        product_name=request.product_name,
+        address=request.address,
+        product_price=request.product_price,
+        description=request.description,
+        product_image=request.product_image,
+        longitude=request.longitude,
+        latitude=request.latitude,
+
+        # ✅ Auto assign created_by = user_id
+        created_by=request.user_id,
+
+        is_active=request.is_active
+    )
+
+    db.add(new_product)
     db.commit()
-    db.refresh(product)
-    return product
+    db.refresh(new_product)
+
+    return new_product
 
 
 def get_product_registration_by_id(db: Session,product_id: int):
