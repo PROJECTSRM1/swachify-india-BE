@@ -1,11 +1,19 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 from core.database import get_db
 from schemas.swachify_products_schema import (
+    ProductOrderCreate,
+    ProductOrderResponse,
     ProductRegistrationCreate,
     # ProductRegistrationUpdate,
     ProductRegistrationResponse,
+    TaskCreate,
+    TaskResponse,
+    TaskStatusUpdate,
+    TaskCreate,
+    TaskResponse,
+    TaskStatusUpdate,
     ProductOrderCreate,
     ProductOrderResponse
 )
@@ -13,6 +21,11 @@ from services.swachify_products_service import (
     create_product_registration,
     get_product_registration_by_id,
     get_all_product_registrations,
+    update_task_status,
+    create_task,
+    get_task_by_id,
+    update_task_status,
+
     # update_product_registration,
     # delete_product_registration,
     create_product_order,
@@ -46,6 +59,22 @@ def get_products(db: Session = Depends(get_db)):
 # ):
 #     return delete_product_registration(db, product_id, modified_by)
 
+@router.post("/task",response_model=TaskResponse,summary="Create Task")
+def create_task_api(payload: TaskCreate,user_id: int = Query(..., description="Logged-in user ID"),db: Session = Depends(get_db)):
+    return create_task(db=db, payload=payload, created_by=user_id)
+
+@router.put("/{task_id}/status",response_model=TaskResponse,summary="Update Task Status")
+def update_task_status_api(task_id: int,payload: TaskStatusUpdate,user_id: int = Query(..., description="Logged-in user ID"),db: Session = Depends(get_db)):
+    return update_task_status(
+        db=db,
+        task_id=task_id,
+        status_id=payload.status_id,
+        modified_by=user_id
+    )
+
+@router.get("/task/{task_id}", response_model=TaskResponse, summary="Get Task By ID")
+def get_task_by_id_api(task_id: int, db: Session = Depends(get_db)):
+    return get_task_by_id(db=db, task_id=task_id)
 # ===============================
 # POST - CREATE ORDER
 # ===============================

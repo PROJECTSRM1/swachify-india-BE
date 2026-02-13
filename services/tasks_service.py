@@ -11,93 +11,11 @@ from models.generated_models import (
     UserRegistration,
     t_vw_students_get_list
 )
-from schemas.task_schema import (TaskCreate,TaskHistoryCreate)
-
-def create_task(db: Session,payload: TaskCreate,created_by: int):
-    if not db.query(MasterProject).filter(
-        MasterProject.id == payload.project_id,
-        MasterProject.is_active == True
-    ).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid project_id"
-        )
-
-    if not db.query(MasterTaskType).filter(
-        MasterTaskType.id == payload.task_type_id,
-        MasterTaskType.is_active == True
-    ).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid task_type_id"
-        )
-
-    if not db.query(MasterStatus).filter(
-        MasterStatus.id == payload.status_id,
-        MasterStatus.is_active == True
-    ).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid status_id"
-        )
-
-    if not db.query(UserRegistration).filter(
-        UserRegistration.id == payload.user_id,
-        UserRegistration.is_active == True
-    ).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid assignee_user_id"
-        )
-
-    task = Tasks(
-        title=payload.title,
-        description=payload.description,
-        task_type_id=payload.task_type_id,
-        project_id=payload.project_id,
-        user_id=payload.user_id, 
-        reporting_manager_id=payload.reporting_manager_id,
-        task_manager_id=payload.task_manager_id,
-        status_id=payload.status_id,
-        due_date=payload.due_date,
-        efforts_in_days=payload.efforts_in_days,
-        created_by=created_by
-    )
-
-    db.add(task)
-    db.commit()
-    db.refresh(task)
-    return task
+from schemas.task_schema import TaskHistoryCreate
 
 
-def update_task_status(db: Session,task_id: int,status_id: int,modified_by: int):
 
-    task = db.query(Tasks).filter(
-        Tasks.id == task_id,
-        Tasks.is_active == True
-    ).first()
 
-    if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found"
-        )
-
-    if not db.query(MasterStatus).filter(
-        MasterStatus.id == status_id,
-        MasterStatus.is_active == True
-    ).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid status_id"
-        )
-
-    task.status_id = status_id
-    task.modified_by = modified_by
-
-    db.commit()
-    db.refresh(task)
-    return task
 
 def add_task_rating(db: Session,payload: TaskHistoryCreate,created_by: int):
     task = db.query(Tasks).filter(

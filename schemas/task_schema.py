@@ -3,55 +3,6 @@ from typing import Optional, List
 from datetime import date, datetime
 
 
-# =====================================================
-# TASK SCHEMAS
-# =====================================================
-
-class TaskCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-
-    task_type_id: int = Field(..., description="Master task type ID")
-    project_id: int = Field(..., description="Master project ID")
-
-    # Student / Assignee
-    user_id: int = Field(..., description="Student user ID")
-
-    reporting_manager_id: Optional[int] = None
-    task_manager_id: Optional[int] = None
-
-    status_id: int = Field(..., description="Master status ID")
-
-    due_date: Optional[date] = None
-    efforts_in_days: Optional[int] = None
-
-
-class TaskResponse(BaseModel):
-    id: int
-    title: str
-    description: Optional[str]
-
-    task_type_id: int
-    project_id: int
-
-    user_id: int  # assignee
-    reporting_manager_id: Optional[int]
-    task_manager_id: Optional[int]
-
-    status_id: int
-    due_date: Optional[date]
-    efforts_in_days: Optional[int]
-
-    created_by: int
-    created_date: datetime
-    is_active: bool
-
-    class Config:
-        from_attributes = True
-
-
-class TaskStatusUpdate(BaseModel):
-    status_id: int = Field(..., description="New status ID")
 
 
 # =====================================================
