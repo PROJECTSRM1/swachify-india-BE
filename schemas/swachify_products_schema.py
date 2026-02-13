@@ -135,3 +135,38 @@ class ProductOrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ===============================
+# CREATE
+# ===============================
+
+class TaskHistoryCreate(BaseModel):
+    task_id: int
+    user_id: int
+    from_assignee_id: Optional[int] = None
+    to_assignee_id: Optional[int] = None
+    reporting_manager_id: Optional[int] = None
+    comments: Optional[str] = None
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    created_by: Optional[int] = None
+
+
+# ===============================
+# RESPONSE
+# ===============================
+
+class TaskHistoryResponse(BaseModel):
+    id: int
+    task_id: int
+    user_id: int
+    from_assignee_id: Optional[int]
+    to_assignee_id: Optional[int]
+    reporting_manager_id: Optional[int]
+    comments: Optional[str]
+    rating: Optional[int]
+    created_date: Optional[datetime]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attributes = True
