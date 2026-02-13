@@ -89,17 +89,17 @@ class PropertySellListingCreate(PropertySellListingBase):
 
     created_by: Optional[int] = None
 
-    @field_validator("upload_photos")
-    @classmethod
-    def validate_base64(cls, value):
-        if value is None:
-            raise ValueError("upload_photos is required and must be base64")
+    # @field_validator("upload_photos")
+    # @classmethod
+    # def validate_base64(cls, value):
+    #     if value is None:
+    #         raise ValueError("upload_photos is required and must be base64")
 
-        try:
-            base64.b64decode(value, validate=True)
-            return value
-        except Exception:
-            raise ValueError("upload_photos must be a valid base64 string")
+    #     try:
+    #         base64.b64decode(value, validate=True)
+    #         return value
+    #     except Exception:
+    #         raise ValueError("upload_photos must be a valid base64 string")
 
 
 class PropertySellListingUpdate(PropertySellListingBase):
@@ -117,21 +117,21 @@ class PropertySellListingUpdate(PropertySellListingBase):
     #         raise ValueError("upload_photos must be a valid base64 string")
 
 
-class PropertySellListingUpdate(PropertySellListingBase):
+ class PropertySellListingUpdate(PropertySellListingBase):
 
     modified_by: Optional[int] = None
 
-    @field_validator("upload_photos")
-    @classmethod
-    def validate_base64(cls, value):
-        if value is None:
-            return value
+    # @field_validator("upload_photos")
+    # @classmethod
+    # def validate_base64(cls, value):
+    #     if value is None:
+    #         return value
 
-        try:
-            base64.b64decode(value, validate=True)
-            return value
-        except Exception:
-            raise ValueError("upload_photos must be a valid base64 string")
+    #     try:
+    #         base64.b64decode(value, validate=True)
+    #         return value
+    #     except Exception:
+    #         raise ValueError("upload_photos must be a valid base64 string")
 
     # @field_validator("upload_photos")
     # @classmethod
