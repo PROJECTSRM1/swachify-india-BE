@@ -84,3 +84,23 @@ def fetch_filter_property_sell_listing(
         )
 
     }
+    
+@router.delete("/delete/{listing_id}")
+def delete_sell_listing(
+    listing_id: int,
+    db: Session = Depends(get_db)
+):
+    return delete_property_sell_listing(
+        db=db,
+        listing_id=listing_id,
+    )
+      
+@router.delete("/delete/sell/{listing_id}")
+def delete_listing(
+    listing_id: int,
+    db: Session = Depends(get_db)
+):
+    return delete_property_listing(
+        db=db,
+        listing_id=listing_id,
+    )
