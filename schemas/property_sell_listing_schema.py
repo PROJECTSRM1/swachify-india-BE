@@ -117,7 +117,7 @@ class PropertySellListingUpdate(PropertySellListingBase):
     #         raise ValueError("upload_photos must be a valid base64 string")
 
 
-class PropertySellListingUpdate(PropertySellListingBase):
+ class PropertySellListingUpdate(PropertySellListingBase):
 
     modified_by: Optional[int] = None
 
