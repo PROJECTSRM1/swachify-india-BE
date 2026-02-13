@@ -102,7 +102,7 @@ class PropertySellListingCreate(PropertySellListingBase):
             raise ValueError("upload_photos must be a valid base64 string")
 
 
-class PropertySellListingUpdate(PropertySellListingBase):
+#
 
     # @field_validator("upload_photos")
     # @classmethod
