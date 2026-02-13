@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-
-from pydantic import BaseModel,  Field
-=======
 from pydantic import BaseModel,Field
->>>>>>> 0d48c0551498e0a7ef53e922f2f1c4551e4c9ce6
 from typing import Optional
 from datetime import date, datetime
 from decimal import Decimal
@@ -55,7 +50,6 @@ class ProductRegistrationResponse(ProductRegistrationBase):
     class Config:
         from_attributes = True
 
-<<<<<<< HEAD
 # =====================================================
 # TASK SCHEMAS
 # =====================================================
@@ -106,7 +100,6 @@ class TaskResponse(BaseModel):
 class TaskStatusUpdate(BaseModel):
     status_id: int = Field(..., description="New status ID")
     
-=======
 
 # ===============================
 # CREATE ORDER
@@ -142,4 +135,38 @@ class ProductOrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
->>>>>>> 0d48c0551498e0a7ef53e922f2f1c4551e4c9ce6
+
+
+# ===============================
+# CREATE
+# ===============================
+
+class TaskHistoryCreate(BaseModel):
+    task_id: int
+    user_id: int
+    from_assignee_id: Optional[int] = None
+    to_assignee_id: Optional[int] = None
+    reporting_manager_id: Optional[int] = None
+    comments: Optional[str] = None
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    created_by: Optional[int] = None
+
+
+# ===============================
+# RESPONSE
+# ===============================
+
+class TaskHistoryResponse(BaseModel):
+    id: int
+    task_id: int
+    user_id: int
+    from_assignee_id: Optional[int]
+    to_assignee_id: Optional[int]
+    reporting_manager_id: Optional[int]
+    comments: Optional[str]
+    rating: Optional[int]
+    created_date: Optional[datetime]
+    is_active: Optional[bool]
+
+    class Config:
+        from_attributes = True

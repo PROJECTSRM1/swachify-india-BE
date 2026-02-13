@@ -15,7 +15,10 @@ from schemas.swachify_products_schema import (
     TaskResponse,
     TaskStatusUpdate,
     ProductOrderCreate,
-    ProductOrderResponse
+    ProductOrderResponse,
+    TaskHistoryCreate,
+    TaskHistoryResponse
+
 )
 from services.swachify_products_service import (
     create_product_registration,
@@ -25,6 +28,8 @@ from services.swachify_products_service import (
     create_task,
     get_task_by_id,
     update_task_status,
+    create_task_history,
+    get_task_history_by_id,
 
     # update_product_registration,
     # delete_product_registration,
@@ -94,3 +99,21 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
     if not order:
         raise HTTPException(status_code=404, detail="Product order not found")
     return order
+
+
+
+@router.post("/task-history", response_model=TaskHistoryResponse)
+def create_history(payload: TaskHistoryCreate, db: Session = Depends(get_db)):
+    return create_task_history(db, payload)
+
+
+
+
+@router.get("/task-history/{history_id}", response_model=TaskHistoryResponse)
+def get_history(history_id: int, db: Session = Depends(get_db)):
+    history = get_task_history_by_id(db, history_id)
+
+    if not history:
+        raise HTTPException(status_code=404, detail="Task history not found")
+
+    return history
