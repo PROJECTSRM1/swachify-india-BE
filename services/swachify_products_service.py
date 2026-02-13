@@ -5,8 +5,8 @@ from fastapi import HTTPException,status
 from models.generated_models import MasterProject, MasterStatus, MasterTaskType, ProductRegistration, Tasks, UserRegistration
 from schemas.swachify_products_schema import (ProductRegistrationCreate,ProductRegistrationUpdate, TaskCreate)
 from fastapi import HTTPException
-from models.generated_models import ProductRegistration,ProductOrder,UserRegistration,MasterVehicleType
-from schemas.swachify_products_schema import (ProductRegistrationCreate,ProductRegistrationUpdate,ProductOrderCreate)
+from models.generated_models import ProductRegistration,ProductOrder,UserRegistration,MasterVehicleType,TaskHistory,Tasks
+from schemas.swachify_products_schema import (ProductRegistrationCreate,ProductRegistrationUpdate,ProductOrderCreate,TaskHistoryCreate)
 
 def create_product_registration(db: Session, request: ProductRegistrationCreate):
 
@@ -175,9 +175,7 @@ def get_task_by_id(db: Session, task_id: int):
 
     return task
 
-# ===============================
-# CREATE ORDER
-# ===============================
+
 
 def create_product_order(db: Session, order_data: ProductOrderCreate):
 
@@ -226,12 +224,59 @@ def create_product_order(db: Session, order_data: ProductOrderCreate):
     return new_order
 
 
-# ===============================
-# GET ORDER BY ID
-# ===============================
+
 
 def get_product_order_by_id(db: Session, order_id: int) -> Optional[ProductOrder]:
     return db.query(ProductOrder).filter(
         ProductOrder.id == order_id,
         ProductOrder.is_active == True
+    ).first()
+
+
+
+def create_task_history(db: Session, payload: TaskHistoryCreate):
+
+    # ✅ Validate created_by
+    if payload.created_by:
+        creator = db.query(UserRegistration).filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True
+        ).first()
+
+        if not creator:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid created_by. User does not exist."
+            )
+
+    # existing validations
+    task = db.query(Tasks).filter(
+        Tasks.id == payload.task_id
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=400, detail="Invalid task_id")
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.user_id
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid user_id")
+
+    new_entry = TaskHistory(**payload.model_dump())
+
+    db.add(new_entry)
+    db.commit()
+    db.refresh(new_entry)
+
+    return new_entry
+
+
+
+
+def get_task_history_by_id(db: Session, history_id: int) -> Optional[TaskHistory]:
+    return db.query(TaskHistory).filter(
+        TaskHistory.id == history_id,
+        TaskHistory.is_active == True
     ).first()
