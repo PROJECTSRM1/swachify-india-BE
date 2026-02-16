@@ -52,18 +52,12 @@ class ProductRegistrationResponse(ProductRegistrationBase):
     class Config:
         from_attributes = True
 
-# =====================================================
-# TASK SCHEMAS
-# =====================================================
-
 class TaskCreate(BaseModel):
     title: str
     description: str
 
     task_type_id: int = Field(..., description="Master task type ID")
     project_id: int = Field(..., description="Master project ID")
-
-    # Student / Assignee
     user_id: int = Field(..., description="Student user ID")
 
     reporting_manager_id: Optional[int] = None
@@ -101,11 +95,6 @@ class TaskResponse(BaseModel):
 
 class TaskStatusUpdate(BaseModel):
     status_id: int = Field(..., description="New status ID")
-    
-
-# ===============================
-# CREATE ORDER
-# ===============================
 
 class ProductOrderCreate(BaseModel):
     user_id: int
@@ -117,10 +106,6 @@ class ProductOrderCreate(BaseModel):
     vehicle_type_id: Optional[int] = None
     created_by: Optional[int] = None
 
-
-# ===============================
-# RESPONSE SCHEMA
-# ===============================
 
 class ProductOrderResponse(BaseModel):
     id: int
