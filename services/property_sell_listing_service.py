@@ -16,7 +16,7 @@ from schemas.property_sell_listing_schema import (
 
 def create_property_sell_listing(db: Session,payload: PropertySellListingCreate):
     listing = PropertySellListing(
-        **payload.dict(exclude_unset=True),
+        **payload.model_dump(exclude_unset=True),
         created_date=datetime.utcnow()
     )
     db.add(listing)
@@ -67,7 +67,7 @@ def update_property_sell_listing(
 ):
     listing = get_property_sell_listing_by_id(db, listing_id)
 
-    data = payload.dict(exclude_unset=True)
+    data = payload.model_dump(exclude_unset=True)
     if not data:
         raise HTTPException(status_code=400, detail="No fields to update")
 
