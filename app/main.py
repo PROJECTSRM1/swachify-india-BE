@@ -6,10 +6,10 @@ from models import generated_models
 from core.database import Base, engine
 
 from routes.user_registration_route import router as user_registration_router
-from routes.dashboard_route import router as dashboard_router
+# from routes.dashboard_route import router as dashboard_router
 from routes.allocation_route import router as allocation_router
 from routes.admin_route import router as admin_router
-from routes.freelancer_route import router as freelancer_router
+# from routes.freelancer_route import router as freelancer_router
 from routes.master_module_route import router as master_module_router
 from routes.payment_routes import router as payment_router
 from routes.task_router import router as task_router
@@ -34,10 +34,10 @@ def startup_event():
     print("Swachify API started successfully!")
 
 app.include_router(user_registration_router)
-app.include_router(dashboard_router)
+# app.include_router(dashboard_router)
 app.include_router(allocation_router)
 app.include_router(admin_router)
-app.include_router(freelancer_router)
+# app.include_router(freelancer_router)
 app.include_router(master_module_router)
 app.include_router(task_router)
 app.include_router(student_education_router)
@@ -47,8 +47,8 @@ app.include_router(institution_router)
 app.include_router(institute_management_router)
 app.include_router(healthcare_router)
 app.include_router(property_sell_listing_router)
+app.include_router(swachify_products_router)
 app.include_router(raw_material_router)
 app.include_router(payment_router)
 app.include_router(application_router)
-app.include_router(swachify_products_router)
 app.include_router(student_profile_router)
