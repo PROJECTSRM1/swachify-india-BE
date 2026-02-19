@@ -40,6 +40,18 @@ def create_sell_listing(payload: PropertySellListingCreate,db: Session = Depends
 def get_sell_listing_all(db: Session = Depends(get_db)):
     return get_all_property_sell_listings(db)
 
+# @router.delete("/delete/sell/{listing_id}")
+# def delete_sell_listing(
+#     listing_id: int,
+#     modified_by: int,
+#     db: Session = Depends(get_db)
+# ):
+#     return delete_property_sell_listing(
+#         db=db,
+#         listing_id=listing_id,
+#         modified_by=modified_by
+#     )
+
 # @router.get("/sell-listing/{listing_id}",response_model=PropertySellListingResponse)
 # def get_sell_listing_by_id(listing_id: int,db: Session = Depends(get_db)):
 #     return get_property_sell_listing_by_id(db, listing_id)
@@ -84,3 +96,15 @@ def fetch_filter_property_sell_listing(
         )
 
     }
+
+# @router.delete("/delete/{listing_id}")
+# def delete_listing(
+#     listing_id: int,
+#     modified_by: int,
+#     db: Session = Depends(get_db)
+# ):
+#     return delete_property_listing(
+#         db=db,
+#         listing_id=listing_id,
+#         modified_by=modified_by
+#     )

@@ -253,6 +253,3 @@ def get_internships(
         work_type_id=work_type_id
     )
 
-
-
-
