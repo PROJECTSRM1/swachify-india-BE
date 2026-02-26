@@ -87,6 +87,39 @@ def create_institution_branch(db: Session,payload: InstitutionBranchCreate):
     db.refresh(branch)
     return branch
 
+from sqlalchemy import text
+
+
+def get_trending_institutions_service(
+    db: Session,
+    education_level: int,
+    limit: int,
+    offset: int
+):
+    result = db.execute(
+        text(
+            """
+            SELECT * 
+            FROM fn_get_trending_institutions(
+                :education_level,
+                :limit,
+                :offset
+            )
+            """
+        ),
+        {
+            "education_level": education_level,
+            "limit": limit,
+            "offset": offset
+        }
+    )
+
+    rows = result.fetchall()
+
+    # Convert to dict list
+    institutions = [dict(row._mapping) for row in rows]
+
+    return institutions
 
 def get_branches_by_institution(db: Session,institution_id: int):
     return db.query(InstitutionBranch).filter(
