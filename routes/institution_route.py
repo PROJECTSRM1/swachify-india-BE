@@ -152,7 +152,7 @@ def institution_login(
         "access_token": access_token
     }
 
-@router.get("/trending")
+@router.get("/trending_institutions")
 def get_trending_institutions(
     education_level: int = Query(-1, description="Pass -1 for all"),
     limit: int = Query(10, ge=1),

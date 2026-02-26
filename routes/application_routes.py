@@ -28,7 +28,7 @@ def add_job_opening(payload: JobOpeningCreateSchema,db: Session = Depends(get_db
     return create_job_opening(db, payload)
 
 @router.get("")
-def get_internships(
+def get_application_internships(
     create_job_id: int | None = Query(None, description="Fetch single internship by job id"),
     category_id: int | None = Query(None, description="Filter internships by category id"),
     location_type_id: int | None = Query(None, description="Filter internships by location type id"),
