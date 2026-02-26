@@ -112,6 +112,7 @@ def create_task(db: Session,payload: TaskCreate,created_by: int):
         title=payload.title,
         description=payload.description,
         task_type_id=payload.task_type_id,
+        
         project_id=payload.project_id,
         user_id=payload.user_id, 
         reporting_manager_id=payload.reporting_manager_id,
