@@ -1,6 +1,7 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from models.generated_models import PartnerUsers, PartnerRegistration, GeneralEducationRegistration
-from schemas.partner_registration_schema import (PartnerUserCreate,PartnerRegistrationCreate,GeneralEducationCreate)
+from models.generated_models import CompaniesRegistration, DoctorRegistration, HospitalRegistration, InstitutionSchoolCollegeRegistration, LabRegistration, MedicalStoreRegistration, PartnerUsers, PartnerRegistration, GeneralEducationRegistration, StudentRegistration, TrainingRegistration, UserRegistration
+from schemas.partner_registration_schema import (CompaniesRegistrationCreate, DoctorRegistrationCreate, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, PartnerUserCreate,PartnerRegistrationCreate,GeneralEducationCreate, StudentRegistrationCreate, TrainingRegistrationCreate)
 
 
 def create_partner_user(db: Session, user: PartnerUserCreate):
@@ -62,3 +63,202 @@ def create_general_education(db: Session, data: GeneralEducationCreate):
     db.refresh(education)
 
     return education
+
+
+
+def create_institution_school_college_registration(
+    db: Session,
+    payload: InstitutionSchoolCollegeRegistrationCreate
+):
+
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. User not found"
+        )
+
+    obj = InstitutionSchoolCollegeRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+
+def create_student_registration(
+    db: Session,
+    payload: StudentRegistrationCreate
+):
+
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. User not found"
+        )
+
+    obj = StudentRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+def create_companies_registration(
+    db: Session,
+    payload: CompaniesRegistrationCreate
+):
+
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. User not found"
+        )
+
+    obj = CompaniesRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+def create_training_registration(
+    db: Session,
+    payload: TrainingRegistrationCreate
+):
+
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. User not found"
+        )
+
+    obj = TrainingRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+
+# ---------------- HOSPITAL ----------------
+def create_hospital_registration(db: Session, payload: HospitalRegistrationCreate):
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid created_by user")
+
+    obj = HospitalRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+# ---------------- LAB ----------------
+def create_lab_registration(db: Session, payload: LabRegistrationCreate):
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid created_by user")
+
+    obj = LabRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+# ---------------- MEDICAL STORE ----------------
+def create_medical_store_registration(db: Session, payload: MedicalStoreRegistrationCreate):
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid created_by user")
+
+    obj = MedicalStoreRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+# ---------------- DOCTOR ----------------
+def create_doctor_registration(db: Session, payload: DoctorRegistrationCreate):
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid created_by user")
+
+    obj = DoctorRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
