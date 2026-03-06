@@ -14,13 +14,9 @@ from models.generated_models import (
     AvailableLabs,
     AvailablePharmacies,
     MasterHospital,
-    UserRegistration,
-    HospitalRegistration,
-    LabRegistration,
-    MedicalStoreRegistration,
-    DoctorRegistration,
+    UserRegistration
 )
-from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema, AppointmentResponseSchema, AvailableLabCreate,DoctorCreateSchema, IdNameSchema,HospitalRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, DoctorRegistrationCreate
+from schemas.healthcare_schema import AmbulanceBookingCreateSchema, AppointmentCreateSchema, AppointmentResponseSchema, AvailableLabCreate,DoctorCreateSchema, IdNameSchema
 from schemas.healthcare_schema import PaymentCreateSchema,AvailablePharmacyCreate
 from models.generated_models import Payments, ServiceRequests,AvailablePharmacies
 
@@ -674,82 +670,3 @@ def assign_assistant_to_appointment(
     db.refresh(appointment)
 
     return appointment
-
-# ---------------- HOSPITAL ----------------
-def create_hospital_registration(db: Session, payload: HospitalRegistrationCreate):
-
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid created_by user")
-
-    obj = HospitalRegistration(**payload.model_dump())
-
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
-
-    return obj
-
-
-# ---------------- LAB ----------------
-def create_lab_registration(db: Session, payload: LabRegistrationCreate):
-
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid created_by user")
-
-    obj = LabRegistration(**payload.model_dump())
-
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
-
-    return obj
-
-
-# ---------------- MEDICAL STORE ----------------
-def create_medical_store_registration(db: Session, payload: MedicalStoreRegistrationCreate):
-
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid created_by user")
-
-    obj = MedicalStoreRegistration(**payload.model_dump())
-
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
-
-    return obj
-
-
-# ---------------- DOCTOR ----------------
-def create_doctor_registration(db: Session, payload: DoctorRegistrationCreate):
-
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid created_by user")
-
-    obj = DoctorRegistration(**payload.model_dump())
-
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
-
-    return obj

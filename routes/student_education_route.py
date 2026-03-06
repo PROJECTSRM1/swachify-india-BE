@@ -5,11 +5,7 @@ from core.database import get_db
 from schemas.student_education_schema import (
     StudentListResponse,
     StudentProfileResponse,
-    StudentEducationFullCreate,
-    InstitutionSchoolCollegeRegistrationCreate,
-    StudentRegistrationCreate,
-    CompaniesRegistrationCreate,
-    TrainingRegistrationCreate
+    StudentEducationFullCreate
     )
 from schemas.student_family_schema import StudentFamilyMemberCreate, StudentFamilyMemberResponse, StudentFamilyMemberUpdate
 from schemas.student_attendance_schema import (StudentAttendanceCreate,StudentAttendanceResponse,)
@@ -21,11 +17,7 @@ from services.student_education_service import (
     get_recent_joiners_service,
     update_student_noc,
     get_students_list_service,
-    get_top_performers_service,
-    create_institution_school_college_registration,
-    create_student_registration,
-    create_companies_registration,
-    create_training_registration
+    get_top_performers_service
 )
 from services.student_attendance_service import upsert_student_attendance
 from services.student_family_service import add_family_member_service, hard_delete_family_member_service, list_family_members_service, update_family_member_service
@@ -266,34 +258,3 @@ def get_internships(
     )
 
 
-
-@router.post("/institution-school-college")
-def create_institution_school_college_api(
-    payload: InstitutionSchoolCollegeRegistrationCreate,
-    db: Session = Depends(get_db)
-):
-    return create_institution_school_college_registration(db, payload)
-
-
-@router.post("/student-registration")
-def create_student_registration_api(
-    payload: StudentRegistrationCreate,
-    db: Session = Depends(get_db)
-):
-    return create_student_registration(db, payload)
-
-@router.post("/companies-registration")
-def create_companies_registration_api(
-    payload: CompaniesRegistrationCreate,
-    db: Session = Depends(get_db)
-):
-    return create_companies_registration(db, payload)
-
-
-
-@router.post("/training-registration")
-def create_training_registration_api(
-    payload: TrainingRegistrationCreate,
-    db: Session = Depends(get_db)
-):
-    return create_training_registration(db, payload)
