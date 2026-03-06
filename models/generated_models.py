@@ -1264,6 +1264,25 @@ class MasterWorkType(Base):
     companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='job_type')
 
 
+class PartnerUsers(Base):
+    __tablename__ = 'partner_users'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_partner_users_id'),
+        UniqueConstraint('email', name='uq_partner_users_email')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    password: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    partner_registration: Mapped[list['PartnerRegistration']] = relationship('PartnerRegistration', back_populates='user')
+
+
 class PayrollPeriod(Base):
     __tablename__ = 'payroll_period'
     __table_args__ = (
@@ -2035,23 +2054,24 @@ class PartnerRegistration(Base):
     __table_args__ = (
         ForeignKeyConstraint(['module_id'], ['master_module.id'], name='fk_partner_registration_module_id'),
         ForeignKeyConstraint(['service_module_category_id'], ['master_service_module_category.id'], name='fk_partner_registration_service_module_category_id'),
-        PrimaryKeyConstraint('id', name='pk_partner_registration_id')
+        ForeignKeyConstraint(['user_id'], ['partner_users.id'], name='fk_partner_registration_partner_user_id'),
+        PrimaryKeyConstraint('id', name='pk_partner_registration_id'),
+        UniqueConstraint('user_id', 'module_id', 'service_module_category_id', name='uq_user_module_category')
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     module_id: Mapped[int] = mapped_column(Integer, nullable=False)
     service_module_category_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    email: Mapped[str] = mapped_column(String(255), nullable=False)
-    password: Mapped[str] = mapped_column(String(500), nullable=False)
-    phone_number: Mapped[str] = mapped_column(String(255), nullable=False)
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    user_id: Mapped[Optional[int]] = mapped_column(BigInteger)
 
     module: Mapped['MasterModule'] = relationship('MasterModule', back_populates='partner_registration')
     service_module_category: Mapped['MasterServiceModuleCategory'] = relationship('MasterServiceModuleCategory', back_populates='partner_registration')
+    user: Mapped[Optional['PartnerUsers']] = relationship('PartnerUsers', back_populates='partner_registration')
     companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='partner_registration')
     doctor_registration: Mapped[list['DoctorRegistration']] = relationship('DoctorRegistration', back_populates='partner_registration')
     general_education_registration: Mapped[list['GeneralEducationRegistration']] = relationship('GeneralEducationRegistration', back_populates='partner_registration')
