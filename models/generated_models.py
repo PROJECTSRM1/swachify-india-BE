@@ -274,6 +274,19 @@ class MasterBhkType(Base):
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='bhk_type')
 
 
+class MasterBoardAffiliation(Base):
+    __tablename__ = 'master_board_affiliation'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_board_affiliation_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    board_affiliation: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    institution_school_college_registration: Mapped[list['InstitutionSchoolCollegeRegistration']] = relationship('InstitutionSchoolCollegeRegistration', back_populates='board_affiliation')
+
+
 class MasterBoundaryType(Base):
     __tablename__ = 'master_boundary_type'
     __table_args__ = (
@@ -284,6 +297,19 @@ class MasterBoundaryType(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     boundary_type: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+
+class MasterBuildingType(Base):
+    __tablename__ = 'master_building_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_building_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    building_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    general_education_registration: Mapped[list['GeneralEducationRegistration']] = relationship('GeneralEducationRegistration', back_populates='building_type')
 
 
 class MasterBusinessType(Base):
@@ -297,6 +323,19 @@ class MasterBusinessType(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='business_type')
+
+
+class MasterCastCategory(Base):
+    __tablename__ = 'master_cast_category'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_cast_category_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    cast_category_name: Mapped[Optional[str]] = mapped_column(String(100))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    student_registration: Mapped[list['StudentRegistration']] = relationship('StudentRegistration', back_populates='cast_category')
 
 
 class MasterCategory(Base):
@@ -340,6 +379,19 @@ class MasterCompanySize(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='company_size')
+
+
+class MasterCompanyType(Base):
+    __tablename__ = 'master_company_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_company_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_type: Mapped[Optional[str]] = mapped_column(String(150))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='company_type')
 
 
 class MasterConsultationType(Base):
@@ -480,6 +532,21 @@ class MasterHealthCategories(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
 
+class MasterHighestQualification(Base):
+    __tablename__ = 'master_highest_qualification'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_highest_qualification_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    highest_qualification: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='minimun_education')
+    student_registration: Mapped[list['StudentRegistration']] = relationship('StudentRegistration', back_populates='highest_qualification')
+    training_registration: Mapped[list['TrainingRegistration']] = relationship('TrainingRegistration', back_populates='min_qualification_required')
+
+
 class MasterHospital(Base):
     __tablename__ = 'master_hospital'
     __table_args__ = (
@@ -505,6 +572,19 @@ class MasterHospital(Base):
     master_assistants: Mapped[list['MasterAssistants']] = relationship('MasterAssistants', back_populates='hospital')
     doctor_profile: Mapped[list['DoctorProfile']] = relationship('DoctorProfile', back_populates='hospital')
     appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='hospital')
+
+
+class MasterHospitalType(Base):
+    __tablename__ = 'master_hospital_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_hospital_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    hospital_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    hospital_registration: Mapped[list['HospitalRegistration']] = relationship('HospitalRegistration', back_populates='hospital_type')
 
 
 class MasterHostelServices(Base):
@@ -569,6 +649,7 @@ class MasterInstituteType(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     institution_registration: Mapped[list['InstitutionRegistration']] = relationship('InstitutionRegistration', back_populates='institution_type')
+    institution_school_college_registration: Mapped[list['InstitutionSchoolCollegeRegistration']] = relationship('InstitutionSchoolCollegeRegistration', back_populates='institution_type')
 
 
 class MasterInternshipDuration(Base):
@@ -612,6 +693,19 @@ class MasterJob(Base):
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='job')
 
 
+class MasterJobSector(Base):
+    __tablename__ = 'master_job_sector'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_job_sector_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    job_sector: Mapped[Optional[str]] = mapped_column(String(200))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='job_sector')
+
+
 class MasterJobSkill(Base):
     __tablename__ = 'master_job_skill'
     __table_args__ = (
@@ -639,6 +733,19 @@ class MasterLabSpecialization(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     available_labs: Mapped[list['AvailableLabs']] = relationship('AvailableLabs', back_populates='specialization')
+
+
+class MasterLabType(Base):
+    __tablename__ = 'master_lab_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_lab_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    lab_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    lab_registration: Mapped[list['LabRegistration']] = relationship('LabRegistration', back_populates='lab_type')
 
 
 class MasterLandType(Base):
@@ -692,6 +799,35 @@ class MasterLocationType(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='location_type')
+    companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='work_mode')
+    training_registration: Mapped[list['TrainingRegistration']] = relationship('TrainingRegistration', back_populates='training_mode')
+
+
+class MasterManagementType(Base):
+    __tablename__ = 'master_management_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_management_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    management_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    hospital_registration: Mapped[list['HospitalRegistration']] = relationship('HospitalRegistration', back_populates='management_type')
+    institution_school_college_registration: Mapped[list['InstitutionSchoolCollegeRegistration']] = relationship('InstitutionSchoolCollegeRegistration', back_populates='management_type')
+
+
+class MasterMediumOfStudy(Base):
+    __tablename__ = 'master_medium_of_study'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_medium_of_study_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    medium_of_study: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    student_registration: Mapped[list['StudentRegistration']] = relationship('StudentRegistration', back_populates='study_medium')
 
 
 class MasterMobileCode(Base):
@@ -720,10 +856,25 @@ class MasterModule(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     home_service_booking: Mapped[list['HomeServiceBooking']] = relationship('HomeServiceBooking', back_populates='module')
+    master_service_module_category: Mapped[list['MasterServiceModuleCategory']] = relationship('MasterServiceModuleCategory', back_populates='module')
     master_sub_module: Mapped[list['MasterSubModule']] = relationship('MasterSubModule', back_populates='module')
     raw_material_details: Mapped[list['RawMaterialDetails']] = relationship('RawMaterialDetails', back_populates='module')
+    partner_registration: Mapped[list['PartnerRegistration']] = relationship('PartnerRegistration', back_populates='module')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='module')
     user_services: Mapped[list['UserServices']] = relationship('UserServices', back_populates='module')
+
+
+class MasterNaacGrade(Base):
+    __tablename__ = 'master_naac_grade'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_naac_grade_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    naac_grade: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    institution_school_college_registration: Mapped[list['InstitutionSchoolCollegeRegistration']] = relationship('InstitutionSchoolCollegeRegistration', back_populates='naac_grade')
 
 
 class MasterOwnershipType(Base):
@@ -760,6 +911,19 @@ class MasterPostedBy(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     posted_by: Mapped[Optional[str]] = mapped_column(String(100))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+
+class MasterPracticeType(Base):
+    __tablename__ = 'master_practice_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_practice_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    practice_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    doctor_registration: Mapped[list['DoctorRegistration']] = relationship('DoctorRegistration', back_populates='practice_type')
 
 
 class MasterPreferredTenants(Base):
@@ -841,6 +1005,19 @@ class MasterRegistrationStatus(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='registration_status')
+
+
+class MasterRegistrationType(Base):
+    __tablename__ = 'master_registration_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_registration_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    registration_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    general_education_registration: Mapped[list['GeneralEducationRegistration']] = relationship('GeneralEducationRegistration', back_populates='registration_type')
 
 
 class MasterRelation(Base):
@@ -975,6 +1152,19 @@ class MasterStipendType(Base):
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='stipend_type')
 
 
+class MasterStoreType(Base):
+    __tablename__ = 'master_store_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_store_type_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    store_type: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    medical_store_registration: Mapped[list['MedicalStoreRegistration']] = relationship('MedicalStoreRegistration', back_populates='store_type')
+
+
 class MasterTaskType(Base):
     __tablename__ = 'master_task_type'
     __table_args__ = (
@@ -989,6 +1179,19 @@ class MasterTaskType(Base):
     tasks: Mapped[list['Tasks']] = relationship('Tasks', back_populates='task_type')
 
 
+class MasterTechStackCategory(Base):
+    __tablename__ = 'master_tech_stack_category'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='master_tech_stack_category_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tech_stack_category: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='tech_stack_category')
+
+
 class MasterTimeSlot(Base):
     __tablename__ = 'master_time_slot'
     __table_args__ = (
@@ -1001,6 +1204,20 @@ class MasterTimeSlot(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     home_service_booking: Mapped[list['HomeServiceBooking']] = relationship('HomeServiceBooking', back_populates='time_slot')
+
+
+class MasterTrainingType(Base):
+    __tablename__ = 'master_training_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_training_side_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    training_side: Mapped[Optional[str]] = mapped_column(String(150))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    master_course_exam_category: Mapped[list['MasterCourseExamCategory']] = relationship('MasterCourseExamCategory', back_populates='training_type')
+    training_registration: Mapped[list['TrainingRegistration']] = relationship('TrainingRegistration', back_populates='training_type')
 
 
 class MasterVehicleType(Base):
@@ -1044,6 +1261,26 @@ class MasterWorkType(Base):
 
     job_openings: Mapped[list['JobOpenings']] = relationship('JobOpenings', back_populates='work_type')
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='work_type')
+    companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='job_type')
+
+
+class PartnerUsers(Base):
+    __tablename__ = 'partner_users'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_partner_users_id'),
+        UniqueConstraint('email', name='uq_partner_users_email')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    password: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    partner_registration: Mapped[list['PartnerRegistration']] = relationship('PartnerRegistration', back_populates='user')
 
 
 class PayrollPeriod(Base):
@@ -1465,6 +1702,22 @@ class MasterAssistants(Base):
     appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='assistants')
 
 
+class MasterCourseExamCategory(Base):
+    __tablename__ = 'master_course_exam_category'
+    __table_args__ = (
+        ForeignKeyConstraint(['training_type_id'], ['master_training_type.id'], name='fk_master_course_exam_category_training_type'),
+        PrimaryKeyConstraint('id', name='pk_master_course_exam_category_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    course_exam_category: Mapped[Optional[str]] = mapped_column(String(255))
+    training_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    training_type: Mapped[Optional['MasterTrainingType']] = relationship('MasterTrainingType', back_populates='master_course_exam_category')
+    training_registration: Mapped[list['TrainingRegistration']] = relationship('TrainingRegistration', back_populates='course_exam_category')
+
+
 class MasterDesignation(Base):
     __tablename__ = 'master_designation'
     __table_args__ = (
@@ -1519,6 +1772,22 @@ class MasterPropertyTypeFacilities(Base):
     facility: Mapped['MasterFacility'] = relationship('MasterFacility', back_populates='master_property_type_facilities')
     property_type: Mapped['MasterPropertyType'] = relationship('MasterPropertyType', back_populates='master_property_type_facilities')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='property_type_facilities')
+
+
+class MasterServiceModuleCategory(Base):
+    __tablename__ = 'master_service_module_category'
+    __table_args__ = (
+        ForeignKeyConstraint(['module_id'], ['master_module.id'], name='fk_master_service_module_category_module_id'),
+        PrimaryKeyConstraint('id', name='pk_master_service_module_category_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    module_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    service_module_category: Mapped[Optional[str]] = mapped_column(String(255))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    module: Mapped['MasterModule'] = relationship('MasterModule', back_populates='master_service_module_category')
+    partner_registration: Mapped[list['PartnerRegistration']] = relationship('PartnerRegistration', back_populates='service_module_category')
 
 
 class MasterSubModule(Base):
@@ -1664,6 +1933,7 @@ class StaffPayslip(Base):
 class InstitutionBranch(Base):
     __tablename__ = 'institution_branch'
     __table_args__ = (
+        CheckConstraint('rating >= 1::numeric AND rating <= 5::numeric', name='ck_institution_branch_rating'),
         ForeignKeyConstraint(['institution_id'], ['institution_registration.id'], name='fk_institution_branch_institution_id'),
         PrimaryKeyConstraint('id', name='pk_institution_branch_id'),
         UniqueConstraint('institution_id', 'branch_code', name='uk_institution_branch'),
@@ -1683,6 +1953,8 @@ class InstitutionBranch(Base):
     student_count: Mapped[Optional[int]] = mapped_column(Integer)
     status: Mapped[Optional[str]] = mapped_column(String(20), server_default=text("'ACTIVE'::character varying"))
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    seats_available: Mapped[Optional[int]] = mapped_column(Integer)
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(2, 1))
 
     institution: Mapped['InstitutionRegistration'] = relationship('InstitutionRegistration', back_populates='institution_branch')
     enrollment_status: Mapped[list['EnrollmentStatus']] = relationship('EnrollmentStatus', back_populates='institute')
@@ -1775,6 +2047,40 @@ class OtpVerification(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     institution: Mapped['InstitutionRegistration'] = relationship('InstitutionRegistration', back_populates='otp_verification')
+
+
+class PartnerRegistration(Base):
+    __tablename__ = 'partner_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['module_id'], ['master_module.id'], name='fk_partner_registration_module_id'),
+        ForeignKeyConstraint(['service_module_category_id'], ['master_service_module_category.id'], name='fk_partner_registration_service_module_category_id'),
+        ForeignKeyConstraint(['user_id'], ['partner_users.id'], name='fk_partner_registration_partner_user_id'),
+        PrimaryKeyConstraint('id', name='pk_partner_registration_id'),
+        UniqueConstraint('user_id', 'module_id', 'service_module_category_id', name='uq_user_module_category')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    module_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    service_module_category_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    user_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+
+    module: Mapped['MasterModule'] = relationship('MasterModule', back_populates='partner_registration')
+    service_module_category: Mapped['MasterServiceModuleCategory'] = relationship('MasterServiceModuleCategory', back_populates='partner_registration')
+    user: Mapped[Optional['PartnerUsers']] = relationship('PartnerUsers', back_populates='partner_registration')
+    companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='partner_registration')
+    doctor_registration: Mapped[list['DoctorRegistration']] = relationship('DoctorRegistration', back_populates='partner_registration')
+    general_education_registration: Mapped[list['GeneralEducationRegistration']] = relationship('GeneralEducationRegistration', back_populates='partner_registration')
+    hospital_registration: Mapped[list['HospitalRegistration']] = relationship('HospitalRegistration', back_populates='partner_registration')
+    institution_school_college_registration: Mapped[list['InstitutionSchoolCollegeRegistration']] = relationship('InstitutionSchoolCollegeRegistration', back_populates='partner_registration')
+    lab_registration: Mapped[list['LabRegistration']] = relationship('LabRegistration', back_populates='partner_registration')
+    medical_store_registration: Mapped[list['MedicalStoreRegistration']] = relationship('MedicalStoreRegistration', back_populates='partner_registration')
+    student_registration: Mapped[list['StudentRegistration']] = relationship('StudentRegistration', back_populates='partner_registration')
+    training_registration: Mapped[list['TrainingRegistration']] = relationship('TrainingRegistration', back_populates='partner_registration')
 
 
 class UserRegistration(Base):
@@ -1910,6 +2216,74 @@ class UserRegistration(Base):
     payments: Mapped[list['Payments']] = relationship('Payments', back_populates='user')
 
 
+class CompaniesRegistration(Base):
+    __tablename__ = 'companies_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['company_type_id'], ['master_company_type.id'], name='fk_companies_registration_company_type_id'),
+        ForeignKeyConstraint(['job_sector_id'], ['master_job_sector.id'], name='fk_companies_registration_job_sector_id'),
+        ForeignKeyConstraint(['job_type_id'], ['master_work_type.id'], name='fk_companies_registration_job_type_id'),
+        ForeignKeyConstraint(['minimun_education_id'], ['master_highest_qualification.id'], name='fk_companies_registration_minimun_education_id'),
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_companies_registration_partner_registration_id'),
+        ForeignKeyConstraint(['tech_stack_category_id'], ['master_tech_stack_category.id'], name='fk_companies_registration_tech_stack_category_id'),
+        ForeignKeyConstraint(['work_mode_id'], ['master_location_type.id'], name='fk_companies_registration_work_mode_id'),
+        PrimaryKeyConstraint('id', name='pk_companies_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    company_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    company_registration_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_email: Mapped[str] = mapped_column(String(150), nullable=False)
+    hr_contact_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    company_hq_address: Mapped[str] = mapped_column(String(255), nullable=False)
+    company_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    upload_gst_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    job_sector_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    job_title: Mapped[str] = mapped_column(String(255), nullable=False)
+    job_description: Mapped[str] = mapped_column(String(255), nullable=False)
+    job_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    work_mode_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    job_locations: Mapped[dict] = mapped_column(JSON, nullable=False)
+    no_of_vacancies: Mapped[int] = mapped_column(Integer, nullable=False)
+    salary_ctc_range: Mapped[str] = mapped_column(String(255), nullable=False)
+    application_deadline: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    minimun_education_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    department_ministry_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    pay_scale: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    selection_process: Mapped[str] = mapped_column(String(255), nullable=False)
+    company_website_url: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_company_logo: Mapped[Optional[str]] = mapped_column(String(500))
+    required_experience: Mapped[Optional[str]] = mapped_column(String(255))
+    minimum_percentage_required: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    age_limit: Mapped[Optional[str]] = mapped_column(String(150))
+    cast_category_preferences: Mapped[Optional[dict]] = mapped_column(JSON)
+    required_skills: Mapped[Optional[dict]] = mapped_column(JSON)
+    exam_notification_number: Mapped[Optional[str]] = mapped_column(String(255))
+    exam_date_announced: Mapped[Optional[bool]] = mapped_column(Boolean)
+    exam_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    official_notification_url: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_notification_pdf: Mapped[Optional[str]] = mapped_column(String(500))
+    tech_stack_category_id: Mapped[Optional[int]] = mapped_column(Integer)
+    preferred_tech_stack: Mapped[Optional[str]] = mapped_column(String(255))
+    service_agreement_required: Mapped[Optional[bool]] = mapped_column(Boolean)
+    stock_options_available: Mapped[Optional[bool]] = mapped_column(Boolean)
+    joining_timeline: Mapped[Optional[str]] = mapped_column(String(255))
+    benefits_perks: Mapped[Optional[dict]] = mapped_column(JSON)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    company_type: Mapped['MasterCompanyType'] = relationship('MasterCompanyType', back_populates='companies_registration')
+    job_sector: Mapped['MasterJobSector'] = relationship('MasterJobSector', back_populates='companies_registration')
+    job_type: Mapped['MasterWorkType'] = relationship('MasterWorkType', back_populates='companies_registration')
+    minimun_education: Mapped['MasterHighestQualification'] = relationship('MasterHighestQualification', back_populates='companies_registration')
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='companies_registration')
+    tech_stack_category: Mapped[Optional['MasterTechStackCategory']] = relationship('MasterTechStackCategory', back_populates='companies_registration')
+    work_mode: Mapped['MasterLocationType'] = relationship('MasterLocationType', back_populates='companies_registration')
+
+
 class DoctorProfile(Base):
     __tablename__ = 'doctor_profile'
     __table_args__ = (
@@ -1945,6 +2319,57 @@ class DoctorProfile(Base):
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='doctor_profile')
     service_requests: Mapped[list['ServiceRequests']] = relationship('ServiceRequests', back_populates='doctor')
     appointments: Mapped[list['Appointments']] = relationship('Appointments', back_populates='doctor')
+
+
+class DoctorRegistration(Base):
+    __tablename__ = 'doctor_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_doctor_registration_partner_registration_id'),
+        ForeignKeyConstraint(['practice_type_id'], ['master_practice_type.id'], name='fk_doctor_registration_practice_type_id'),
+        PrimaryKeyConstraint('id', name='pk_doctor_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    doctor_clinic_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_clinic_photo: Mapped[str] = mapped_column(String(500), nullable=False)
+    doctor_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    specialization: Mapped[str] = mapped_column(String(255), nullable=False)
+    qualification: Mapped[str] = mapped_column(String(255), nullable=False)
+    experience_years: Mapped[int] = mapped_column(Integer, nullable=False)
+    practice_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    establishment_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    address: Mapped[str] = mapped_column(String(255), nullable=False)
+    city: Mapped[str] = mapped_column(String(255), nullable=False)
+    state: Mapped[str] = mapped_column(String(255), nullable=False)
+    pincode: Mapped[int] = mapped_column(Integer, nullable=False)
+    registration_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    doctor_registration: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_registration_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_owner_id_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_owner_address_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_doctor_registration: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_medical_degree_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_specialization_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    official_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    primary_phone_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    consultation_timings: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_mobile_for_otp: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_email_for_otp: Mapped[str] = mapped_column(String(255), nullable=False)
+    fire_noc_obtained: Mapped[Optional[bool]] = mapped_column(Boolean)
+    gst_registered: Mapped[Optional[bool]] = mapped_column(Boolean)
+    alternate_phone_number: Mapped[Optional[str]] = mapped_column(String(255))
+    website_url: Mapped[Optional[str]] = mapped_column(String(500))
+    consultation_fee: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    online_consulation_available: Mapped[Optional[bool]] = mapped_column(Boolean)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='doctor_registration')
+    practice_type: Mapped['MasterPracticeType'] = relationship('MasterPracticeType', back_populates='doctor_registration')
 
 
 class EnrollmentStatus(Base):
@@ -2030,6 +2455,209 @@ class FreelancerTaskHistory(Base):
     work_status: Mapped['MasterWorkStatus'] = relationship('MasterWorkStatus', back_populates='freelancer_task_history')
 
 
+class GeneralEducationRegistration(Base):
+    __tablename__ = 'general_education_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['building_type_id'], ['master_building_type.id'], name='fk_general_education_registration_building_type_id'),
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_general_education_registration_partner_registration_id'),
+        ForeignKeyConstraint(['registration_type_id'], ['master_registration_type.id'], name='fk_general_education_registration_registration_type_id'),
+        PrimaryKeyConstraint('id', name='pk_general_education_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    registration_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    pan_number: Mapped[str] = mapped_column(String(150), nullable=False)
+    upload_fire_safety_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    address_pincode: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    gst_registration: Mapped[Optional[bool]] = mapped_column(Boolean)
+    upload_gst_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    bank_account: Mapped[Optional[str]] = mapped_column(String(255))
+    trade_license: Mapped[Optional[bool]] = mapped_column(Boolean)
+    noc: Mapped[Optional[bool]] = mapped_column(Boolean)
+    building_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    upload_rental_agreement: Mapped[Optional[str]] = mapped_column(String(500))
+    phone_number: Mapped[Optional[str]] = mapped_column(String(150))
+    verify_official_email: Mapped[Optional[str]] = mapped_column(String(255))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    building_type: Mapped[Optional['MasterBuildingType']] = relationship('MasterBuildingType', back_populates='general_education_registration')
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='general_education_registration')
+    registration_type: Mapped['MasterRegistrationType'] = relationship('MasterRegistrationType', back_populates='general_education_registration')
+
+
+class HospitalRegistration(Base):
+    __tablename__ = 'hospital_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['hospital_type_id'], ['master_hospital_type.id'], name='fk_hospital_registration_hospital_type_id'),
+        ForeignKeyConstraint(['management_type_id'], ['master_management_type.id'], name='fk_pk_hospital_registration_management_type_id'),
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_hospital_registration_partner_registration_id'),
+        PrimaryKeyConstraint('id', name='pk_hospital_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    hospital_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_entity_photo: Mapped[str] = mapped_column(String(500), nullable=False)
+    hospital_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    bed_capacity: Mapped[int] = mapped_column(Integer, nullable=False)
+    management_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    establishment_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    address: Mapped[str] = mapped_column(String(255), nullable=False)
+    city: Mapped[str] = mapped_column(String(255), nullable=False)
+    state: Mapped[str] = mapped_column(String(255), nullable=False)
+    pincode: Mapped[int] = mapped_column(Integer, nullable=False)
+    registration_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    doctor_registration: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    primary_phone_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    medical_superintendent_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    medical_superintendent_contact: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_mobile_for_otp: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_email_for_otp: Mapped[str] = mapped_column(String(255), nullable=False)
+    icu_bed_count: Mapped[Optional[int]] = mapped_column(Integer)
+    drug_license_applicable: Mapped[Optional[bool]] = mapped_column(Boolean)
+    bmw_obtained: Mapped[Optional[bool]] = mapped_column(Boolean)
+    cbwtf_tied_up: Mapped[Optional[bool]] = mapped_column(Boolean)
+    fire_noc_obtained: Mapped[Optional[bool]] = mapped_column(Boolean)
+    aerb_license_applicable: Mapped[Optional[bool]] = mapped_column(Boolean)
+    pcpndt_certificate_applicable: Mapped[Optional[bool]] = mapped_column(Boolean)
+    nabh_accreditation: Mapped[Optional[bool]] = mapped_column(Boolean)
+    gst_registered: Mapped[Optional[bool]] = mapped_column(Boolean)
+    upload_registration_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_owner_id_proof: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_owner_address_proof: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_doctor_registration: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_building_completion_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_water_sanitation_noc: Mapped[Optional[str]] = mapped_column(String(500))
+    alternate_phone_number: Mapped[Optional[str]] = mapped_column(String(255))
+    website_url: Mapped[Optional[str]] = mapped_column(String(500))
+    emergency_helpline_number: Mapped[Optional[str]] = mapped_column(String(255))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    hospital_type: Mapped['MasterHospitalType'] = relationship('MasterHospitalType', back_populates='hospital_registration')
+    management_type: Mapped['MasterManagementType'] = relationship('MasterManagementType', back_populates='hospital_registration')
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='hospital_registration')
+
+
+class InstitutionSchoolCollegeRegistration(Base):
+    __tablename__ = 'institution_school_college_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['board_affiliation_id'], ['master_board_affiliation.id'], name='fk_institution_s_c_registration_board_affiliation_id'),
+        ForeignKeyConstraint(['institution_type_id'], ['master_institute_type.id'], name='fk_institution_s_c_registration_institution_type_id'),
+        ForeignKeyConstraint(['management_type_id'], ['master_management_type.id'], name='fk_institution_s_c_registration_management_type_id'),
+        ForeignKeyConstraint(['naac_grade_id'], ['master_naac_grade.id'], name='fk_institution_s_c_registration_naac_grade_id'),
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_institution_s_c_registration_partner_registration_id'),
+        PrimaryKeyConstraint('id', name='pk_institution_s_c_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    institution_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    establishment_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    management_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    country: Mapped[str] = mapped_column(String(255), nullable=False)
+    state: Mapped[str] = mapped_column(String(255), nullable=False)
+    district: Mapped[str] = mapped_column(String(255), nullable=False)
+    city: Mapped[str] = mapped_column(String(255), nullable=False)
+    address: Mapped[str] = mapped_column(String(255), nullable=False)
+    pincode: Mapped[int] = mapped_column(Integer, nullable=False)
+    official_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_phone_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    director_principal_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    director_contact_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    registration_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    affiliation_board_university: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_registration_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_affiliation_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_principal_id_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    education_medium: Mapped[dict] = mapped_column(JSON, nullable=False)
+    education_grades_offered: Mapped[dict] = mapped_column(JSON, nullable=False)
+    student_capacity: Mapped[int] = mapped_column(Integer, nullable=False)
+    current_student_strength: Mapped[int] = mapped_column(Integer, nullable=False)
+    teacher_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    streams_offered: Mapped[dict] = mapped_column(JSON, nullable=False)
+    degree_courses_offered: Mapped[dict] = mapped_column(JSON, nullable=False)
+    board_affiliation_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    available_pg_programs: Mapped[dict] = mapped_column(JSON, nullable=False)
+    institution_type_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    upload_institution_logo: Mapped[Optional[str]] = mapped_column(String(500))
+    website_url: Mapped[Optional[str]] = mapped_column(String(500))
+    accreditation: Mapped[Optional[str]] = mapped_column(String(255))
+    gst_number: Mapped[Optional[str]] = mapped_column(String(255))
+    available_departments: Mapped[Optional[dict]] = mapped_column(JSON)
+    intake_per_course: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    mid_day_meal_available: Mapped[Optional[bool]] = mapped_column(Boolean)
+    transport_facility: Mapped[Optional[bool]] = mapped_column(Boolean)
+    playground_available: Mapped[Optional[bool]] = mapped_column(Boolean)
+    smart_classrooms: Mapped[Optional[bool]] = mapped_column(Boolean)
+    computer_lab: Mapped[Optional[bool]] = mapped_column(Boolean)
+    library: Mapped[Optional[bool]] = mapped_column(Boolean)
+    cctv_surveillance: Mapped[Optional[bool]] = mapped_column(Boolean)
+    ro_drinking_water: Mapped[Optional[bool]] = mapped_column(Boolean)
+    first_aid_room: Mapped[Optional[bool]] = mapped_column(Boolean)
+    security_guard: Mapped[Optional[bool]] = mapped_column(Boolean)
+    placement_cell: Mapped[Optional[bool]] = mapped_column(Boolean)
+    internship_support: Mapped[Optional[bool]] = mapped_column(Boolean)
+    research_labs: Mapped[Optional[bool]] = mapped_column(Boolean)
+    innovation_cell: Mapped[Optional[bool]] = mapped_column(Boolean)
+    auditorium: Mapped[Optional[bool]] = mapped_column(Boolean)
+    seminar_halls: Mapped[Optional[bool]] = mapped_column(Boolean)
+    wifi_campus: Mapped[Optional[bool]] = mapped_column(Boolean)
+    cafeteria: Mapped[Optional[bool]] = mapped_column(Boolean)
+    boys_hostel: Mapped[Optional[bool]] = mapped_column(Boolean)
+    girls_hostel: Mapped[Optional[bool]] = mapped_column(Boolean)
+    sports_complex: Mapped[Optional[bool]] = mapped_column(Boolean)
+    placement_year_1: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    placement_year_2: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    placement_year_3: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    extra_curricular_activities: Mapped[Optional[dict]] = mapped_column(JSON)
+    year_1_10th_result: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    year_2_10th_result: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    year_3_10th_result: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    competitive_exam_training: Mapped[Optional[dict]] = mapped_column(JSON)
+    science_lab: Mapped[Optional[bool]] = mapped_column(Boolean)
+    physics_lab: Mapped[Optional[bool]] = mapped_column(Boolean)
+    chemistry_lab: Mapped[Optional[bool]] = mapped_column(Boolean)
+    biology_lab: Mapped[Optional[bool]] = mapped_column(Boolean)
+    separate_labs: Mapped[Optional[bool]] = mapped_column(Boolean)
+    digital_attendance_system: Mapped[Optional[bool]] = mapped_column(Boolean)
+    parent_portal_access: Mapped[Optional[bool]] = mapped_column(Boolean)
+    career_guidance: Mapped[Optional[bool]] = mapped_column(Boolean)
+    performance_pass_percentage_year1: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    performance_pass_percentage_year2: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    performance_pass_percentage_year3: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    top_rankers_info: Mapped[Optional[str]] = mapped_column(String(255))
+    faculty_experience: Mapped[Optional[int]] = mapped_column(Integer)
+    phd_resarch_programs: Mapped[Optional[dict]] = mapped_column(JSON)
+    naac_grade_id: Mapped[Optional[int]] = mapped_column(Integer)
+    research_publication_count: Mapped[Optional[int]] = mapped_column(Integer)
+    industry_collaborations: Mapped[Optional[str]] = mapped_column(String(255))
+    mou_partnerships: Mapped[Optional[int]] = mapped_column(Integer)
+    startup_incubation_center: Mapped[Optional[bool]] = mapped_column(Boolean)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    board_affiliation: Mapped['MasterBoardAffiliation'] = relationship('MasterBoardAffiliation', back_populates='institution_school_college_registration')
+    institution_type: Mapped[Optional['MasterInstituteType']] = relationship('MasterInstituteType', back_populates='institution_school_college_registration')
+    management_type: Mapped['MasterManagementType'] = relationship('MasterManagementType', back_populates='institution_school_college_registration')
+    naac_grade: Mapped[Optional['MasterNaacGrade']] = relationship('MasterNaacGrade', back_populates='institution_school_college_registration')
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='institution_school_college_registration')
+
+
 class JobApplication(Base):
     __tablename__ = 'job_application'
     __table_args__ = (
@@ -2078,6 +2706,59 @@ class JobApplication(Base):
     job_openings: Mapped['JobOpenings'] = relationship('JobOpenings', back_populates='job_application')
     mobile_code: Mapped['MasterMobileCode'] = relationship('MasterMobileCode', back_populates='job_application')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='job_application')
+
+
+class LabRegistration(Base):
+    __tablename__ = 'lab_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['lab_type_id'], ['master_lab_type.id'], name='fk_lab_registration_lab_type_id'),
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_lab_registration_partner_registration_id'),
+        PrimaryKeyConstraint('id', name='pk_lab_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    lab_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_entity_photo: Mapped[str] = mapped_column(String(500), nullable=False)
+    lab_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    services_offered: Mapped[dict] = mapped_column(JSON, nullable=False)
+    establishment_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    address: Mapped[str] = mapped_column(String(255), nullable=False)
+    city: Mapped[str] = mapped_column(String(255), nullable=False)
+    state: Mapped[str] = mapped_column(String(255), nullable=False)
+    pincode: Mapped[int] = mapped_column(Integer, nullable=False)
+    registration_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    doctor_registration: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_registration_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_owner_id_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_owner_address_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_doctor_registration: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_labs_equipment_calibration_reports: Mapped[str] = mapped_column(String(500), nullable=False)
+    official_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    primary_phone_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    lab_in_charge_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    lab_in_charge_contact: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_mobile_for_otp: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_email_for_otp: Mapped[str] = mapped_column(String(255), nullable=False)
+    drug_license_applicable: Mapped[Optional[bool]] = mapped_column(Boolean)
+    bmw_obtained: Mapped[Optional[bool]] = mapped_column(Boolean)
+    cbwtf_tied_up: Mapped[Optional[bool]] = mapped_column(Boolean)
+    fire_noc_obtained: Mapped[Optional[bool]] = mapped_column(Boolean)
+    aerb_licence_applicable: Mapped[Optional[bool]] = mapped_column(Boolean)
+    pcpndt_certificate_applicable: Mapped[Optional[bool]] = mapped_column(Boolean)
+    nabl_accreditation: Mapped[Optional[bool]] = mapped_column(Boolean)
+    gst_registered: Mapped[Optional[bool]] = mapped_column(Boolean)
+    alternate_phone_number: Mapped[Optional[str]] = mapped_column(String(255))
+    website_url: Mapped[Optional[str]] = mapped_column(String(500))
+    home_sample_collection_available: Mapped[Optional[bool]] = mapped_column(Boolean)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    lab_type: Mapped['MasterLabType'] = relationship('MasterLabType', back_populates='lab_registration')
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='lab_registration')
 
 
 class MaintenanceBudget(Base):
@@ -2157,6 +2838,54 @@ class MasterVillage(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     sub_district: Mapped['MasterSubDistrict'] = relationship('MasterSubDistrict', back_populates='master_village')
+
+
+class MedicalStoreRegistration(Base):
+    __tablename__ = 'medical_store_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_medical_store_registration_partner_registration_id'),
+        ForeignKeyConstraint(['store_type_id'], ['master_store_type.id'], name='fk_medical_store_registration_store_type_id'),
+        PrimaryKeyConstraint('id', name='pk_medical_store_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    medical_store_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_entity_photo: Mapped[str] = mapped_column(String(500), nullable=False)
+    store_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    establishment_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    address: Mapped[str] = mapped_column(String(255), nullable=False)
+    city: Mapped[str] = mapped_column(String(255), nullable=False)
+    state: Mapped[str] = mapped_column(String(255), nullable=False)
+    pincode: Mapped[int] = mapped_column(Integer, nullable=False)
+    registration_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    pharmacist_registration: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_registration_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_owner_id_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_owner_address_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_pharmacist_registration_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_shop_registration: Mapped[str] = mapped_column(String(500), nullable=False)
+    official_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    primary_phone_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    pharmacist_owner_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    pharmacist_contact: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_mobile_for_otp: Mapped[str] = mapped_column(String(255), nullable=False)
+    official_email_for_otp: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_24hours_operation: Mapped[Optional[bool]] = mapped_column(Boolean)
+    home_delivery_available: Mapped[Optional[bool]] = mapped_column(Boolean)
+    drug_license_applicable: Mapped[Optional[bool]] = mapped_column(Boolean)
+    fire_noc_obtained: Mapped[Optional[bool]] = mapped_column(Boolean)
+    gst_registered: Mapped[Optional[bool]] = mapped_column(Boolean)
+    alternate_phone_number: Mapped[Optional[str]] = mapped_column(String(255))
+    website_url: Mapped[Optional[str]] = mapped_column(String(500))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='medical_store_registration')
+    store_type: Mapped['MasterStoreType'] = relationship('MasterStoreType', back_populates='medical_store_registration')
 
 
 class ProductOrder(Base):
@@ -2432,6 +3161,65 @@ class StudentQualification(Base):
     user: Mapped['UserRegistration'] = relationship('UserRegistration', foreign_keys=[user_id], back_populates='student_qualification1')
 
 
+class StudentRegistration(Base):
+    __tablename__ = 'student_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['cast_category_id'], ['master_cast_category.id'], name='fk_student_registration_cast_category_id'),
+        ForeignKeyConstraint(['highest_qualification_id'], ['master_highest_qualification.id'], name='fk_student_registration_highest_qualification_id'),
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_student_registration_partner_registration_id'),
+        ForeignKeyConstraint(['study_medium_id'], ['master_medium_of_study.id'], name='fk_student_registration_study_medium_id'),
+        PrimaryKeyConstraint('id', name='pk_student_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    student_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    aadhar_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    mobile_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    residential_address: Mapped[str] = mapped_column(String(255), nullable=False)
+    city: Mapped[str] = mapped_column(String(255), nullable=False)
+    state: Mapped[str] = mapped_column(String(255), nullable=False)
+    pincode: Mapped[int] = mapped_column(Integer, nullable=False)
+    highest_qualification_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    school_college_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    board_university: Mapped[str] = mapped_column(String(255), nullable=False)
+    passing_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    cgpa_percentage: Mapped[decimal.Decimal] = mapped_column(Numeric(3, 2), nullable=False)
+    study_medium_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    applying_application_interst: Mapped[dict] = mapped_column(JSON, nullable=False)
+    cast_category_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    upload_profile_photo: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_aadhar_card: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_10th_marksheet: Mapped[str] = mapped_column(String(500), nullable=False)
+    date_of_birth: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    gender_id: Mapped[Optional[int]] = mapped_column(Integer)
+    preferred_institution_course: Mapped[Optional[str]] = mapped_column(String(255))
+    preferred_location: Mapped[Optional[str]] = mapped_column(String(255))
+    require_scholarship: Mapped[Optional[bool]] = mapped_column(Boolean)
+    require_hostel_facility: Mapped[Optional[bool]] = mapped_column(Boolean)
+    require_transport_facility: Mapped[Optional[bool]] = mapped_column(Boolean)
+    technical_skills: Mapped[Optional[dict]] = mapped_column(JSON)
+    extra_curricular_achievements: Mapped[Optional[str]] = mapped_column(String(255))
+    career_objective: Mapped[Optional[str]] = mapped_column(String(255))
+    upload_12th_marksheet: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_degree_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_resume: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_transfer_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_cast_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_income_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    cast_category: Mapped['MasterCastCategory'] = relationship('MasterCastCategory', back_populates='student_registration')
+    highest_qualification: Mapped['MasterHighestQualification'] = relationship('MasterHighestQualification', back_populates='student_registration')
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='student_registration')
+    study_medium: Mapped['MasterMediumOfStudy'] = relationship('MasterMediumOfStudy', back_populates='student_registration')
+
+
 class Tasks(Base):
     __tablename__ = 'tasks'
     __table_args__ = (
@@ -2469,6 +3257,71 @@ class Tasks(Base):
     task_type: Mapped['MasterTaskType'] = relationship('MasterTaskType', back_populates='tasks')
     user: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='tasks')
     task_history: Mapped[list['TaskHistory']] = relationship('TaskHistory', back_populates='task')
+
+
+class TrainingRegistration(Base):
+    __tablename__ = 'training_registration'
+    __table_args__ = (
+        ForeignKeyConstraint(['course_exam_category_id'], ['master_course_exam_category.id'], name='fk_training_registration_course_exam_category_id'),
+        ForeignKeyConstraint(['min_qualification_required_id'], ['master_highest_qualification.id'], name='fk_training_registration_min_qualification_required_id'),
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_training_registration_partner_registration_id'),
+        ForeignKeyConstraint(['training_mode_id'], ['master_location_type.id'], name='fk_training_registration_training_mode_id'),
+        ForeignKeyConstraint(['training_type_id'], ['master_training_type.id'], name='fk_training_registration_training_type_id'),
+        PrimaryKeyConstraint('id', name='pk_training_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    training_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    course_exam_category_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    exam_category_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    institute_provider_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    provider_contact_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    provider_phone_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    provider_location: Mapped[str] = mapped_column(String(255), nullable=False)
+    course_title: Mapped[str] = mapped_column(String(255), nullable=False)
+    course_description: Mapped[str] = mapped_column(String(255), nullable=False)
+    training_mode_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    batch_start_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    language_instruction: Mapped[dict] = mapped_column(JSON, nullable=False)
+    min_qualification_required_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    upload_course_banner_image: Mapped[str] = mapped_column(String(500), nullable=False)
+    institute_logo: Mapped[Optional[str]] = mapped_column(String(500))
+    course_tagline: Mapped[Optional[str]] = mapped_column(String(255))
+    course_duration: Mapped[Optional[str]] = mapped_column(String(255))
+    total_sessions_hours: Mapped[Optional[str]] = mapped_column(String(150))
+    training_fee: Mapped[Optional[str]] = mapped_column(String(255))
+    class_schedule_timings: Mapped[Optional[str]] = mapped_column(String(255))
+    max_students_per_batch: Mapped[Optional[int]] = mapped_column(Integer)
+    course_modules: Mapped[Optional[dict]] = mapped_column(JSON)
+    technologies_covered: Mapped[Optional[str]] = mapped_column(String(255))
+    projects_included: Mapped[Optional[str]] = mapped_column(String(255))
+    completion_certificate_provided: Mapped[Optional[bool]] = mapped_column(Boolean)
+    placement_assistance: Mapped[Optional[bool]] = mapped_column(Boolean)
+    instructor_name_linkedin: Mapped[Optional[str]] = mapped_column(String(255))
+    previous_batch_enrolled_count: Mapped[Optional[int]] = mapped_column(Integer)
+    previous_batch_pass_percentage: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    exam_stages_covered: Mapped[Optional[dict]] = mapped_column(JSON)
+    target_exam_year: Mapped[Optional[int]] = mapped_column(Integer)
+    pyq_coverage: Mapped[Optional[str]] = mapped_column(String(255))
+    no_of_mock_tests: Mapped[Optional[int]] = mapped_column(Integer)
+    study_material_provided: Mapped[Optional[bool]] = mapped_column(Boolean)
+    current_affairs_coverage: Mapped[Optional[bool]] = mapped_column(Boolean)
+    past_selection_rank_holders: Mapped[Optional[str]] = mapped_column(String(255))
+    hostel_facility: Mapped[Optional[bool]] = mapped_column(Boolean)
+    upload_sample_study_material: Mapped[Optional[str]] = mapped_column(String(500))
+    upload_sample_certificate: Mapped[Optional[str]] = mapped_column(String(500))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    course_exam_category: Mapped['MasterCourseExamCategory'] = relationship('MasterCourseExamCategory', back_populates='training_registration')
+    min_qualification_required: Mapped['MasterHighestQualification'] = relationship('MasterHighestQualification', back_populates='training_registration')
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='training_registration')
+    training_mode: Mapped['MasterLocationType'] = relationship('MasterLocationType', back_populates='training_registration')
+    training_type: Mapped['MasterTrainingType'] = relationship('MasterTrainingType', back_populates='training_registration')
 
 
 class UserRole(Base):
