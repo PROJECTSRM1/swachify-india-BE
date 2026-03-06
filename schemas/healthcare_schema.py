@@ -1,4 +1,4 @@
-from pydantic import BaseModel,Field
+from pydantic import BaseModel,Field,EmailStr
 from typing import Optional,List,Dict
 from datetime import datetime, time
 
@@ -294,3 +294,113 @@ class MasterAssistantResponseSchema(BaseModel):
     currency:Optional[str]=None
     class Config:
         from_attributes = True
+
+
+# ---------------- HOSPITAL ----------------
+class HospitalRegistrationCreate(BaseModel):
+    partner_registration_id: int
+    hospital_name: str
+    upload_entity_photo: str
+    hospital_type_id: int
+    bed_capacity: int
+    management_type_id: int
+    establishment_year: int
+    address: str
+    city: str
+    state: str
+    pincode: int
+    registration_number: str
+    doctor_registration: str
+    official_email: EmailStr
+    primary_phone_number: str
+    medical_superintendent_name: str
+    medical_superintendent_contact: str
+    official_mobile_for_otp: str
+    official_email_for_otp: str
+    created_by: int
+
+
+# ---------------- LAB ----------------
+class LabRegistrationCreate(BaseModel):
+    partner_registration_id: int
+    lab_name: str
+    upload_entity_photo: str
+    lab_type_id: int
+    services_offered: Dict
+    establishment_year: int
+    address: str
+    city: str
+    state: str
+    pincode: int
+    registration_number: str
+    doctor_registration: str
+    upload_registration_certificate: str
+    upload_owner_id_proof: str
+    upload_owner_address_proof: str
+    upload_doctor_registration: str
+    upload_labs_equipment_calibration_reports: str
+    official_email: EmailStr
+    primary_phone_number: str
+    lab_in_charge_name: str
+    lab_in_charge_contact: str
+    official_mobile_for_otp: str
+    official_email_for_otp: str
+    created_by: int
+
+
+# ---------------- MEDICAL STORE ----------------
+class MedicalStoreRegistrationCreate(BaseModel):
+    partner_registration_id: int
+    medical_store_name: str
+    upload_entity_photo: str
+    store_type_id: int
+    establishment_year: int
+    address: str
+    city: str
+    state: str
+    pincode: int
+    registration_number: str
+    pharmacist_registration: str
+    upload_registration_certificate: str
+    upload_owner_id_proof: str
+    upload_owner_address_proof: str
+    upload_pharmacist_registration_certificate: str
+    upload_shop_registration: str
+    official_email: EmailStr
+    primary_phone_number: str
+    pharmacist_owner_name: str
+    pharmacist_contact: str
+    official_mobile_for_otp: str
+    official_email_for_otp: str
+    created_by: int
+
+
+# ---------------- DOCTOR ----------------
+class DoctorRegistrationCreate(BaseModel):
+    partner_registration_id: int
+    doctor_clinic_name: str
+    upload_clinic_photo: str
+    doctor_name: str
+    specialization: str
+    qualification: str
+    experience_years: int
+    practice_type_id: int
+    establishment_year: int
+    address: str
+    city: str
+    state: str
+    pincode: int
+    registration_number: str
+    doctor_registration: str
+    upload_registration_certificate: str
+    upload_owner_id_proof: str
+    upload_owner_address_proof: str
+    upload_doctor_registration: str
+    upload_medical_degree_certificate: str
+    upload_specialization_certificate: str
+    official_email: EmailStr
+    primary_phone_number: str
+    consultation_timings: str
+    official_mobile_for_otp: str
+    official_email_for_otp: str
+    created_by: int

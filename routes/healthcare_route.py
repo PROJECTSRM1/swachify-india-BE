@@ -20,7 +20,11 @@ from schemas.healthcare_schema import (
     PaymentCreateSchema,
     PaymentResponseSchema,
     AvailablePharmacyCreate,
-    AvailablePharmacyResponse
+    AvailablePharmacyResponse,
+    HospitalRegistrationCreate,
+    LabRegistrationCreate,
+    MedicalStoreRegistrationCreate,
+    DoctorRegistrationCreate
     
     
 )
@@ -43,7 +47,11 @@ from services.healthcare_service import (
     create_payment,
     get_doctor_bookings,
     get_my_bookings_by_user,
-    create_pharmacy_service
+    create_pharmacy_service,
+    create_hospital_registration,
+    create_lab_registration,
+    create_medical_store_registration,
+    create_doctor_registration
 )
 
 router = APIRouter(prefix="/healthcare",tags=["Healthcare"])
@@ -254,3 +262,38 @@ def update_call_booking_status(appointment_id: int,call_booking_status: str,db: 
         "status": True,
         "message": "Call booking status updated"
     }
+
+# ---------------- HOSPITAL ----------------
+@router.post("/hospital-registration")
+def create_hospital_api(
+    payload: HospitalRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_hospital_registration(db, payload)
+
+
+# ---------------- LAB ----------------
+@router.post("/lab-registration")
+def create_lab_api(
+    payload: LabRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_lab_registration(db, payload)
+
+
+# ---------------- MEDICAL STORE ----------------
+@router.post("/medical-store-registration")
+def create_medical_store_api(
+    payload: MedicalStoreRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_medical_store_registration(db, payload)
+
+
+# ---------------- DOCTOR ----------------
+@router.post("/doctor-registration")
+def create_doctor_api(
+    payload: DoctorRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_doctor_registration(db, payload)
