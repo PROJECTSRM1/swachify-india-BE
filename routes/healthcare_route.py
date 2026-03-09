@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from core.database import get_db
 from core.dependencies import get_current_user
-from models.generated_models import Appointments, DoctorProfile, UserRegistration
+from models.generated_models import Appointments, DoctorProfile, ServiceRequests, UserRegistration
 from schemas.healthcare_schema import (
     AmbulanceBookingCreateSchema,
     AmbulanceBookingResponseSchema,
@@ -20,7 +20,11 @@ from schemas.healthcare_schema import (
     PaymentCreateSchema,
     PaymentResponseSchema,
     AvailablePharmacyCreate,
-    AvailablePharmacyResponse
+    AvailablePharmacyResponse,
+    HospitalRegistrationCreate,
+    LabRegistrationCreate,
+    MedicalStoreRegistrationCreate,
+    DoctorRegistrationCreate
     
     
 )
@@ -43,7 +47,11 @@ from services.healthcare_service import (
     create_payment,
     get_doctor_bookings,
     get_my_bookings_by_user,
-    create_pharmacy_service
+    create_pharmacy_service,
+    create_hospital_registration,
+    create_lab_registration,
+    create_medical_store_registration,
+    create_doctor_registration
 )
 
 router = APIRouter(prefix="/healthcare",tags=["Healthcare"])
@@ -88,6 +96,26 @@ def fetch_available_hospitals(db: Session = Depends(get_db)):
 @router.get("/available-doctors")
 def fetch_available_doctors(db: Session = Depends(get_db)):
     return get_available_doctors(db)
+
+# @router.delete("/truncate-all")
+# def truncate_all(db: Session = Depends(get_db)):
+#     try:
+#         db.execute(text("""
+#             TRUNCATE TABLE 
+#             payments,
+#             ambulance_booking,
+#             appointments,
+#             doctor_profile
+#             RESTART IDENTITY CASCADE
+#         """))
+
+#         db.commit()
+
+#         return {"status": "success"}
+
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/hospital/{hospital_id}/doctors",response_model=List[HospitalDoctorResponseSchema])
 def get_hospital_doctors(hospital_id: int,specialization_id: int = -1,db: Session = Depends(get_db)):
@@ -164,7 +192,7 @@ def create_pharmacy_api(pharmacy_data: AvailablePharmacyCreate,db: Session = Dep
 def create_lab(lab: AvailableLabCreate,db: Session = Depends(get_db)):
     return create_lab_service(db, lab)
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 @router.get("/doctor/{doctor_id}")
 def get_doctor_appointments_and_update_status(doctor_id: int,appointment_id: int | None = None,call_booking_status: str | None = None,db: Session = Depends(get_db)):
     if appointment_id and call_booking_status:
@@ -234,3 +262,38 @@ def update_call_booking_status(appointment_id: int,call_booking_status: str,db: 
         "status": True,
         "message": "Call booking status updated"
     }
+
+# ---------------- HOSPITAL ----------------
+@router.post("/hospital-registration")
+def create_hospital_api(
+    payload: HospitalRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_hospital_registration(db, payload)
+
+
+# ---------------- LAB ----------------
+@router.post("/lab-registration")
+def create_lab_api(
+    payload: LabRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_lab_registration(db, payload)
+
+
+# ---------------- MEDICAL STORE ----------------
+@router.post("/medical-store-registration")
+def create_medical_store_api(
+    payload: MedicalStoreRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_medical_store_registration(db, payload)
+
+
+# ---------------- DOCTOR ----------------
+@router.post("/doctor-registration")
+def create_doctor_api(
+    payload: DoctorRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_doctor_registration(db, payload)

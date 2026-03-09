@@ -7,6 +7,10 @@ from models.generated_models import (
     StudentCertificate,
     JobOpenings,
     JobApplication,
+    InstitutionSchoolCollegeRegistration,
+    StudentRegistration,
+    CompaniesRegistration,
+    TrainingRegistration
 )
 from schemas.student_education_schema import (
     StudentCertificateCreate,
@@ -14,6 +18,10 @@ from schemas.student_education_schema import (
     JobOpeningCreate,
     JobApplicationCreate,
     StudentEducationCreate,
+    InstitutionSchoolCollegeRegistrationCreate,
+    StudentRegistrationCreate,
+    CompaniesRegistrationCreate,
+    TrainingRegistrationCreate
 )
 
 def create_job_openings(db: Session, data: JobOpeningCreate, user_id: int) -> JobOpenings:
@@ -359,3 +367,121 @@ def get_internship_list_service(db: Session,category_id: int,work_type_id: int):
 #     """)
 #     result = db.execute(query, {"branch_id": branch_id})
 #     return result.mappings().all()   
+
+
+
+def create_institution_school_college_registration(
+    db: Session,
+    payload: InstitutionSchoolCollegeRegistrationCreate
+):
+
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. User not found"
+        )
+
+    obj = InstitutionSchoolCollegeRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+
+def create_student_registration(
+    db: Session,
+    payload: StudentRegistrationCreate
+):
+
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. User not found"
+        )
+
+    obj = StudentRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+def create_companies_registration(
+    db: Session,
+    payload: CompaniesRegistrationCreate
+):
+
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. User not found"
+        )
+
+    obj = CompaniesRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+def create_training_registration(
+    db: Session,
+    payload: TrainingRegistrationCreate
+):
+
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. User not found"
+        )
+
+    obj = TrainingRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj

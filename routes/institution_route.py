@@ -57,6 +57,7 @@ from services.institution_service import (
     fetch_exam_schedule,
     get_all_alerts,
     # get_all_buses,
+    get_trending_institutions_service,
     get_institution_by_id,
     create_institution_branch,
     get_branches_by_institution,
@@ -150,6 +151,20 @@ def institution_login(
         "institution_id": user.id,
         "access_token": access_token
     }
+
+@router.get("/trending_institutions")
+def get_trending_institutions(
+    education_level: int = Query(-1, description="Pass -1 for all"),
+    limit: int = Query(10, ge=1),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    return get_trending_institutions_service(
+        db=db,
+        education_level=education_level,
+        limit=limit,
+        offset=offset
+    )
 
 @router.get("/institution/{institution_id}",response_model=InstitutionRegistrationResponse)
 def get_institution_api(institution_id: int = Path(..., gt=0),db: Session = Depends(get_db)):
