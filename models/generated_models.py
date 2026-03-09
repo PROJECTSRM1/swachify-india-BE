@@ -2061,7 +2061,7 @@ class PartnerRegistration(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     module_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    service_module_category_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    service_module_category_id: Mapped[Optional[int]] = mapped_column(Integer)
     created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
@@ -2070,7 +2070,7 @@ class PartnerRegistration(Base):
     user_id: Mapped[Optional[int]] = mapped_column(BigInteger)
 
     module: Mapped['MasterModule'] = relationship('MasterModule', back_populates='partner_registration')
-    service_module_category: Mapped['MasterServiceModuleCategory'] = relationship('MasterServiceModuleCategory', back_populates='partner_registration')
+    service_module_category: Mapped[Optional['MasterServiceModuleCategory']] = relationship('MasterServiceModuleCategory', back_populates='partner_registration')
     user: Mapped[Optional['PartnerUsers']] = relationship('PartnerUsers', back_populates='partner_registration')
     companies_registration: Mapped[list['CompaniesRegistration']] = relationship('CompaniesRegistration', back_populates='partner_registration')
     doctor_registration: Mapped[list['DoctorRegistration']] = relationship('DoctorRegistration', back_populates='partner_registration')
@@ -2079,6 +2079,7 @@ class PartnerRegistration(Base):
     institution_school_college_registration: Mapped[list['InstitutionSchoolCollegeRegistration']] = relationship('InstitutionSchoolCollegeRegistration', back_populates='partner_registration')
     lab_registration: Mapped[list['LabRegistration']] = relationship('LabRegistration', back_populates='partner_registration')
     medical_store_registration: Mapped[list['MedicalStoreRegistration']] = relationship('MedicalStoreRegistration', back_populates='partner_registration')
+    my_food_registration: Mapped[list['MyFoodRegistration']] = relationship('MyFoodRegistration', back_populates='partner_registration')
     student_registration: Mapped[list['StudentRegistration']] = relationship('StudentRegistration', back_populates='partner_registration')
     training_registration: Mapped[list['TrainingRegistration']] = relationship('TrainingRegistration', back_populates='partner_registration')
 
@@ -2324,6 +2325,7 @@ class DoctorProfile(Base):
 class DoctorRegistration(Base):
     __tablename__ = 'doctor_registration'
     __table_args__ = (
+        CheckConstraint('NOT gst_registered OR gst_number IS NOT NULL', name='ck_doctor_registration_gst_number_required'),
         ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_doctor_registration_partner_registration_id'),
         ForeignKeyConstraint(['practice_type_id'], ['master_practice_type.id'], name='fk_doctor_registration_practice_type_id'),
         PrimaryKeyConstraint('id', name='pk_doctor_registration_id')
@@ -2367,6 +2369,8 @@ class DoctorRegistration(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    fire_noc_number: Mapped[Optional[str]] = mapped_column(String(255))
+    gst_number: Mapped[Optional[str]] = mapped_column(String(255))
 
     partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='doctor_registration')
     practice_type: Mapped['MasterPracticeType'] = relationship('MasterPracticeType', back_populates='doctor_registration')
@@ -2495,6 +2499,11 @@ class GeneralEducationRegistration(Base):
 class HospitalRegistration(Base):
     __tablename__ = 'hospital_registration'
     __table_args__ = (
+        CheckConstraint('NOT aerb_license_applicable OR aerb_license_number IS NOT NULL', name='ck_hospital_registration_aerb_required'),
+        CheckConstraint('NOT bmw_obtained OR bmw_authorization_number IS NOT NULL', name='ck_hospital_registration_bmw_required'),
+        CheckConstraint('NOT drug_license_applicable OR drug_license_number IS NOT NULL', name='ck_hospital_registration_drug_license_required'),
+        CheckConstraint('NOT gst_registered OR gst_number IS NOT NULL', name='ck_hospital_registration_gst_required'),
+        CheckConstraint('NOT pcpndt_certificate_applicable OR pcpndt_certificate_number IS NOT NULL', name='ck_hospital_registration_pcpndt_required'),
         ForeignKeyConstraint(['hospital_type_id'], ['master_hospital_type.id'], name='fk_hospital_registration_hospital_type_id'),
         ForeignKeyConstraint(['management_type_id'], ['master_management_type.id'], name='fk_pk_hospital_registration_management_type_id'),
         ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_hospital_registration_partner_registration_id'),
@@ -2544,6 +2553,14 @@ class HospitalRegistration(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    drug_license_number: Mapped[Optional[str]] = mapped_column(String(255))
+    bmw_authorization_number: Mapped[Optional[str]] = mapped_column(String(255))
+    cbwtf_facility_name: Mapped[Optional[str]] = mapped_column(String(255))
+    fire_noc_number: Mapped[Optional[str]] = mapped_column(String(255))
+    aerb_license_number: Mapped[Optional[str]] = mapped_column(String(255))
+    pcpndt_certificate_number: Mapped[Optional[str]] = mapped_column(String(255))
+    nabh_certificate_number: Mapped[Optional[str]] = mapped_column(String(255))
+    gst_number: Mapped[Optional[str]] = mapped_column(String(255))
 
     hospital_type: Mapped['MasterHospitalType'] = relationship('MasterHospitalType', back_populates='hospital_registration')
     management_type: Mapped['MasterManagementType'] = relationship('MasterManagementType', back_populates='hospital_registration')
@@ -2711,6 +2728,11 @@ class JobApplication(Base):
 class LabRegistration(Base):
     __tablename__ = 'lab_registration'
     __table_args__ = (
+        CheckConstraint('NOT aerb_licence_applicable OR aerb_license_number IS NOT NULL', name='ck_lab_registration_aerb_required'),
+        CheckConstraint('NOT bmw_obtained OR bmw_authorization_number IS NOT NULL', name='ck_lab_registration_bmw_required'),
+        CheckConstraint('NOT drug_license_applicable OR drug_license_number IS NOT NULL', name='ck_lab_registration_drug_license_required'),
+        CheckConstraint('NOT gst_registered OR gst_number IS NOT NULL', name='ck_lab_registration_gst_required'),
+        CheckConstraint('NOT pcpndt_certificate_applicable OR pcpndt_certificate_number IS NOT NULL', name='ck_lab_registration_pcpndt_required'),
         ForeignKeyConstraint(['lab_type_id'], ['master_lab_type.id'], name='fk_lab_registration_lab_type_id'),
         ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_lab_registration_partner_registration_id'),
         PrimaryKeyConstraint('id', name='pk_lab_registration_id')
@@ -2756,6 +2778,14 @@ class LabRegistration(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    drug_license_number: Mapped[Optional[str]] = mapped_column(String(255))
+    bmw_authorization_number: Mapped[Optional[str]] = mapped_column(String(255))
+    cbwtf_facility_name: Mapped[Optional[str]] = mapped_column(String(255))
+    fire_noc_number: Mapped[Optional[str]] = mapped_column(String(255))
+    aerb_license_number: Mapped[Optional[str]] = mapped_column(String(255))
+    pcpndt_certificate_number: Mapped[Optional[str]] = mapped_column(String(255))
+    nabh_certificate_number: Mapped[Optional[str]] = mapped_column(String(255))
+    gst_number: Mapped[Optional[str]] = mapped_column(String(255))
 
     lab_type: Mapped['MasterLabType'] = relationship('MasterLabType', back_populates='lab_registration')
     partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='lab_registration')
@@ -2843,6 +2873,8 @@ class MasterVillage(Base):
 class MedicalStoreRegistration(Base):
     __tablename__ = 'medical_store_registration'
     __table_args__ = (
+        CheckConstraint('NOT drug_license_applicable OR drug_license_number IS NOT NULL', name='ck_medical_store_registration_drug_license_required'),
+        CheckConstraint('NOT gst_registered OR gst_number IS NOT NULL', name='ck_medical_store_registration_gst_required'),
         ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_medical_store_registration_partner_registration_id'),
         ForeignKeyConstraint(['store_type_id'], ['master_store_type.id'], name='fk_medical_store_registration_store_type_id'),
         PrimaryKeyConstraint('id', name='pk_medical_store_registration_id')
@@ -2883,9 +2915,65 @@ class MedicalStoreRegistration(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    drug_license_number: Mapped[Optional[str]] = mapped_column(String(255))
+    fire_noc_number: Mapped[Optional[str]] = mapped_column(String(255))
+    gst_number: Mapped[Optional[str]] = mapped_column(String(255))
 
     partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='medical_store_registration')
     store_type: Mapped['MasterStoreType'] = relationship('MasterStoreType', back_populates='medical_store_registration')
+
+
+class MyFoodRegistration(Base):
+    __tablename__ = 'my_food_registration'
+    __table_args__ = (
+        CheckConstraint('NOT fssai_license_registered OR fssai_license_number IS NOT NULL', name='ck_my_food_registration_flnr'),
+        CheckConstraint('NOT gst_registered OR gst_number IS NOT NULL', name='ck_my_food_registration_gst_number_required'),
+        ForeignKeyConstraint(['partner_registration_id'], ['partner_registration.id'], name='fk_my_food_registration_partner_registration_id'),
+        PrimaryKeyConstraint('id', name='pk_my_food_registration_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    partner_registration_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    restaurant_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    restaurant_photo: Mapped[str] = mapped_column(String(500), nullable=False)
+    establishment_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    cuisine_type: Mapped[dict] = mapped_column(JSON, nullable=False)
+    seating_capacity: Mapped[int] = mapped_column(Integer, nullable=False)
+    owner_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    owner_phone_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    business_registration_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    special_menu_items: Mapped[dict] = mapped_column(JSON, nullable=False)
+    average_price_per_meal: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    operating_hours: Mapped[str] = mapped_column(String(255), nullable=False)
+    upload_menu_card: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_business_registration_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_fssai_license_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_gst_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_owner_id_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_owner_address_proof: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_food_license_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_health_inspection_report: Mapped[str] = mapped_column(String(500), nullable=False)
+    upload_fire_noc_certificate: Mapped[str] = mapped_column(String(500), nullable=False)
+    manager_name: Mapped[Optional[str]] = mapped_column(String(255))
+    manager_phone_number: Mapped[Optional[str]] = mapped_column(String(255))
+    fssai_license_registered: Mapped[Optional[bool]] = mapped_column(Boolean)
+    fssai_license_number: Mapped[Optional[str]] = mapped_column(String(255))
+    gst_registered: Mapped[Optional[bool]] = mapped_column(Boolean)
+    gst_number: Mapped[Optional[str]] = mapped_column(String(255))
+    food_license_applicable: Mapped[Optional[bool]] = mapped_column(Boolean)
+    food_license_number: Mapped[Optional[str]] = mapped_column(String(255))
+    health_safety_certfied: Mapped[Optional[bool]] = mapped_column(Boolean)
+    health_inspection_certifiate_number: Mapped[Optional[str]] = mapped_column(String(255))
+    fire_noc_certficate: Mapped[Optional[bool]] = mapped_column(Boolean)
+    fire_noc_number: Mapped[Optional[str]] = mapped_column(String(255))
+    avialable_dining_options: Mapped[Optional[dict]] = mapped_column(JSON)
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    partner_registration: Mapped['PartnerRegistration'] = relationship('PartnerRegistration', back_populates='my_food_registration')
 
 
 class ProductOrder(Base):
