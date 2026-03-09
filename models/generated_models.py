@@ -831,6 +831,19 @@ class MasterManagementType(Base):
     institution_school_college_registration: Mapped[list['InstitutionSchoolCollegeRegistration']] = relationship('InstitutionSchoolCollegeRegistration', back_populates='management_type')
 
 
+class MasterMealType(Base):
+    __tablename__ = 'master_meal_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_meal_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    meal_type: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    master_menu_item: Mapped[list['MasterMenuItem']] = relationship('MasterMenuItem', back_populates='meal_type')
+
+
 class MasterMediumOfStudy(Base):
     __tablename__ = 'master_medium_of_study'
     __table_args__ = (
@@ -1797,6 +1810,7 @@ class MasterMenuItem(Base):
     __table_args__ = (
         CheckConstraint('rating >= 1::numeric AND rating <= 5::numeric', name='ck_master_menu_item_rating'),
         ForeignKeyConstraint(['category_id'], ['master_food_category.id'], name='fk_master_menu_item_category_id'),
+        ForeignKeyConstraint(['meal_type_id'], ['master_meal_type.id'], name='fk_master_menu_item_meal_type_id'),
         ForeignKeyConstraint(['restaurant_id'], ['master_restaurant.id'], name='fk_master_menu_item_restaurant_id'),
         PrimaryKeyConstraint('id', name='pk_master_menu_item_id')
     )
@@ -1812,11 +1826,16 @@ class MasterMenuItem(Base):
     ingredients: Mapped[Optional[dict]] = mapped_column(JSON)
     is_available: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    item_photo: Mapped[Optional[str]] = mapped_column(String(500))
+    meal_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    updated_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
 
     category: Mapped['MasterFoodCategory'] = relationship('MasterFoodCategory', back_populates='master_menu_item')
+    meal_type: Mapped[Optional['MasterMealType']] = relationship('MasterMealType', back_populates='master_menu_item')
     restaurant: Mapped['MasterRestaurant'] = relationship('MasterRestaurant', back_populates='master_menu_item')
     food_cart: Mapped[list['FoodCart']] = relationship('FoodCart', back_populates='menu_item')
     food_order_item: Mapped[list['FoodOrderItem']] = relationship('FoodOrderItem', back_populates='menu_item')
+    food_order_review: Mapped[list['FoodOrderReview']] = relationship('FoodOrderReview', back_populates='menu_item')
 
 
 class MasterPropertyTypeFacilities(Base):
@@ -3760,6 +3779,7 @@ class FoodOrderReview(Base):
     __table_args__ = (
         CheckConstraint('rating >= 1::numeric AND rating <= 5::numeric', name='ck_food_order_review_rating'),
         ForeignKeyConstraint(['customer_id'], ['user_registration.id'], name='fk_food_order_review_customer_id'),
+        ForeignKeyConstraint(['menu_item_id'], ['master_menu_item.id'], name='fk_food_order_review_menu_item_id'),
         ForeignKeyConstraint(['order_id'], ['food_order.id'], name='fk_food_order_review_order_id'),
         ForeignKeyConstraint(['restaurant_id'], ['master_restaurant.id'], name='fk_food_order_review_restaurant_id'),
         PrimaryKeyConstraint('id', name='pk_food_order_review_id')
@@ -3777,8 +3797,10 @@ class FoodOrderReview(Base):
     modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
     modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    menu_item_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     customer: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='food_order_review')
+    menu_item: Mapped[Optional['MasterMenuItem']] = relationship('MasterMenuItem', back_populates='food_order_review')
     order: Mapped['FoodOrder'] = relationship('FoodOrder', back_populates='food_order_review')
     restaurant: Mapped['MasterRestaurant'] = relationship('MasterRestaurant', back_populates='food_order_review')
 
