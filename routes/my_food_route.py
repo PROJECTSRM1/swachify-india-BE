@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from schemas.my_food_schema import FoodOrderCreate, FoodOrderRefundRequestCreate, FoodOrderRefundRequestResponse, FoodOrderResponse
 from services.my_food_service import (create_food_order, create_refund_request, get_all_refund_requests,get_food_orders,get_food_order_by_id, get_items_by_restaurant_and_category, get_refund_request_by_id, get_restaurant_view_data)
+from schemas.my_food_schema import FoodOrderCreate, FoodOrderResponse, FoodOrderStatusHistoryCreate, FoodOrderRefundRequestCreate, FoodOrderReviewCreate
+from services.my_food_service import (create_food_order,get_food_orders,get_food_order_by_id,create_food_order_status_history,create_food_order_refund_request,create_food_order_review)
+
 router = APIRouter(prefix="/food-orders", tags=["Food Orders"])
 
 
@@ -57,3 +60,26 @@ def get_items(
 @router.get("/view")
 def get_restaurant_data(restaurant_id: int,category_id:int,db:Session = Depends(get_db)):
     return get_restaurant_view_data(db,restaurant_id,category_id)
+@router.post("/food-order-status-history")
+def create_food_order_status_history_api(
+    payload: FoodOrderStatusHistoryCreate,
+    db: Session = Depends(get_db)
+):
+    return create_food_order_status_history(db, payload)
+
+# ---------------- REFUND REQUEST ----------------
+@router.post("/food-order-refund-request")
+def create_food_order_refund_request_api(
+    payload: FoodOrderRefundRequestCreate,
+    db: Session = Depends(get_db)
+):
+    return create_food_order_refund_request(db, payload)
+
+
+# ---------------- FOOD REVIEW ----------------
+@router.post("/food-order-review")
+def create_food_order_review_api(
+    payload: FoodOrderReviewCreate,
+    db: Session = Depends(get_db)
+):
+    return create_food_order_review(db, payload)

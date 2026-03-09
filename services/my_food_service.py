@@ -2,6 +2,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from models.generated_models import FoodOrder, FoodOrderRefundRequest
 from schemas.my_food_schema import FoodOrderCreate, FoodOrderRefundRequestCreate
+from models.generated_models import FoodOrder, FoodOrderStatusHistory, UserRegistration, FoodOrderRefundRequest, FoodOrderReview, MasterRestaurant
+from fastapi import HTTPException
+from schemas.my_food_schema import FoodOrderCreate, FoodOrderStatusHistoryCreate, FoodOrderRefundRequestCreate, FoodOrderReviewCreate
 
 
 def create_food_order(db: Session, order: FoodOrderCreate):
@@ -118,3 +121,119 @@ def get_restaurant_view_data(db: Session, restaurant_id: int, category_id: int):
     )
 
     return result.mappings().all()
+
+def create_food_order_status_history(
+    db: Session,
+    payload: FoodOrderStatusHistoryCreate
+):
+
+    # validate user
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by user"
+        )
+
+    # validate order
+    order = db.query(FoodOrder).filter(
+        FoodOrder.id == payload.order_id
+    ).first()
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found"
+        )
+
+    obj = FoodOrderStatusHistory(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+# ---------------- REFUND REQUEST ----------------
+def create_food_order_refund_request(
+    db: Session,
+    payload: FoodOrderRefundRequestCreate
+):
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid created_by user")
+
+    order = db.query(FoodOrder).filter(
+        FoodOrder.id == payload.order_id
+    ).first()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    customer = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.customer_id
+    ).first()
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    obj = FoodOrderRefundRequest(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+# ---------------- FOOD REVIEW ----------------
+def create_food_order_review(
+    db: Session,
+    payload: FoodOrderReviewCreate
+):
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid created_by user")
+
+    order = db.query(FoodOrder).filter(
+        FoodOrder.id == payload.order_id
+    ).first()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    customer = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.customer_id
+    ).first()
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    restaurant = db.query(MasterRestaurant).filter(
+        MasterRestaurant.id == payload.restaurant_id
+    ).first()
+
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restaurant not found")
+
+    obj = FoodOrderReview(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
