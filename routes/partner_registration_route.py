@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from core.database import SessionLocal
-from services.partner_registration_service import create_companies_registration, create_doctor_registration, create_general_education, create_hospital_registration, create_institution_school_college_registration, create_lab_registration, create_medical_store_registration, create_partner_user, create_partner_registration, create_student_registration, create_training_registration
-from schemas.partner_registration_schema import CompaniesRegistrationCreate, DoctorRegistrationCreate, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, PartnerUserCreate, PartnerRegistrationCreate, PartnerRegistrationResponse, PartnerUserResponse, GeneralEducationCreate, GeneralEducationResponse, StudentRegistrationCreate, TrainingRegistrationCreate
+from services.partner_registration_service import create_companies_registration, create_doctor_registration, create_general_education, create_hospital_registration, create_institution_school_college_registration, create_lab_registration, create_medical_store_registration, create_partner_user, create_partner_registration, create_student_registration, create_training_registration, create_my_food_registration
+from schemas.partner_registration_schema import CompaniesRegistrationCreate, DoctorRegistrationCreate, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, PartnerUserCreate, PartnerRegistrationCreate, PartnerRegistrationResponse, PartnerUserResponse, GeneralEducationCreate, GeneralEducationResponse, StudentRegistrationCreate, TrainingRegistrationCreate, MyFoodRegistrationCreate
 
 router = APIRouter(prefix="/partner-registration", tags=["Partner"])
 
@@ -89,3 +89,11 @@ def create_doctor_api(
     db: Session = Depends(get_db)
 ):
     return create_doctor_registration(db, payload)
+
+
+@router.post("/my-food-registration")
+def create_my_food_registration_api(
+    payload: MyFoodRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_my_food_registration(db, payload)

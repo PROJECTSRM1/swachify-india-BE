@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from models.generated_models import CompaniesRegistration, DoctorRegistration, HospitalRegistration, InstitutionSchoolCollegeRegistration, LabRegistration, MedicalStoreRegistration, PartnerUsers, PartnerRegistration, GeneralEducationRegistration, StudentRegistration, TrainingRegistration, UserRegistration
-from schemas.partner_registration_schema import (CompaniesRegistrationCreate, DoctorRegistrationCreate, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, PartnerUserCreate,PartnerRegistrationCreate,GeneralEducationCreate, StudentRegistrationCreate, TrainingRegistrationCreate)
+from models.generated_models import CompaniesRegistration, DoctorRegistration, HospitalRegistration, InstitutionSchoolCollegeRegistration, LabRegistration, MedicalStoreRegistration, PartnerUsers, PartnerRegistration, GeneralEducationRegistration, StudentRegistration, TrainingRegistration, UserRegistration, MyFoodRegistration
+from schemas.partner_registration_schema import (CompaniesRegistrationCreate, DoctorRegistrationCreate, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, PartnerUserCreate,PartnerRegistrationCreate,GeneralEducationCreate, StudentRegistrationCreate, TrainingRegistrationCreate, MyFoodRegistrationCreate)
 
 
 def create_partner_user(db: Session, user: PartnerUserCreate):
@@ -256,6 +256,31 @@ def create_doctor_registration(db: Session, payload: DoctorRegistrationCreate):
         raise HTTPException(status_code=400, detail="Invalid created_by user")
 
     obj = DoctorRegistration(**payload.model_dump())
+
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    return obj
+
+
+def create_my_food_registration(
+    db: Session,
+    payload: MyFoodRegistrationCreate
+):
+
+    user = db.query(UserRegistration).filter(
+        UserRegistration.id == payload.created_by,
+        UserRegistration.is_active == True
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. User not found"
+        )
+
+    obj = MyFoodRegistration(**payload.model_dump())
 
     db.add(obj)
     db.commit()

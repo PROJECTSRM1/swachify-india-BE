@@ -391,3 +391,51 @@ class DoctorRegistrationCreate(BaseModel):
     official_mobile_for_otp: str
     official_email_for_otp: str
     created_by: int
+
+
+class MyFoodRegistrationCreate(BaseModel):
+
+    partner_registration_id: int
+    restaurant_name: str
+    restaurant_photo: str
+    establishment_year: int
+    cuisine_type: Dict
+    seating_capacity: int
+    owner_name: str
+    owner_phone_number: str
+    business_registration_number: str
+    special_menu_items: Dict
+    average_price_per_meal: Decimal
+    operating_hours: str
+
+    upload_menu_card: str
+    upload_business_registration_certificate: str
+    upload_fssai_license_certificate: str
+    upload_gst_certificate: str
+    upload_owner_id_proof: str
+    upload_owner_address_proof: str
+    upload_food_license_certificate: str
+    upload_health_inspection_report: str
+    upload_fire_noc_certificate: str
+
+    manager_name: Optional[str] = None
+    manager_phone_number: Optional[str] = None
+
+    fssai_license_registered: Optional[bool] = None
+    fssai_license_number: Optional[str] = None
+
+    gst_registered: Optional[bool] = None
+    gst_number: Optional[str] = None
+
+    food_license_applicable: Optional[bool] = None
+    food_license_number: Optional[str] = None
+
+    health_safety_certfied: Optional[bool] = None
+    health_inspection_certifiate_number: Optional[str] = None
+
+    fire_noc_certficate: Optional[bool] = None
+    fire_noc_number: Optional[str] = None
+
+    avialable_dining_options: Optional[Dict] = None
+
+    created_by: int
