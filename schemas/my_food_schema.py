@@ -40,3 +40,32 @@ class FoodOrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    
+class FoodOrderStatusHistoryCreate(BaseModel):
+
+    order_id: int
+    status: Optional[str] = None
+    remarks: Optional[str] = None
+    created_by: int
+
+
+class FoodOrderRefundRequestCreate(BaseModel):
+
+    order_id: int
+    customer_id: int
+    issue_type: Optional[str] = None
+    issue_description: Optional[str] = None
+    issue_photos: Optional[str] = None
+    refund_amount: Optional[Decimal] = None
+    created_by: int
+
+class FoodOrderReviewCreate(BaseModel):
+
+    order_id: int
+    customer_id: int
+    restaurant_id: int
+    rating: Optional[Decimal] = None
+    review_text: Optional[str] = None
+    review_photos: Optional[str] = None
+    created_by: int
