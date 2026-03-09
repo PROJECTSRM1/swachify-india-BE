@@ -477,6 +477,20 @@ class MasterFacing(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
 
+class MasterFoodCategory(Base):
+    __tablename__ = 'master_food_category'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='pk_master_food_category_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    category_name: Mapped[Optional[str]] = mapped_column(String(100))
+    average_price: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    master_menu_item: Mapped[list['MasterMenuItem']] = relationship('MasterMenuItem', back_populates='category')
+
+
 class MasterFuelType(Base):
     __tablename__ = 'master_fuel_type'
     __table_args__ = (
@@ -860,6 +874,7 @@ class MasterModule(Base):
     master_sub_module: Mapped[list['MasterSubModule']] = relationship('MasterSubModule', back_populates='module')
     raw_material_details: Mapped[list['RawMaterialDetails']] = relationship('RawMaterialDetails', back_populates='module')
     partner_registration: Mapped[list['PartnerRegistration']] = relationship('PartnerRegistration', back_populates='module')
+    food_cart: Mapped[list['FoodCart']] = relationship('FoodCart', back_populates='module')
     property_sell_listing: Mapped[list['PropertySellListing']] = relationship('PropertySellListing', back_populates='module')
     user_services: Mapped[list['UserServices']] = relationship('UserServices', back_populates='module')
 
@@ -1031,6 +1046,27 @@ class MasterRelation(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     student_family_members: Mapped[list['StudentFamilyMembers']] = relationship('StudentFamilyMembers', back_populates='relation_type')
+
+
+class MasterRestaurant(Base):
+    __tablename__ = 'master_restaurant'
+    __table_args__ = (
+        CheckConstraint('rating >= 1::numeric AND rating <= 5::numeric', name='ck_master_restaurant_rating'),
+        PrimaryKeyConstraint('id', name='pk_master_restaurant_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    cuisines: Mapped[dict] = mapped_column(JSON, nullable=False)
+    restaurant_name: Mapped[Optional[str]] = mapped_column(String(255))
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    delivery_fee: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    estimated_delivery_time: Mapped[Optional[int]] = mapped_column(Integer)
+    is_open: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    master_menu_item: Mapped[list['MasterMenuItem']] = relationship('MasterMenuItem', back_populates='restaurant')
+    food_order: Mapped[list['FoodOrder']] = relationship('FoodOrder', back_populates='restaurant')
+    food_order_review: Mapped[list['FoodOrderReview']] = relationship('FoodOrderReview', back_populates='restaurant')
 
 
 class MasterRole(Base):
@@ -1756,6 +1792,33 @@ class MasterDistrict(Base):
     user_registration: Mapped[list['UserRegistration']] = relationship('UserRegistration', back_populates='district')
 
 
+class MasterMenuItem(Base):
+    __tablename__ = 'master_menu_item'
+    __table_args__ = (
+        CheckConstraint('rating >= 1::numeric AND rating <= 5::numeric', name='ck_master_menu_item_rating'),
+        ForeignKeyConstraint(['category_id'], ['master_food_category.id'], name='fk_master_menu_item_category_id'),
+        ForeignKeyConstraint(['restaurant_id'], ['master_restaurant.id'], name='fk_master_menu_item_restaurant_id'),
+        PrimaryKeyConstraint('id', name='pk_master_menu_item_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    restaurant_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    category_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    item_name: Mapped[Optional[str]] = mapped_column(String(255))
+    description: Mapped[Optional[str]] = mapped_column(String(255))
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    price: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    available_sizes: Mapped[Optional[dict]] = mapped_column(JSON)
+    ingredients: Mapped[Optional[dict]] = mapped_column(JSON)
+    is_available: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    category: Mapped['MasterFoodCategory'] = relationship('MasterFoodCategory', back_populates='master_menu_item')
+    restaurant: Mapped['MasterRestaurant'] = relationship('MasterRestaurant', back_populates='master_menu_item')
+    food_cart: Mapped[list['FoodCart']] = relationship('FoodCart', back_populates='menu_item')
+    food_order_item: Mapped[list['FoodOrderItem']] = relationship('FoodOrderItem', back_populates='menu_item')
+
+
 class MasterPropertyTypeFacilities(Base):
     __tablename__ = 'master_property_type_facilities'
     __table_args__ = (
@@ -2173,6 +2236,8 @@ class UserRegistration(Base):
     status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='user_registration')
     work_type: Mapped[Optional['MasterWorkType']] = relationship('MasterWorkType', back_populates='user_registration')
     doctor_profile: Mapped['DoctorProfile'] = relationship('DoctorProfile', uselist=False, back_populates='user')
+    food_cart: Mapped[list['FoodCart']] = relationship('FoodCart', back_populates='customer')
+    food_order: Mapped[list['FoodOrder']] = relationship('FoodOrder', back_populates='customer')
     freelancer_task_history: Mapped[list['FreelancerTaskHistory']] = relationship('FreelancerTaskHistory', foreign_keys='[FreelancerTaskHistory.created_by]', back_populates='user_registration')
     freelancer_task_history_: Mapped[list['FreelancerTaskHistory']] = relationship('FreelancerTaskHistory', foreign_keys='[FreelancerTaskHistory.modified_by]', back_populates='user_registration_')
     job_application: Mapped[list['JobApplication']] = relationship('JobApplication', back_populates='user')
@@ -2200,6 +2265,8 @@ class UserRegistration(Base):
     user_skill: Mapped[list['UserSkill']] = relationship('UserSkill', foreign_keys='[UserSkill.created_by]', back_populates='user_registration')
     user_skill_: Mapped[list['UserSkill']] = relationship('UserSkill', foreign_keys='[UserSkill.modified_by]', back_populates='user_registration_')
     user_skill1: Mapped[list['UserSkill']] = relationship('UserSkill', foreign_keys='[UserSkill.user_id]', back_populates='user')
+    food_order_refund_request: Mapped[list['FoodOrderRefundRequest']] = relationship('FoodOrderRefundRequest', back_populates='customer')
+    food_order_review: Mapped[list['FoodOrderReview']] = relationship('FoodOrderReview', back_populates='customer')
     property_listing: Mapped[list['PropertyListing']] = relationship('PropertyListing', foreign_keys='[PropertyListing.created_by]', back_populates='user_registration')
     property_listing_: Mapped[list['PropertyListing']] = relationship('PropertyListing', foreign_keys='[PropertyListing.modified_by]', back_populates='user_registration_')
     property_listing1: Mapped[list['PropertyListing']] = relationship('PropertyListing', foreign_keys='[PropertyListing.user_id]', back_populates='user')
@@ -2422,6 +2489,76 @@ class ExamSchedule(Base):
     exam_invigilation_assignment: Mapped[list['ExamInvigilationAssignment']] = relationship('ExamInvigilationAssignment', back_populates='exam_schedule')
     exam_notification_log: Mapped[list['ExamNotificationLog']] = relationship('ExamNotificationLog', back_populates='exam_schedule')
     exam_reminder_settings: Mapped[list['ExamReminderSettings']] = relationship('ExamReminderSettings', back_populates='exam_schedule')
+
+
+class FoodCart(Base):
+    __tablename__ = 'food_cart'
+    __table_args__ = (
+        ForeignKeyConstraint(['customer_id'], ['user_registration.id'], name='fk_food_cart_customer_id'),
+        ForeignKeyConstraint(['menu_item_id'], ['master_menu_item.id'], name='fk_food_cart_menu_item_id'),
+        ForeignKeyConstraint(['module_id'], ['master_module.id'], name='fk_food_cart_module_id'),
+        PrimaryKeyConstraint('id', name='pk_food_cart_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    customer_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    module_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    menu_item_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    item_name: Mapped[Optional[str]] = mapped_column(String(255))
+    item_size: Mapped[Optional[str]] = mapped_column(String(255))
+    quantity: Mapped[Optional[int]] = mapped_column(Integer)
+    price: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    customer: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='food_cart')
+    menu_item: Mapped['MasterMenuItem'] = relationship('MasterMenuItem', back_populates='food_cart')
+    module: Mapped['MasterModule'] = relationship('MasterModule', back_populates='food_cart')
+
+
+class FoodOrder(Base):
+    __tablename__ = 'food_order'
+    __table_args__ = (
+        CheckConstraint("location_type::text <> 'Other'::text OR contact_number IS NOT NULL AND contact_number::text <> ''::text", name='ck_contact_number_required'),
+        CheckConstraint("location_type::text <> 'Other'::text OR customer_name IS NOT NULL AND customer_name::text <> ''::text", name='ck_customer_name_required'),
+        CheckConstraint("location_type::text <> 'Other'::text OR location_details IS NOT NULL AND location_details::text <> ''::text", name='ck_location_details_required'),
+        ForeignKeyConstraint(['customer_id'], ['user_registration.id'], name='fk_food_order_customer_id'),
+        ForeignKeyConstraint(['restaurant_id'], ['master_restaurant.id'], name='fk_food_order_restaurant_id'),
+        PrimaryKeyConstraint('id', name='pk_food_order_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    customer_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    restaurant_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    order_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    location_type: Mapped[Optional[str]] = mapped_column(String(255))
+    location_details: Mapped[Optional[str]] = mapped_column(String(255))
+    customer_name: Mapped[Optional[str]] = mapped_column(String(255))
+    contact_number: Mapped[Optional[str]] = mapped_column(String(255))
+    allocation_type: Mapped[Optional[str]] = mapped_column(String(255))
+    delivery_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    delivery_time_slot: Mapped[Optional[str]] = mapped_column(String(255))
+    extra_hours: Mapped[Optional[int]] = mapped_column(Integer, server_default=text('0'))
+    uploaded_photos: Mapped[Optional[dict]] = mapped_column(JSON)
+    convenience_fee: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    total_amount: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    status: Mapped[Optional[str]] = mapped_column(String(255), server_default=text("'Pending'::character varying"))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    customer: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='food_order')
+    restaurant: Mapped['MasterRestaurant'] = relationship('MasterRestaurant', back_populates='food_order')
+    food_order_item: Mapped[list['FoodOrderItem']] = relationship('FoodOrderItem', back_populates='order')
+    food_order_refund_request: Mapped[list['FoodOrderRefundRequest']] = relationship('FoodOrderRefundRequest', back_populates='order')
+    food_order_review: Mapped[list['FoodOrderReview']] = relationship('FoodOrderReview', back_populates='order')
+    food_order_status_history: Mapped[list['FoodOrderStatusHistory']] = relationship('FoodOrderStatusHistory', back_populates='order')
+    food_payment: Mapped[list['FoodPayment']] = relationship('FoodPayment', back_populates='order')
 
 
 class FreelancerTaskHistory(Base):
@@ -3565,6 +3702,127 @@ class ExamReminderSettings(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
 
     exam_schedule: Mapped['ExamSchedule'] = relationship('ExamSchedule', back_populates='exam_reminder_settings')
+
+
+class FoodOrderItem(Base):
+    __tablename__ = 'food_order_item'
+    __table_args__ = (
+        ForeignKeyConstraint(['menu_item_id'], ['master_menu_item.id'], name='fk_food_order_item_menu_item_id'),
+        ForeignKeyConstraint(['order_id'], ['food_order.id'], name='fk_food_order_item_order_id'),
+        PrimaryKeyConstraint('id', name='pk_food_order_item')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    order_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    menu_item_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    item_name: Mapped[Optional[str]] = mapped_column(String(255))
+    item_size: Mapped[Optional[str]] = mapped_column(String(255))
+    quantity: Mapped[Optional[int]] = mapped_column(Integer)
+    price: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    menu_item: Mapped['MasterMenuItem'] = relationship('MasterMenuItem', back_populates='food_order_item')
+    order: Mapped['FoodOrder'] = relationship('FoodOrder', back_populates='food_order_item')
+
+
+class FoodOrderRefundRequest(Base):
+    __tablename__ = 'food_order_refund_request'
+    __table_args__ = (
+        ForeignKeyConstraint(['customer_id'], ['user_registration.id'], name='fk_food_order_refund_request_customer_id'),
+        ForeignKeyConstraint(['order_id'], ['food_order.id'], name='fk_food_order_refund_request_order_id'),
+        PrimaryKeyConstraint('id', name='pk_food_order_refund_request_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    order_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    customer_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    issue_type: Mapped[Optional[str]] = mapped_column(String(255))
+    issue_description: Mapped[Optional[str]] = mapped_column(String(255))
+    issue_photos: Mapped[Optional[str]] = mapped_column(String(500))
+    refund_status: Mapped[Optional[str]] = mapped_column(String(255), server_default=text("'Pending'::character varying"))
+    refund_amount: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    customer: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='food_order_refund_request')
+    order: Mapped['FoodOrder'] = relationship('FoodOrder', back_populates='food_order_refund_request')
+
+
+class FoodOrderReview(Base):
+    __tablename__ = 'food_order_review'
+    __table_args__ = (
+        CheckConstraint('rating >= 1::numeric AND rating <= 5::numeric', name='ck_food_order_review_rating'),
+        ForeignKeyConstraint(['customer_id'], ['user_registration.id'], name='fk_food_order_review_customer_id'),
+        ForeignKeyConstraint(['order_id'], ['food_order.id'], name='fk_food_order_review_order_id'),
+        ForeignKeyConstraint(['restaurant_id'], ['master_restaurant.id'], name='fk_food_order_review_restaurant_id'),
+        PrimaryKeyConstraint('id', name='pk_food_order_review_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    order_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    customer_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    restaurant_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    rating: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(3, 2))
+    review_text: Mapped[Optional[str]] = mapped_column(String(255))
+    review_photos: Mapped[Optional[str]] = mapped_column(String(500))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    customer: Mapped['UserRegistration'] = relationship('UserRegistration', back_populates='food_order_review')
+    order: Mapped['FoodOrder'] = relationship('FoodOrder', back_populates='food_order_review')
+    restaurant: Mapped['MasterRestaurant'] = relationship('MasterRestaurant', back_populates='food_order_review')
+
+
+class FoodOrderStatusHistory(Base):
+    __tablename__ = 'food_order_status_history'
+    __table_args__ = (
+        ForeignKeyConstraint(['order_id'], ['food_order.id'], name='fk_food_order_status_history_order_id'),
+        PrimaryKeyConstraint('id', name='pk_food_order_status_history_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    order_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    status: Mapped[Optional[str]] = mapped_column(String(255))
+    remarks: Mapped[Optional[str]] = mapped_column(String(255))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    order: Mapped['FoodOrder'] = relationship('FoodOrder', back_populates='food_order_status_history')
+
+
+class FoodPayment(Base):
+    __tablename__ = 'food_payment'
+    __table_args__ = (
+        ForeignKeyConstraint(['order_id'], ['food_order.id'], name='fk_food_payment_order_id'),
+        PrimaryKeyConstraint('id', name='pk_food_payment_id')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    order_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    payment_mode: Mapped[Optional[str]] = mapped_column(String(255))
+    payment_status: Mapped[Optional[str]] = mapped_column(String(255), server_default=text("'Pending'::character varying"))
+    amount_paid: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    payment_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    created_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    created_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('now()'))
+    modified_by: Mapped[Optional[int]] = mapped_column(BigInteger)
+    modified_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+
+    order: Mapped['FoodOrder'] = relationship('FoodOrder', back_populates='food_payment')
 
 
 class MasterGarage(Base):
