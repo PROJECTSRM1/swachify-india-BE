@@ -1,14 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from core.database import get_db,SessionLocal
 from core.dependencies import get_current_user
 from models.generated_models import UserRegistration
-from services.allocation_service import (
-    get_allocation_options,
-    auto_allocate_employee,
-    manual_allocate_employee
-)
+from services.allocation_service import (get_allocation_options,auto_allocate_employee,manual_allocate_employee)
 
 router = APIRouter(prefix="/api/allocation", tags=["Allocation"])
 

@@ -24,6 +24,7 @@ from routes.healthcare_route import router as healthcare_router
 # from routes.student_education_route import router as student_profile_router
 from routes.institute_management_route import router as institute_management_router
 from routes.partner_registration_route import router as partner_registration_router
+from routes.my_food_route import router as my_food_router
 
 load_dotenv()
 Base.metadata.create_all(bind=engine)
@@ -52,5 +53,6 @@ app.include_router(swachify_products_router)
 app.include_router(raw_material_router)
 app.include_router(payment_router)
 app.include_router(partner_registration_router)
+app.include_router(my_food_router)
 # app.include_router(application_router)
 # app.include_router(student_profile_router)
