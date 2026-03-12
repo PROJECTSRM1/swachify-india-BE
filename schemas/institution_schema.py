@@ -206,7 +206,7 @@ class BusFleetResponse(BaseModel):
 
 
 class BusAlertCreate(BaseModel):
-    bus_id: int
+    bus_id: int 
     alert_type: Optional[str] = None
     alert_message: Optional[str] = None
     created_by: Optional[int] = None

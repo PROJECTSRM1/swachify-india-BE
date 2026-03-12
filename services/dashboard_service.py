@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.generated_models import MasterModule, UserServices, UserRegistration
+from models.generated_models import MasterModule, UserRegistration, UserServices
 
 
 def get_dashboard(db: Session, user: UserRegistration):
@@ -24,6 +24,7 @@ def get_dashboard(db: Session, user: UserRegistration):
     ]
 
     return {
+        
         "user": {
             "user_id": user.id,
             "name": f"{user.first_name} {user.last_name or ''}".strip(),
