@@ -14,6 +14,7 @@ from core.constants import (
 # UTILS
 # =====================================================
 
+
 def sanitize_fk(value: Optional[int]) -> Optional[int]:
     """
     Converts 0 or None → None
@@ -34,9 +35,9 @@ def validate_fk(db: Session, model, value: Optional[int], field_name: str):
     exists = db.query(model.id).filter(model.id == value).first()
     if not exists:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid {field_name}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid {field_name}"
         )
+
 
 def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
     payload = data.model_dump()
@@ -44,10 +45,9 @@ def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
     # -----------------------------
     # 1. Convert frontend 0 → None
     # -----------------------------
-   for key, value in payload.items():
-    if key.endswith("_id"):
-        payload[key] = sanitize_fk(value)
-
+    for key, value in payload.items():
+        if key.endswith("_id"):
+            payload[key] = sanitize_fk(value)
 
     # -----------------------------
     # 2. REQUIRED FIELD SAFETY
@@ -58,24 +58,16 @@ def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
         return {
             "success": False,
             "service_id": None,
-            "message": "Invalid sub_module_id. Please select a valid service category."
+            "message": "Invalid sub_module_id. Please select a valid service category.",
         }
 
     # module_id safety
     if payload.get("module_id") is None:
-        return {
-            "success": False,
-            "service_id": None,
-            "message": "Invalid module_id."
-        }
+        return {"success": False, "service_id": None, "message": "Invalid module_id."}
 
     # service_id safety
     if payload.get("service_id") is None:
-        return {
-            "success": False,
-            "service_id": None,
-            "message": "Invalid service_id."
-        }
+        return {"success": False, "service_id": None, "message": "Invalid service_id."}
 
     # -----------------------------
     # 3. Remove system-controlled fields
@@ -89,9 +81,7 @@ def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
     # 4. Safe DB insert
     # -----------------------------
     try:
-        service = HomeService(
-            **payload
-        )
+        service = HomeService(**payload)
         service.created_by = user_id
         service.status_id = BOOKING_STATUS_PENDING
         service.work_status_id = WORK_STATUS_ON_THE_WAY
@@ -106,7 +96,7 @@ def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
         return {
             "success": False,
             "service_id": None,
-            "message": "Unable to create booking. Please try again."
+            "message": "Unable to create booking. Please try again.",
         }
 
     return {
@@ -115,11 +105,14 @@ def create_home_service(db: Session, data: HomeServiceCreate, user_id: int):
         "service_id": service.id,
         "status_id": service.status_id,
         "work_status_id": service.work_status_id,
-        "created_by": service.created_by
+        "created_by": service.created_by,
     }
+
+
 # =====================================================
 # READ
 # =====================================================
+
 
 def get_home_services(db: Session):
     return (
@@ -133,17 +126,13 @@ def get_home_services(db: Session):
 def get_home_service(db: Session, service_id: int):
     service = (
         db.query(HomeService)
-        .filter(
-            HomeService.id == service_id,
-            HomeService.is_active == True
-        )
+        .filter(HomeService.id == service_id, HomeService.is_active == True)
         .first()
     )
 
     if not service:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Service not found"
         )
 
     return service
@@ -153,21 +142,18 @@ def get_home_service(db: Session, service_id: int):
 # UPDATE
 # =====================================================
 
+
 def update_home_service(db: Session, service_id: int, data: HomeServiceUpdate):
 
     service = (
         db.query(HomeService)
-        .filter(
-            HomeService.id == service_id,
-            HomeService.is_active == True
-        )
+        .filter(HomeService.id == service_id, HomeService.is_active == True)
         .first()
     )
 
     if not service:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Service not found"
         )
 
     update_data = data.model_dump(exclude_unset=True)
@@ -187,44 +173,32 @@ def update_home_service(db: Session, service_id: int, data: HomeServiceUpdate):
 # DELETE (SOFT)
 # =====================================================
 
+
 def delete_home_service(db: Session, service_id: int):
 
-    service = (
-        db.query(HomeService)
-        .filter(HomeService.id == service_id)
-        .first()
-    )
+    service = db.query(HomeService).filter(HomeService.id == service_id).first()
 
     if not service:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Service not found"
         )
     db.delete(service)
     db.commit()
-   
 
     return {"message": "Service deleted successfully"}
 
-def update_home_service_rating(
-    db: Session,
-    service_id: int,
-    rating: float
-):
+
+def update_home_service_rating(db: Session, service_id: int, rating: float):
 
     service = (
         db.query(HomeService)
-        .filter(
-            HomeService.id == service_id,
-            HomeService.is_active == True
-        )
+        .filter(HomeService.id == service_id, HomeService.is_active == True)
         .first()
     )
 
     if not service:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Home service not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Home service not found"
         )
 
     service.rating = rating
@@ -234,7 +208,7 @@ def update_home_service_rating(
     return {
         "message": "Rating updated successfully",
         "service_id": service.id,
-        "rating": service.rating
+        "rating": service.rating,
     }
 
 

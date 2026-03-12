@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from core.database import SessionLocal
 from services.partner_registration_service import create_companies_registration, create_doctor_registration, create_general_education, create_hospital_registration, create_institution_school_college_registration, create_lab_registration, create_medical_store_registration, create_partner_user, create_partner_registration, create_student_registration, create_training_registration, create_my_food_registration
-from schemas.partner_registration_schema import CompaniesRegistrationCreate, DoctorRegistrationCreate, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, PartnerUserCreate, PartnerRegistrationCreate, PartnerRegistrationResponse, PartnerUserResponse, GeneralEducationCreate, GeneralEducationResponse, StudentRegistrationCreate, TrainingRegistrationCreate, MyFoodRegistrationCreate
+from schemas.partner_registration_schema import CompaniesRegistrationCreate, DoctorRegistrationCreate, DoctorRegistrationResponse, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, MedicalStoreRegistrationResponse, MyFoodRegistrationResponse, PartnerUserCreate, PartnerRegistrationCreate, PartnerRegistrationResponse, PartnerUserResponse, GeneralEducationCreate, GeneralEducationResponse, StudentRegistrationCreate, TrainingRegistrationCreate, MyFoodRegistrationCreate
 
 router = APIRouter(prefix="/partner-registration", tags=["Partner"])
 
@@ -96,7 +96,7 @@ def create_medical_store(
 ):
     return create_medical_store_registration(db, payload)
 # ---------------- DOCTOR ----------------
-@router.post("/doctor-registration")
+@router.post("/doctor-registration", response_model=DoctorRegistrationResponse)
 def create_doctor_api(
     payload: DoctorRegistrationCreate,
     db: Session = Depends(get_db)
@@ -104,7 +104,7 @@ def create_doctor_api(
     return create_doctor_registration(db, payload)
 
 
-@router.post("/my-food-registration")
+@router.post("/my-food-registration", response_model=MyFoodRegistrationResponse)
 def create_my_food_registration_api(
     payload: MyFoodRegistrationCreate,
     db: Session = Depends(get_db)

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from core.database import get_db
-from schemas.my_food_schema import FoodOrderCreate, FoodOrderRefundRequestCreate, FoodOrderRefundRequestResponse, FoodOrderResponse
-from services.my_food_service import (create_food_order, create_refund_request, get_all_refund_requests,get_food_orders,get_food_order_by_id, get_items_by_restaurant_and_category, get_refund_request_by_id, get_restaurant_view_data)
+from schemas.my_food_schema import FoodOrderCreate, FoodOrderRefundRequestCreate, FoodOrderRefundRequestResponse, FoodOrderResponse, MyFoodRegistrationCreate, MyFoodRegistrationUpdate, MyFoodRegistrationResponse
+from services.my_food_service import (create_food_order, create_refund_request, get_all_refund_requests,get_food_orders,get_food_order_by_id, get_items_by_restaurant_and_category, get_refund_request_by_id, get_restaurant_view_data, create_my_food_registration, get_my_food_registration, get_all_my_food_registrations, update_my_food_registration, delete_my_food_registration)
 from schemas.my_food_schema import FoodOrderCreate, FoodOrderResponse, FoodOrderStatusHistoryCreate, FoodOrderRefundRequestCreate, FoodOrderReviewCreate
 from services.my_food_service import (create_food_order,get_food_orders,get_food_order_by_id,create_food_order_status_history,create_food_order_refund_request,create_food_order_review)
 
@@ -83,3 +83,27 @@ def create_food_order_review_api(
     db: Session = Depends(get_db)
 ):
     return create_food_order_review(db, payload)
+
+# -----------------------------
+# MY FOOD REGISTRATION APIs
+# -----------------------------
+
+@router.post("/my-food-registration", response_model=MyFoodRegistrationResponse)
+def create_my_food_registration_api(payload: MyFoodRegistrationCreate, db: Session = Depends(get_db)):
+    return create_my_food_registration(db, payload)
+
+@router.get("/my-food-registration", response_model=list[MyFoodRegistrationResponse])
+def list_my_food_registrations(db: Session = Depends(get_db)):
+    return get_all_my_food_registrations(db)
+
+@router.get("/my-food-registration/{registration_id}", response_model=MyFoodRegistrationResponse)
+def get_my_food_registration_api(registration_id: int, db: Session = Depends(get_db)):
+    return get_my_food_registration(db, registration_id)
+
+@router.put("/my-food-registration/{registration_id}", response_model=MyFoodRegistrationResponse)
+def update_my_food_registration_api(registration_id: int, payload: MyFoodRegistrationUpdate, db: Session = Depends(get_db)):
+    return update_my_food_registration(db, registration_id, payload)
+
+@router.delete("/my-food-registration/{registration_id}")
+def delete_my_food_registration_api(registration_id: int, db: Session = Depends(get_db)):
+    return delete_my_food_registration(db, registration_id)
