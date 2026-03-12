@@ -401,3 +401,156 @@ def create_my_food_registration(db: Session, payload: MyFoodRegistrationCreate):
     db.refresh(obj)
 
     return obj
+
+
+
+# ============================================================
+# GET ALL FUNCTIONS
+# ============================================================
+
+def get_all_companies(db: Session):
+    return db.query(CompaniesRegistration).all()
+
+
+def get_all_training(db: Session):
+    return db.query(TrainingRegistration).all()
+
+
+def get_all_hospitals(db: Session):
+    return db.query(HospitalRegistration).all()
+
+
+def get_all_labs(db: Session):
+    return db.query(LabRegistration).all()
+
+
+def get_all_medical_stores(db: Session):
+    return db.query(MedicalStoreRegistration).all()
+
+
+def get_all_doctors(db: Session):
+    return db.query(DoctorRegistration).all()
+
+
+def get_all_students(db: Session):
+    return db.query(StudentRegistration).all()
+
+
+def get_all_general_education(db: Session):
+    return db.query(GeneralEducationRegistration).all()
+
+
+def get_all_my_food(db: Session):
+    return db.query(MyFoodRegistration).all()
+
+
+# ============================================================
+# GET BY ID FUNCTIONS
+# ============================================================
+
+def get_company_by_id(db: Session, company_id: int):
+
+    company = db.query(CompaniesRegistration).filter(
+        CompaniesRegistration.id == company_id
+    ).first()
+
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    return company
+
+
+def get_training_by_id(db: Session, training_id: int):
+
+    training = db.query(TrainingRegistration).filter(
+        TrainingRegistration.id == training_id
+    ).first()
+
+    if not training:
+        raise HTTPException(status_code=404, detail="Training not found")
+
+    return training
+
+
+def get_hospital_by_id(db: Session, hospital_id: int):
+
+    hospital = db.query(HospitalRegistration).filter(
+        HospitalRegistration.id == hospital_id
+    ).first()
+
+    if not hospital:
+        raise HTTPException(status_code=404, detail="Hospital not found")
+
+    return hospital
+
+
+def get_lab_by_id(db: Session, lab_id: int):
+
+    lab = db.query(LabRegistration).filter(
+        LabRegistration.id == lab_id
+    ).first()
+
+    if not lab:
+        raise HTTPException(status_code=404, detail="Lab not found")
+
+    return lab
+
+
+def get_medical_store_by_id(db: Session, store_id: int):
+
+    store = db.query(MedicalStoreRegistration).filter(
+        MedicalStoreRegistration.id == store_id
+    ).first()
+
+    if not store:
+        raise HTTPException(status_code=404, detail="Medical store not found")
+
+    return store
+
+
+def get_doctor_by_id(db: Session, doctor_id: int):
+
+    doctor = db.query(DoctorRegistration).filter(
+        DoctorRegistration.id == doctor_id
+    ).first()
+
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+
+    return doctor
+
+
+def get_student_by_id(db: Session, student_id: int):
+
+    student = db.query(StudentRegistration).filter(
+        StudentRegistration.id == student_id
+    ).first()
+
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    return student
+
+
+def get_general_education_by_id(db: Session, edu_id: int):
+
+    education = db.query(GeneralEducationRegistration).filter(
+        GeneralEducationRegistration.id == edu_id
+    ).first()
+
+    if not education:
+        raise HTTPException(status_code=404, detail="Education record not found")
+
+    return education
+
+
+def get_my_food_by_id(db: Session, food_id: int):
+
+    food = db.query(MyFoodRegistration).filter(
+        MyFoodRegistration.id == food_id
+    ).first()
+
+    if not food:
+        raise HTTPException(status_code=404, detail="Food record not found")
+
+    return food
