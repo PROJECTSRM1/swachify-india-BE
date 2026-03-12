@@ -4,7 +4,19 @@ from models.generated_models import CompaniesRegistration, DoctorRegistration, H
 from schemas.partner_registration_schema import (CompaniesRegistrationCreate, DoctorRegistrationCreate, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, PartnerUserCreate,PartnerRegistrationCreate,GeneralEducationCreate, StudentRegistrationCreate, TrainingRegistrationCreate, MyFoodRegistrationCreate)
 
 
+
+# -------------------------
+# Create Partner User
+# -------------------------
+
 def create_partner_user(db: Session, user: PartnerUserCreate):
+
+    existing_user = db.query(PartnerUsers).filter(
+        PartnerUsers.email == user.email
+    ).first()
+
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
 
     db_user = PartnerUsers(
         email=user.email,
@@ -18,11 +30,40 @@ def create_partner_user(db: Session, user: PartnerUserCreate):
     return db_user
 
 
-def get_users(db: Session):
+# # -------------------------
+# # Get All Users
+# # -------------------------
 
-    return db.query(PartnerUsers).all()
+# def get_users(db: Session):
+#     return db.query(PartnerUsers).all()
+
+
+# -------------------------
+# Create Partner Registration
+# -------------------------
 
 def create_partner_registration(db: Session, data: PartnerRegistrationCreate):
+
+    # Check if user exists
+    user = db.query(PartnerUsers).filter(
+        PartnerUsers.id == data.user_id
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check duplicate registration
+    existing = db.query(PartnerRegistration).filter(
+        PartnerRegistration.user_id == data.user_id,
+        PartnerRegistration.module_id == data.module_id,
+        PartnerRegistration.service_module_category_id == data.service_module_category_id
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Partner already registered for this module and category"
+        )
 
     registration = PartnerRegistration(
         module_id=data.module_id,

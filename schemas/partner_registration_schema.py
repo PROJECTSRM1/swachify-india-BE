@@ -5,6 +5,11 @@ from typing import Dict, Optional
 from datetime import date, datetime
 
 
+
+# -------------------------
+# Partner User
+# -------------------------
+
 class PartnerUserCreate(BaseModel):
     email: str
     password: str
@@ -15,6 +20,7 @@ class PartnerUserCreate(BaseModel):
         if "password" in values.data and v != values.data["password"]:
             raise ValueError("Passwords do not match")
         return v
+
 
 class PartnerUserResponse(BaseModel):
     id: int
@@ -31,16 +37,19 @@ class PartnerUserResponse(BaseModel):
 
 class PartnerRegistrationCreate(BaseModel):
     module_id: int
-    service_module_category_id: int
+    service_module_category_id: Optional[int] = None
     user_id: int
 
 
-class PartnerRegistrationResponse(PartnerRegistrationCreate):
+class PartnerRegistrationResponse(BaseModel):
     id: int
+    module_id: int
+    service_module_category_id: Optional[int]
+    user_id: int
+    created_date: Optional[datetime]
 
     class Config:
         from_attributes = True
-
 
 # -------------------------
 # General Education

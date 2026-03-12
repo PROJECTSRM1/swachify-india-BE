@@ -11,11 +11,25 @@ def get_db():
     try: yield db
     finally: db.close()
 
+
+
+# -------------------------
+# Create Partner User
+# -------------------------
+
 @router.post("/users", response_model=PartnerUserResponse)
-def create_user(user: PartnerUserCreate, db: Session = Depends(get_db)): return create_partner_user(db, user)
+def create_user(
+    user: PartnerUserCreate,
+    db: Session = Depends(get_db)
+):
+    return create_partner_user(db, user)
 
 @router.post("/register", response_model=PartnerRegistrationResponse)
-def register_partner(data: PartnerRegistrationCreate, db: Session = Depends(get_db)): return create_partner_registration(db, data)
+def register_partner(
+    data: PartnerRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_partner_registration(db, data)
 
 @router.post("/general-education", response_model=GeneralEducationResponse)
 def register_education(data: GeneralEducationCreate, db: Session = Depends(get_db)): return create_general_education(db, data)
