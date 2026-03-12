@@ -30,10 +30,13 @@ def register_partner(
     db: Session = Depends(get_db)
 ):
     return create_partner_registration(db, data)
-
+    
 @router.post("/general-education", response_model=GeneralEducationResponse)
-def register_education(data: GeneralEducationCreate, db: Session = Depends(get_db)): return create_general_education(db, data)
-
+def register_education(
+    data: GeneralEducationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_general_education(db, data)
 
 
 @router.post("/institution-school-college")
@@ -42,7 +45,6 @@ def create_institution_school_college_api(
     db: Session = Depends(get_db)
 ):
     return create_institution_school_college_registration(db, payload)
-
 
 @router.post("/student-registration")
 def create_student_registration_api(

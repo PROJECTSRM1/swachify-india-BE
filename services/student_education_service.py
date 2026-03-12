@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy import text
 from models.generated_models import (
+    TaskHistory,
+    Tasks,
     UserRegistration,
     StudentQualification,
     StudentCertificate,
@@ -15,6 +17,7 @@ from schemas.student_education_schema import (
     JobApplicationCreate,
     StudentEducationCreate
 )
+from schemas.task_schema import TaskHistoryCreate
 
 def create_job_openings(db: Session, data: JobOpeningCreate, user_id: int) -> JobOpenings:
     job = JobOpenings(**data.model_dump(), created_by=user_id)
@@ -160,7 +163,6 @@ def add_student_education_service(db: Session,student_id: int,payload: StudentEd
     db.commit()
     db.refresh(education)
     return education
-
 
 
 def get_students_list_service(
@@ -332,7 +334,6 @@ def get_active_job_openings(db: Session, category_id: int = -1):
     ).mappings().all()
 
 
-
 def get_internship_list_service(db: Session,category_id: int,work_type_id: int):
     query = text("""
         SELECT *
@@ -358,5 +359,51 @@ def get_internship_list_service(db: Session,category_id: int,work_type_id: int):
 #         SELECT * FROM fn_get_students_by_branch(:branch_id)
 #     """)
 #     result = db.execute(query, {"branch_id": branch_id})
-#     return result.mappings().all()   
+#     return result.mappings().all()
 
+
+def add_task_rating(db: Session, payload: TaskHistoryCreate, created_by: int):
+    task = (
+        db.query(Tasks)
+        .filter(Tasks.id == payload.task_id, Tasks.is_active == True)
+        .first()
+    )
+
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid task_id"
+        )
+    if task.user_id != payload.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is not the assignee of this task",
+        )
+    if payload.rating < 1 or payload.rating > 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Rating must be between 1 and 5",
+        )
+    history = TaskHistory(
+        task_id=payload.task_id,
+        user_id=payload.user_id,
+        from_assignee_id=payload.from_assignee_id,
+        to_assignee_id=payload.to_assignee_id,
+        reporting_manager_id=payload.reporting_manager_id,
+        comments=payload.comments,
+        rating=payload.rating,
+        created_by=created_by,
+    )
+
+    db.add(history)
+    db.commit()
+    db.refresh(history)
+    return history
+
+
+def get_task_history_by_task(db: Session, task_id: int):
+    return (
+        db.query(TaskHistory)
+        .filter(TaskHistory.task_id == task_id, TaskHistory.is_active == True)
+        .order_by(TaskHistory.created_date.desc())
+        .all()
+    )

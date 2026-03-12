@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from pydantic import BaseModel, EmailStr,field_validator
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Dict, Optional
 from datetime import date, datetime
 
@@ -11,9 +11,10 @@ from datetime import date, datetime
 # -------------------------
 
 class PartnerUserCreate(BaseModel):
-    email: str
+    email: EmailStr
     password: str
     confirm_password: str
+    created_by: Optional[int] = None
 
     @field_validator("confirm_password")
     def passwords_match(cls, v, values):
@@ -22,10 +23,20 @@ class PartnerUserCreate(BaseModel):
         return v
 
 
+class PartnerUserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    modified_by: Optional[int] = None
+
+
 class PartnerUserResponse(BaseModel):
     id: int
     email: str
+    created_by: Optional[int]
     created_date: Optional[datetime]
+    modified_by: Optional[int]
+    modified_date: Optional[datetime]
+    is_active: Optional[bool]
 
     class Config:
         from_attributes = True
@@ -34,6 +45,7 @@ class PartnerUserResponse(BaseModel):
 # -------------------------
 # Partner Registration
 # -------------------------
+
 
 class PartnerRegistrationCreate(BaseModel):
     module_id: int
@@ -55,6 +67,7 @@ class PartnerRegistrationResponse(BaseModel):
 # General Education
 # -------------------------
 
+
 class GeneralEducationCreate(BaseModel):
 
     partner_registration_id: int
@@ -63,7 +76,7 @@ class GeneralEducationCreate(BaseModel):
     pan_number: str
     upload_fire_safety_certificate: str
     address_pincode: str
-    official_email: str
+    official_email: EmailStr
     gst_registration: Optional[bool] = None
     upload_gst_certificate: Optional[str] = None
     bank_account: Optional[str] = None
@@ -72,16 +85,20 @@ class GeneralEducationCreate(BaseModel):
     building_type_id: Optional[int] = None
     upload_rental_agreement: Optional[str] = None
     phone_number: Optional[str] = None
+    verify_official_email: Optional[str] = None
+    created_by: Optional[int] = None
 
 
 class GeneralEducationResponse(GeneralEducationCreate):
 
     id: int
+    created_date: Optional[datetime]
+    modified_by: Optional[int]
+    modified_date: Optional[datetime]
+    is_active: Optional[bool]
 
     class Config:
         from_attributes = True
-
-
 
 
 class InstitutionSchoolCollegeRegistrationCreate(BaseModel):
@@ -96,7 +113,7 @@ class InstitutionSchoolCollegeRegistrationCreate(BaseModel):
     city: str
     address: str
     pincode: int
-    official_email: str
+    official_email: EmailStr
     official_phone_number: str
     director_principal_name: str
     director_contact_number: str
@@ -108,6 +125,7 @@ class InstitutionSchoolCollegeRegistrationCreate(BaseModel):
 
     education_medium: Dict
     education_grades_offered: Dict
+
     student_capacity: int
     current_student_strength: int
     teacher_count: int
@@ -123,6 +141,66 @@ class InstitutionSchoolCollegeRegistrationCreate(BaseModel):
     website_url: Optional[str] = None
     accreditation: Optional[str] = None
     gst_number: Optional[str] = None
+
+    available_departments: Optional[Dict] = None
+    intake_per_course: Optional[Decimal] = None
+
+    mid_day_meal_available: Optional[bool] = None
+    transport_facility: Optional[bool] = None
+    playground_available: Optional[bool] = None
+    smart_classrooms: Optional[bool] = None
+    computer_lab: Optional[bool] = None
+    library: Optional[bool] = None
+    cctv_surveillance: Optional[bool] = None
+    ro_drinking_water: Optional[bool] = None
+    first_aid_room: Optional[bool] = None
+    security_guard: Optional[bool] = None
+    placement_cell: Optional[bool] = None
+    internship_support: Optional[bool] = None
+    research_labs: Optional[bool] = None
+    innovation_cell: Optional[bool] = None
+    auditorium: Optional[bool] = None
+    seminar_halls: Optional[bool] = None
+    wifi_campus: Optional[bool] = None
+    cafeteria: Optional[bool] = None
+    boys_hostel: Optional[bool] = None
+    girls_hostel: Optional[bool] = None
+    sports_complex: Optional[bool] = None
+
+    placement_year_1: Optional[Decimal] = None
+    placement_year_2: Optional[Decimal] = None
+    placement_year_3: Optional[Decimal] = None
+
+    extra_curricular_activities: Optional[Dict] = None
+
+    year_1_10th_result: Optional[Decimal] = None
+    year_2_10th_result: Optional[Decimal] = None
+    year_3_10th_result: Optional[Decimal] = None
+
+    competitive_exam_training: Optional[Dict] = None
+
+    science_lab: Optional[bool] = None
+    physics_lab: Optional[bool] = None
+    chemistry_lab: Optional[bool] = None
+    biology_lab: Optional[bool] = None
+    separate_labs: Optional[bool] = None
+
+    digital_attendance_system: Optional[bool] = None
+    parent_portal_access: Optional[bool] = None
+    career_guidance: Optional[bool] = None
+
+    performance_pass_percentage_year1: Optional[Decimal] = None
+    performance_pass_percentage_year2: Optional[Decimal] = None
+    performance_pass_percentage_year3: Optional[Decimal] = None
+
+    top_rankers_info: Optional[str] = None
+    faculty_experience: Optional[int] = None
+    phd_resarch_programs: Optional[Dict] = None
+    naac_grade_id: Optional[int] = None
+    research_publication_count: Optional[int] = None
+    industry_collaborations: Optional[str] = None
+    mou_partnerships: Optional[int] = None
+    startup_incubation_center: Optional[bool] = None
 
     created_by: int
 
@@ -175,6 +253,7 @@ class StudentRegistrationCreate(BaseModel):
     upload_income_certificate: Optional[str] = None
 
     created_by: int
+
 
 class CompaniesRegistrationCreate(BaseModel):
 
@@ -371,6 +450,16 @@ class MedicalStoreRegistrationCreate(BaseModel):
     created_by: int
 
 
+class MedicalStoreRegistrationResponse(MedicalStoreRegistrationCreate):
+    id: int
+    created_date: Optional[datetime] = None
+    modified_date: Optional[datetime] = None
+    is_active: Optional[bool] = True
+
+    class Config:
+        from_attributes = True
+
+
 # ---------------- DOCTOR ----------------
 class DoctorRegistrationCreate(BaseModel):
     partner_registration_id: int
@@ -400,6 +489,16 @@ class DoctorRegistrationCreate(BaseModel):
     official_mobile_for_otp: str
     official_email_for_otp: str
     created_by: int
+
+
+class DoctorRegistrationResponse(DoctorRegistrationCreate):
+    id: int
+    created_date: Optional[datetime] = None
+    modified_date: Optional[datetime] = None
+    is_active: Optional[bool] = True
+
+    class Config:
+        from_attributes = True
 
 
 class MyFoodRegistrationCreate(BaseModel):
@@ -448,3 +547,13 @@ class MyFoodRegistrationCreate(BaseModel):
     avialable_dining_options: Optional[Dict] = None
 
     created_by: int
+
+
+class MyFoodRegistrationResponse(MyFoodRegistrationCreate):
+    id: int
+    created_date: Optional[datetime] = None
+    modified_date: Optional[datetime] = None
+    is_active: Optional[bool] = True
+
+    class Config:
+        from_attributes = True

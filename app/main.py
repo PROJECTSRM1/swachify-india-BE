@@ -12,7 +12,7 @@ from routes.admin_route import router as admin_router
 # from routes.freelancer_route import router as freelancer_router
 from routes.master_module_route import router as master_module_router
 from routes.payment_routes import router as payment_router
-from routes.task_router import router as task_router
+# from routes.task_router import router as task_router
 from routes.student_education_route import router as student_education_router
 from routes.job_application_openings_route import router as job_application_openings_router
 from routes.property_sell_listing_router import router as property_sell_listing_router
@@ -25,6 +25,7 @@ from routes.healthcare_route import router as healthcare_router
 from routes.institute_management_route import router as institute_management_router
 from routes.partner_registration_route import router as partner_registration_router
 from routes.my_food_route import router as my_food_router
+from routes.my_food_partner_route import router as my_food_partner_router
 
 load_dotenv()
 Base.metadata.create_all(bind=engine)
@@ -41,7 +42,7 @@ app.include_router(allocation_router)
 app.include_router(admin_router)
 # app.include_router(freelancer_router)
 app.include_router(master_module_router)
-app.include_router(task_router)
+# app.include_router(task_router)
 app.include_router(student_education_router)
 app.include_router(job_application_openings_router)
 app.include_router(application_router)
@@ -54,5 +55,6 @@ app.include_router(raw_material_router)
 app.include_router(payment_router)
 app.include_router(partner_registration_router)
 app.include_router(my_food_router)
+app.include_router(my_food_partner_router)
 # app.include_router(application_router)
 # app.include_router(student_profile_router)
