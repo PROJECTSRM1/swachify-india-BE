@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from decimal import Decimal
 from models.generated_models import (
     CompaniesRegistration,
     DoctorRegistration,
@@ -38,7 +39,20 @@ from schemas.partner_registration_schema import (
 
 def create_partner_user(db: Session, user: PartnerUserCreate):
 
-    db_user = PartnerUsers(email=user.email, password=user.password)
+    existing_user = db.query(PartnerUsers).filter(
+        PartnerUsers.email == user.email
+    ).first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    db_user = PartnerUsers(
+        email=user.email,
+        password=user.password
+    )
 
     db.add(db_user)
     db.commit()
@@ -124,16 +138,20 @@ def create_general_education(db: Session, data: GeneralEducationCreate):
 
     return education
 
+def convert_percentage(value):
+    if value is None:
+        return None
+    return Decimal(value) / Decimal(100)
+
 def create_institution_school_college_registration(
     db: Session, payload: InstitutionSchoolCollegeRegistrationCreate
 ):
 
-    # Validate partner registration
     partner = (
         db.query(PartnerRegistration)
         .filter(
             PartnerRegistration.id == payload.partner_registration_id,
-            PartnerRegistration.is_active == True
+            PartnerRegistration.is_active == True,
         )
         .first()
     )
@@ -141,10 +159,29 @@ def create_institution_school_college_registration(
     if not partner:
         raise HTTPException(
             status_code=400,
-            detail="Invalid partner_registration_id. Partner not found"
+            detail="Invalid partner_registration_id"
         )
 
-    obj = InstitutionSchoolCollegeRegistration(**payload.model_dump())
+    data = payload.model_dump()
+
+    # convert percentage fields to fit Numeric(3,2)
+    percentage_fields = [
+        "placement_year_1",
+        "placement_year_2",
+        "placement_year_3",
+        "year_1_10th_result",
+        "year_2_10th_result",
+        "year_3_10th_result",
+        "performance_pass_percentage_year1",
+        "performance_pass_percentage_year2",
+        "performance_pass_percentage_year3",
+    ]
+
+    for field in percentage_fields:
+        if field in data and data[field] is not None:
+            data[field] = convert_percentage(data[field])
+
+    obj = InstitutionSchoolCollegeRegistration(**data)
 
     db.add(obj)
     db.commit()
