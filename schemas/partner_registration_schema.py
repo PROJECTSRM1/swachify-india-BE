@@ -4,6 +4,10 @@ from pydantic import BaseModel, EmailStr, field_validator
 from typing import Dict, Optional
 from datetime import date, datetime
 
+from sqlalchemy import BigInteger
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import mapped_column
+
 
 
 # -------------------------
@@ -263,51 +267,21 @@ class CompaniesRegistrationCreate(BaseModel):
     official_email: str
     hr_contact_number: str
     company_hq_address: str
-
     company_type_id: int
     upload_gst_certificate: str
     job_sector_id: int
     job_title: str
     job_description: str
-
     job_type_id: int
     work_mode_id: int
-    job_locations: Dict
-
+    job_locations: dict
     no_of_vacancies: int
     salary_ctc_range: str
     application_deadline: date
-
     minimun_education_id: int
     department_ministry_name: str
     pay_scale: Decimal
     selection_process: str
-
-    company_website_url: Optional[str] = None
-    upload_company_logo: Optional[str] = None
-    required_experience: Optional[str] = None
-    minimum_percentage_required: Optional[Decimal] = None
-    age_limit: Optional[str] = None
-
-    cast_category_preferences: Optional[Dict] = None
-    required_skills: Optional[Dict] = None
-
-    exam_notification_number: Optional[str] = None
-    exam_date_announced: Optional[bool] = None
-    exam_date: Optional[date] = None
-
-    official_notification_url: Optional[str] = None
-    upload_notification_pdf: Optional[str] = None
-
-    tech_stack_category_id: Optional[int] = None
-    preferred_tech_stack: Optional[str] = None
-
-    service_agreement_required: Optional[bool] = None
-    stock_options_available: Optional[bool] = None
-
-    joining_timeline: Optional[str] = None
-    benefits_perks: Optional[Dict] = None
-
     created_by: int
 
 
@@ -330,7 +304,6 @@ class TrainingRegistrationCreate(BaseModel):
 
     language_instruction: Dict
     min_qualification_required_id: int
-
     upload_course_banner_image: str
 
     institute_logo: Optional[str] = None
@@ -338,7 +311,6 @@ class TrainingRegistrationCreate(BaseModel):
     course_duration: Optional[str] = None
     total_sessions_hours: Optional[str] = None
     training_fee: Optional[str] = None
-
     class_schedule_timings: Optional[str] = None
     max_students_per_batch: Optional[int] = None
 
@@ -355,13 +327,11 @@ class TrainingRegistrationCreate(BaseModel):
 
     exam_stages_covered: Optional[Dict] = None
     target_exam_year: Optional[int] = None
-
     pyq_coverage: Optional[str] = None
     no_of_mock_tests: Optional[int] = None
 
     study_material_provided: Optional[bool] = None
     current_affairs_coverage: Optional[bool] = None
-
     past_selection_rank_holders: Optional[str] = None
     hostel_facility: Optional[bool] = None
 
@@ -370,9 +340,8 @@ class TrainingRegistrationCreate(BaseModel):
 
     created_by: int
 
-
-# ---------------- HOSPITAL ----------------
 class HospitalRegistrationCreate(BaseModel):
+
     partner_registration_id: int
     hospital_name: str
     upload_entity_photo: str
@@ -386,7 +355,7 @@ class HospitalRegistrationCreate(BaseModel):
     pincode: int
     registration_number: str
     doctor_registration: str
-    official_email: EmailStr
+    official_email: str
     primary_phone_number: str
     medical_superintendent_name: str
     medical_superintendent_contact: str
@@ -395,8 +364,8 @@ class HospitalRegistrationCreate(BaseModel):
     created_by: int
 
 
-# ---------------- LAB ----------------
 class LabRegistrationCreate(BaseModel):
+
     partner_registration_id: int
     lab_name: str
     upload_entity_photo: str
@@ -409,22 +378,51 @@ class LabRegistrationCreate(BaseModel):
     pincode: int
     registration_number: str
     doctor_registration: str
+
     upload_registration_certificate: str
     upload_owner_id_proof: str
     upload_owner_address_proof: str
     upload_doctor_registration: str
     upload_labs_equipment_calibration_reports: str
-    official_email: EmailStr
+
+    official_email: str
     primary_phone_number: str
     lab_in_charge_name: str
     lab_in_charge_contact: str
+
     official_mobile_for_otp: str
     official_email_for_otp: str
-    created_by: int
 
+    drug_license_applicable: Optional[bool] = False
+    drug_license_number: Optional[str] = None
 
-# ---------------- MEDICAL STORE ----------------
+    bmw_obtained: Optional[bool] = False
+    bmw_authorization_number: Optional[str] = None
+
+    cbwtf_tied_up: Optional[bool] = False
+    cbwtf_facility_name: Optional[str] = None
+
+    fire_noc_obtained: Optional[bool] = False
+    fire_noc_number: Optional[str] = None
+
+    aerb_licence_applicable: Optional[bool] = False
+    aerb_license_number: Optional[str] = None
+
+    pcpndt_certificate_applicable: Optional[bool] = False
+    pcpndt_certificate_number: Optional[str] = None
+
+    nabl_accreditation: Optional[bool] = False
+    gst_registered: Optional[bool] = False
+    gst_number: Optional[str] = None
+
+    alternate_phone_number: Optional[str] = None
+    website_url: Optional[str] = None
+    home_sample_collection_available: Optional[bool] = None
+
+    created_by: Optional[int] = None
+
 class MedicalStoreRegistrationCreate(BaseModel):
+
     partner_registration_id: int
     medical_store_name: str
     upload_entity_photo: str
@@ -436,19 +434,31 @@ class MedicalStoreRegistrationCreate(BaseModel):
     pincode: int
     registration_number: str
     pharmacist_registration: str
+
     upload_registration_certificate: str
     upload_owner_id_proof: str
     upload_owner_address_proof: str
     upload_pharmacist_registration_certificate: str
     upload_shop_registration: str
-    official_email: EmailStr
+
+    official_email: str
     primary_phone_number: str
     pharmacist_owner_name: str
     pharmacist_contact: str
+
     official_mobile_for_otp: str
     official_email_for_otp: str
-    created_by: int
 
+    is_24hours_operation: Optional[bool] = None
+    home_delivery_available: Optional[bool] = None
+    drug_license_applicable: Optional[bool] = None
+    fire_noc_obtained: Optional[bool] = None
+    gst_registered: Optional[bool] = None
+
+    alternate_phone_number: Optional[str] = None
+    website_url: Optional[str] = None
+
+    created_by: int
 
 class MedicalStoreRegistrationResponse(MedicalStoreRegistrationCreate):
     id: int
