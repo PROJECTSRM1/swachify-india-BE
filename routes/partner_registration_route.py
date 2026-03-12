@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from core.database import SessionLocal
-
 from services.partner_registration_service import (
     create_companies_registration,
     create_doctor_registration,
@@ -17,27 +16,16 @@ from services.partner_registration_service import (
     create_training_registration,
     create_my_food_registration,
 
-    get_all_companies,
-    get_all_training,
-    get_all_hospitals,
-    get_all_labs,
-    get_all_medical_stores,
-    get_all_doctors,
-    get_all_students,
-    get_all_general_education,
-    get_all_my_food,
-
-    get_company_by_id,
-    get_training_by_id,
-    get_hospital_by_id,
-    get_lab_by_id,
-    get_medical_store_by_id,
-    get_doctor_by_id,
-    get_student_by_id,
-    get_general_education_by_id,
-    get_my_food_by_id
+    get_companies,
+    get_training,
+    get_hospitals,
+    get_labs,
+    get_medical_stores,
+    get_doctors,
+    get_students,
+    get_general_education,
+    get_my_food
 )
-
 from schemas.partner_registration_schema import (
     CompaniesRegistrationCreate,
     DoctorRegistrationCreate,
@@ -175,92 +163,73 @@ def create_my_food_registration_api(
 ):
     return create_my_food_registration(db, payload)
 
-
 @router.get("/companies")
-def get_companies(db: Session = Depends(get_db)):
-    return get_all_companies(db)
+def get_companies_api(
+    company_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_companies(db, company_id)
 
 
 @router.get("/training")
-def get_training(db: Session = Depends(get_db)):
-    return get_all_training(db)
+def get_training_api(
+    training_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_training(db, training_id)
 
 
 @router.get("/hospitals")
-def get_hospitals(db: Session = Depends(get_db)):
-    return get_all_hospitals(db)
+def get_hospitals_api(
+    hospital_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_hospitals(db, hospital_id)
 
 
 @router.get("/labs")
-def get_labs(db: Session = Depends(get_db)):
-    return get_all_labs(db)
+def get_labs_api(
+    lab_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_labs(db, lab_id)
 
 
 @router.get("/medical-stores")
-def get_medical_stores(db: Session = Depends(get_db)):
-    return get_all_medical_stores(db)
+def get_medical_stores_api(
+    store_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_medical_stores(db, store_id)
 
 
 @router.get("/doctors")
-def get_doctors(db: Session = Depends(get_db)):
-    return get_all_doctors(db)
+def get_doctors_api(
+    doctor_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_doctors(db, doctor_id)
 
 
 @router.get("/students")
-def get_students(db: Session = Depends(get_db)):
-    return get_all_students(db)
+def get_students_api(
+    student_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_students(db, student_id)
 
 
 @router.get("/general-education")
-def get_general_education(db: Session = Depends(get_db)):
-    return get_all_general_education(db)
+def get_general_education_api(
+    edu_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_general_education(db, edu_id)
 
 
 @router.get("/my-food")
-def get_my_food(db: Session = Depends(get_db)):
-    return get_all_my_food(db)
-
-
-@router.get("/companies/{company_id}")
-def get_company(company_id: int, db: Session = Depends(get_db)):
-    return get_company_by_id(db, company_id)
-
-
-@router.get("/training/{training_id}")
-def get_training_by_id_api(training_id: int, db: Session = Depends(get_db)):
-    return get_training_by_id(db, training_id)
-
-
-@router.get("/hospital/{hospital_id}")
-def get_hospital_by_id_api(hospital_id: int, db: Session = Depends(get_db)):
-    return get_hospital_by_id(db, hospital_id)
-
-
-@router.get("/lab/{lab_id}")
-def get_lab_by_id_api(lab_id: int, db: Session = Depends(get_db)):
-    return get_lab_by_id(db, lab_id)
-
-
-@router.get("/medical-store/{store_id}")
-def get_medical_store_by_id_api(store_id: int, db: Session = Depends(get_db)):
-    return get_medical_store_by_id(db, store_id)
-
-
-@router.get("/doctor/{doctor_id}")
-def get_doctor_by_id_api(doctor_id: int, db: Session = Depends(get_db)):
-    return get_doctor_by_id(db, doctor_id)
-
-
-@router.get("/student/{student_id}")
-def get_student_by_id_api(student_id: int, db: Session = Depends(get_db)):
-    return get_student_by_id(db, student_id)
-
-
-@router.get("/general-education/{edu_id}")
-def get_general_education_by_id_api(edu_id: int, db: Session = Depends(get_db)):
-    return get_general_education_by_id(db, edu_id)
-
-
-@router.get("/my-food/{food_id}")
-def get_my_food_by_id_api(food_id: int, db: Session = Depends(get_db)):
-    return get_my_food_by_id(db, food_id)
+def get_my_food_api(
+    food_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_my_food(db, food_id)
