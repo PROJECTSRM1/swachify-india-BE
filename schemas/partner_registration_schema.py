@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from pydantic import BaseModel, EmailStr,field_validator
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Dict, Optional
 from datetime import date, datetime
 
@@ -16,6 +16,7 @@ class PartnerUserCreate(BaseModel):
             raise ValueError("Passwords do not match")
         return v
 
+
 class PartnerUserResponse(BaseModel):
     id: int
     email: str
@@ -28,6 +29,7 @@ class PartnerUserResponse(BaseModel):
 # -------------------------
 # Partner Registration
 # -------------------------
+
 
 class PartnerRegistrationCreate(BaseModel):
     module_id: int
@@ -45,6 +47,7 @@ class PartnerRegistrationResponse(PartnerRegistrationCreate):
 # -------------------------
 # General Education
 # -------------------------
+
 
 class GeneralEducationCreate(BaseModel):
 
@@ -71,8 +74,6 @@ class GeneralEducationResponse(GeneralEducationCreate):
 
     class Config:
         from_attributes = True
-
-
 
 
 class InstitutionSchoolCollegeRegistrationCreate(BaseModel):
@@ -166,6 +167,7 @@ class StudentRegistrationCreate(BaseModel):
     upload_income_certificate: Optional[str] = None
 
     created_by: int
+
 
 class CompaniesRegistrationCreate(BaseModel):
 
@@ -362,6 +364,16 @@ class MedicalStoreRegistrationCreate(BaseModel):
     created_by: int
 
 
+class MedicalStoreRegistrationResponse(MedicalStoreRegistrationCreate):
+    id: int
+    created_date: Optional[datetime] = None
+    modified_date: Optional[datetime] = None
+    is_active: Optional[bool] = True
+
+    class Config:
+        from_attributes = True
+
+
 # ---------------- DOCTOR ----------------
 class DoctorRegistrationCreate(BaseModel):
     partner_registration_id: int
@@ -391,6 +403,16 @@ class DoctorRegistrationCreate(BaseModel):
     official_mobile_for_otp: str
     official_email_for_otp: str
     created_by: int
+
+
+class DoctorRegistrationResponse(DoctorRegistrationCreate):
+    id: int
+    created_date: Optional[datetime] = None
+    modified_date: Optional[datetime] = None
+    is_active: Optional[bool] = True
+
+    class Config:
+        from_attributes = True
 
 
 class MyFoodRegistrationCreate(BaseModel):
@@ -439,3 +461,13 @@ class MyFoodRegistrationCreate(BaseModel):
     avialable_dining_options: Optional[Dict] = None
 
     created_by: int
+
+
+class MyFoodRegistrationResponse(MyFoodRegistrationCreate):
+    id: int
+    created_date: Optional[datetime] = None
+    modified_date: Optional[datetime] = None
+    is_active: Optional[bool] = True
+
+    class Config:
+        from_attributes = True
