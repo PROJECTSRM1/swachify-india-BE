@@ -395,10 +395,10 @@ def create_medical_store_registration(
 def create_doctor_registration(db: Session, payload: DoctorRegistrationCreate):
 
     user = (
-        db.query(UserRegistration)
+        db.query(PartnerRegistration)
         .filter(
-            UserRegistration.id == payload.created_by,
-            UserRegistration.is_active == True,
+            PartnerRegistration.id == payload.created_by,
+            PartnerRegistration.is_active == True,
         )
         .first()
     )
@@ -418,10 +418,10 @@ def create_doctor_registration(db: Session, payload: DoctorRegistrationCreate):
 def create_my_food_registration(db: Session, payload: MyFoodRegistrationCreate):
 
     user = (
-        db.query(UserRegistration)
+        db.query(PartnerRegistration)
         .filter(
-            UserRegistration.id == payload.created_by,
-            UserRegistration.is_active == True,
+            PartnerRegistration.id == payload.created_by,
+            PartnerRegistration.is_active == True,
         )
         .first()
     )
