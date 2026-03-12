@@ -1,10 +1,31 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from models.generated_models import FoodOrder, FoodOrderRefundRequest
-from schemas.my_food_schema import FoodOrderCreate, FoodOrderRefundRequestCreate
-from models.generated_models import FoodOrder, FoodOrderStatusHistory, UserRegistration, FoodOrderRefundRequest, FoodOrderReview, MasterRestaurant
+from models.generated_models import (
+    FoodOrder,
+    FoodOrderRefundRequest,
+    MyFoodRegistration,
+)
+from schemas.my_food_schema import (
+    FoodOrderCreate,
+    FoodOrderRefundRequestCreate,
+    MyFoodRegistrationCreate,
+    MyFoodRegistrationUpdate,
+)
+from models.generated_models import (
+    FoodOrder,
+    FoodOrderStatusHistory,
+    UserRegistration,
+    FoodOrderRefundRequest,
+    FoodOrderReview,
+    MasterRestaurant,
+)
 from fastapi import HTTPException
-from schemas.my_food_schema import FoodOrderCreate, FoodOrderStatusHistoryCreate, FoodOrderRefundRequestCreate, FoodOrderReviewCreate
+from schemas.my_food_schema import (
+    FoodOrderCreate,
+    FoodOrderStatusHistoryCreate,
+    FoodOrderRefundRequestCreate,
+    FoodOrderReviewCreate,
+)
 
 
 def create_food_order(db: Session, order: FoodOrderCreate):
@@ -21,7 +42,7 @@ def create_food_order(db: Session, order: FoodOrderCreate):
         delivery_time_slot=order.delivery_time_slot,
         extra_hours=order.extra_hours,
         convenience_fee=order.convenience_fee,
-        total_amount=order.total_amount
+        total_amount=order.total_amount,
     )
 
     db.add(db_order)
@@ -39,6 +60,7 @@ def get_food_orders(db: Session):
 def get_food_order_by_id(db: Session, order_id: int):
 
     return db.query(FoodOrder).filter(FoodOrder.id == order_id).first()
+
 
 # def create_refund_request(db: Session, refund: FoodOrderRefundRequestCreate):
 
@@ -69,14 +91,15 @@ def get_food_order_by_id(db: Session, order_id: int):
 #         FoodOrderRefundRequest.id == refund_id
 #     ).first()
 
+
 def create_refund_request(db: Session, refund: FoodOrderRefundRequestCreate):
     db_refund = FoodOrderRefundRequest(
-        order_id = refund.order_id,
-        customer_id = refund.customer_id,
-        issue_type = refund.issue_type,
-        issue_description =refund.issue_photos,
-        issue_photos = refund.issue_photos,
-        refund_amount = refund.refund_amount
+        order_id=refund.order_id,
+        customer_id=refund.customer_id,
+        issue_type=refund.issue_type,
+        issue_description=refund.issue_photos,
+        issue_photos=refund.issue_photos,
+        refund_amount=refund.refund_amount,
     )
     db.add(db_refund)
     db.commit()
@@ -84,71 +107,73 @@ def create_refund_request(db: Session, refund: FoodOrderRefundRequestCreate):
 
     return db_refund
 
+
 def get_all_refund_requests(db: Session):
     return db.query(FoodOrderRefundRequest).all()
-def get_refund_request_by_id(db: Session, refund_id: int):
-    return db.query(FoodOrderRefundRequest).filter(
-        FoodOrderRefundRequest.id == refund_id
-    ).first()
-def get_items_by_restaurant_and_category(db: Session, restaurant_id: int, category_id:int):
 
-    query = text("""
+
+def get_refund_request_by_id(db: Session, refund_id: int):
+    return (
+        db.query(FoodOrderRefundRequest)
+        .filter(FoodOrderRefundRequest.id == refund_id)
+        .first()
+    )
+
+
+def get_items_by_restaurant_and_category(
+    db: Session, restaurant_id: int, category_id: int
+):
+
+    query = text(
+        """
         SELECT * 
         FROM get_items_by_restaurant_and_category(:restaurant_id, :category_id)
-    """)
+    """
+    )
     result = db.execute(
-        query,
-        {
-            "restaurant_id": restaurant_id,
-            "category_id": category_id
-        }
+        query, {"restaurant_id": restaurant_id, "category_id": category_id}
     )
     return result.mappings().all()
+
 
 def get_restaurant_view_data(db: Session, restaurant_id: int, category_id: int):
 
-    query = text("""
+    query = text(
+        """
         SELECT * 
         FROM get_restaurant_view_data(:restaurant_id, :category_id)
-    """)
+    """
+    )
 
     result = db.execute(
-        query,
-        {
-            "restaurant_id": restaurant_id,
-            "category_id": category_id
-        }
+        query, {"restaurant_id": restaurant_id, "category_id": category_id}
     )
 
     return result.mappings().all()
 
+
 def create_food_order_status_history(
-    db: Session,
-    payload: FoodOrderStatusHistoryCreate
+    db: Session, payload: FoodOrderStatusHistoryCreate
 ):
 
     # validate user
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True,
+        )
+        .first()
+    )
 
     if not user:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid created_by user"
-        )
+        raise HTTPException(status_code=400, detail="Invalid created_by user")
 
     # validate order
-    order = db.query(FoodOrder).filter(
-        FoodOrder.id == payload.order_id
-    ).first()
+    order = db.query(FoodOrder).filter(FoodOrder.id == payload.order_id).first()
 
     if not order:
-        raise HTTPException(
-            status_code=404,
-            detail="Order not found"
-        )
+        raise HTTPException(status_code=404, detail="Order not found")
 
     obj = FoodOrderStatusHistory(**payload.model_dump())
 
@@ -158,30 +183,34 @@ def create_food_order_status_history(
 
     return obj
 
+
 # ---------------- REFUND REQUEST ----------------
 def create_food_order_refund_request(
-    db: Session,
-    payload: FoodOrderRefundRequestCreate
+    db: Session, payload: FoodOrderRefundRequestCreate
 ):
 
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True,
+        )
+        .first()
+    )
 
     if not user:
         raise HTTPException(status_code=400, detail="Invalid created_by user")
 
-    order = db.query(FoodOrder).filter(
-        FoodOrder.id == payload.order_id
-    ).first()
+    order = db.query(FoodOrder).filter(FoodOrder.id == payload.order_id).first()
 
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    customer = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.customer_id
-    ).first()
+    customer = (
+        db.query(UserRegistration)
+        .filter(UserRegistration.id == payload.customer_id)
+        .first()
+    )
 
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
@@ -196,36 +225,39 @@ def create_food_order_refund_request(
 
 
 # ---------------- FOOD REVIEW ----------------
-def create_food_order_review(
-    db: Session,
-    payload: FoodOrderReviewCreate
-):
+def create_food_order_review(db: Session, payload: FoodOrderReviewCreate):
 
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
+    user = (
+        db.query(UserRegistration)
+        .filter(
+            UserRegistration.id == payload.created_by,
+            UserRegistration.is_active == True,
+        )
+        .first()
+    )
 
     if not user:
         raise HTTPException(status_code=400, detail="Invalid created_by user")
 
-    order = db.query(FoodOrder).filter(
-        FoodOrder.id == payload.order_id
-    ).first()
+    order = db.query(FoodOrder).filter(FoodOrder.id == payload.order_id).first()
 
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    customer = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.customer_id
-    ).first()
+    customer = (
+        db.query(UserRegistration)
+        .filter(UserRegistration.id == payload.customer_id)
+        .first()
+    )
 
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
 
-    restaurant = db.query(MasterRestaurant).filter(
-        MasterRestaurant.id == payload.restaurant_id
-    ).first()
+    restaurant = (
+        db.query(MasterRestaurant)
+        .filter(MasterRestaurant.id == payload.restaurant_id)
+        .first()
+    )
 
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restaurant not found")
@@ -237,3 +269,62 @@ def create_food_order_review(
     db.refresh(obj)
 
     return obj
+
+
+from models.generated_models import MyFoodRegistration
+from schemas.my_food_schema import MyFoodRegistrationCreate, MyFoodRegistrationUpdate
+from sqlalchemy.orm import Session
+from fastapi import HTTPException
+
+
+def create_my_food_registration(db: Session, payload: MyFoodRegistrationCreate):
+    obj = MyFoodRegistration(**payload.dict())
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+
+def get_my_food_registration(db: Session, registration_id: int):
+    obj = (
+        db.query(MyFoodRegistration)
+        .filter(MyFoodRegistration.id == registration_id)
+        .first()
+    )
+    if not obj:
+        raise HTTPException(status_code=404, detail="MyFoodRegistration not found")
+    return obj
+
+
+def get_all_my_food_registrations(db: Session):
+    return db.query(MyFoodRegistration).all()
+
+
+def update_my_food_registration(
+    db: Session, registration_id: int, payload: MyFoodRegistrationUpdate
+):
+    obj = (
+        db.query(MyFoodRegistration)
+        .filter(MyFoodRegistration.id == registration_id)
+        .first()
+    )
+    if not obj:
+        raise HTTPException(status_code=404, detail="MyFoodRegistration not found")
+    for key, value in payload.dict(exclude_unset=True).items():
+        setattr(obj, key, value)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+
+def delete_my_food_registration(db: Session, registration_id: int):
+    obj = (
+        db.query(MyFoodRegistration)
+        .filter(MyFoodRegistration.id == registration_id)
+        .first()
+    )
+    if not obj:
+        raise HTTPException(status_code=404, detail="MyFoodRegistration not found")
+    db.delete(obj)
+    db.commit()
+    return {"detail": "Deleted successfully"}
