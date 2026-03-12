@@ -6,7 +6,7 @@ from services.my_food_service import (create_food_order, create_refund_request, 
 from schemas.my_food_schema import FoodOrderCreate, FoodOrderResponse, FoodOrderStatusHistoryCreate, FoodOrderRefundRequestCreate, FoodOrderReviewCreate
 from services.my_food_service import (create_food_order,get_food_orders,get_food_order_by_id,create_food_order_status_history,create_food_order_refund_request,create_food_order_review)
 
-router = APIRouter(prefix="/food-orders", tags=["Food Orders"])
+router = APIRouter(prefix="/food-orders", tags=["Customer Food Orders"])
 
 
 # -----------------------------
