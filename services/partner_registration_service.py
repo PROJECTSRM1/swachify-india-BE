@@ -130,19 +130,19 @@ def create_companies_registration(
     payload: CompaniesRegistrationCreate
 ):
 
-    user = (
-        db.query(UserRegistration)
+    partner = (
+        db.query(PartnerRegistration)
         .filter(
-            UserRegistration.id == payload.created_by,
-            UserRegistration.is_active == True
+            PartnerRegistration.id == payload.created_by,
+            PartnerRegistration.is_active == True
         )
         .first()
     )
 
-    if not user:
+    if not partner:
         raise HTTPException(
             status_code=400,
-            detail="Invalid created_by. User not found"
+            detail="Invalid created_by. Partner not found"
         )
 
     obj = CompaniesRegistration(**payload.model_dump())
@@ -159,19 +159,19 @@ def create_training_registration(
     payload: TrainingRegistrationCreate
 ):
 
-    user = (
-        db.query(UserRegistration)
+    partner = (
+        db.query(PartnerRegistration)
         .filter(
-            UserRegistration.id == payload.created_by,
-            UserRegistration.is_active == True
+            PartnerRegistration.id == payload.created_by,
+            PartnerRegistration.is_active == True
         )
         .first()
     )
 
-    if not user:
+    if not partner:
         raise HTTPException(
             status_code=400,
-            detail="Invalid created_by. User not found"
+            detail="Invalid created_by. Partner not found"
         )
 
     obj = TrainingRegistration(**payload.model_dump())
@@ -183,17 +183,25 @@ def create_training_registration(
     return obj
 
 
+def create_hospital_registration(
+    db: Session,
+    payload: HospitalRegistrationCreate
+):
 
-# ---------------- HOSPITAL ----------------
-def create_hospital_registration(db: Session, payload: HospitalRegistrationCreate):
+    partner = (
+        db.query(PartnerRegistration)
+        .filter(
+            PartnerRegistration.id == payload.created_by,
+            PartnerRegistration.is_active == True
+        )
+        .first()
+    )
 
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid created_by user")
+    if not partner:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. Partner not found"
+        )
 
     obj = HospitalRegistration(**payload.model_dump())
 
@@ -203,17 +211,62 @@ def create_hospital_registration(db: Session, payload: HospitalRegistrationCreat
 
     return obj
 
-
-# ---------------- LAB ----------------
 def create_lab_registration(db: Session, payload: LabRegistrationCreate):
 
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
+    partner = (
+        db.query(PartnerRegistration)
+        .filter(
+            PartnerRegistration.id == payload.created_by,
+            PartnerRegistration.is_active == True
+        )
+        .first()
+    )
 
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid created_by user")
+    if not partner:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. Partner not found"
+        )
+
+    # -------- VALIDATIONS FOR CHECK CONSTRAINTS --------
+
+    if payload.drug_license_applicable and not payload.drug_license_number:
+        raise HTTPException(
+            status_code=400,
+            detail="drug_license_number required when drug_license_applicable is true"
+        )
+
+    if payload.bmw_obtained and not payload.bmw_authorization_number:
+        raise HTTPException(
+            status_code=400,
+            detail="bmw_authorization_number required when bmw_obtained is true"
+        )
+
+    if payload.fire_noc_obtained and not payload.fire_noc_number:
+        raise HTTPException(
+            status_code=400,
+            detail="fire_noc_number required when fire_noc_obtained is true"
+        )
+
+    if payload.aerb_licence_applicable and not payload.aerb_license_number:
+        raise HTTPException(
+            status_code=400,
+            detail="aerb_license_number required when aerb_licence_applicable is true"
+        )
+
+    if payload.pcpndt_certificate_applicable and not payload.pcpndt_certificate_number:
+        raise HTTPException(
+            status_code=400,
+            detail="pcpndt_certificate_number required when pcpndt_certificate_applicable is true"
+        )
+
+    if payload.gst_registered and not payload.gst_number:
+        raise HTTPException(
+            status_code=400,
+            detail="gst_number required when gst_registered is true"
+        )
+
+    # -------- INSERT --------
 
     obj = LabRegistration(**payload.model_dump())
 
@@ -223,17 +276,25 @@ def create_lab_registration(db: Session, payload: LabRegistrationCreate):
 
     return obj
 
+def create_medical_store_registration(
+    db: Session,
+    payload: MedicalStoreRegistrationCreate
+):
 
-# ---------------- MEDICAL STORE ----------------
-def create_medical_store_registration(db: Session, payload: MedicalStoreRegistrationCreate):
+    partner = (
+        db.query(PartnerRegistration)
+        .filter(
+            PartnerRegistration.id == payload.created_by,
+            PartnerRegistration.is_active == True
+        )
+        .first()
+    )
 
-    user = db.query(UserRegistration).filter(
-        UserRegistration.id == payload.created_by,
-        UserRegistration.is_active == True
-    ).first()
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid created_by user")
+    if not partner:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid created_by. Partner not found"
+        )
 
     obj = MedicalStoreRegistration(**payload.model_dump())
 

@@ -37,51 +37,64 @@ def create_student_registration_api(
 ):
     return create_student_registration(db, payload)
 
+# ============================================================
+# Companies Registration
+# ============================================================
+
 @router.post("/companies-registration")
-def create_companies_registration_api(
+def create_companies(
     payload: CompaniesRegistrationCreate,
     db: Session = Depends(get_db)
 ):
     return create_companies_registration(db, payload)
 
 
+# ============================================================
+# Training Registration
+# ============================================================
 
 @router.post("/training-registration")
-def create_training_registration_api(
+def create_training(
     payload: TrainingRegistrationCreate,
     db: Session = Depends(get_db)
 ):
     return create_training_registration(db, payload)
 
 
+# ============================================================
+# Hospital Registration
+# ============================================================
 
-# ---------------- HOSPITAL ----------------
 @router.post("/hospital-registration")
-def create_hospital_api(
+def create_hospital(
     payload: HospitalRegistrationCreate,
     db: Session = Depends(get_db)
 ):
     return create_hospital_registration(db, payload)
 
 
-# ---------------- LAB ----------------
+# ============================================================
+# Lab Registration
+# ============================================================
+
 @router.post("/lab-registration")
-def create_lab_api(
+def create_lab(
     payload: LabRegistrationCreate,
     db: Session = Depends(get_db)
 ):
     return create_lab_registration(db, payload)
 
 
-# ---------------- MEDICAL STORE ----------------
+# ============================================================
+# Medical Store Registration
+# ============================================================
+
 @router.post("/medical-store-registration")
-def create_medical_store_api(
+def create_medical_store(
     payload: MedicalStoreRegistrationCreate,
     db: Session = Depends(get_db)
 ):
     return create_medical_store_registration(db, payload)
-
-
 # ---------------- DOCTOR ----------------
 @router.post("/doctor-registration")
 def create_doctor_api(
