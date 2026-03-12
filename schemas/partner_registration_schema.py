@@ -211,7 +211,7 @@ class StudentRegistrationCreate(BaseModel):
     student_name: str
     aadhar_number: str
     mobile_number: str
-    email: str
+    email: EmailStr
     residential_address: str
     city: str
     state: str
@@ -252,7 +252,7 @@ class StudentRegistrationCreate(BaseModel):
     upload_cast_certificate: Optional[str] = None
     upload_income_certificate: Optional[str] = None
 
-    created_by: int
+    created_by: Optional[int] = None
 
 
 class CompaniesRegistrationCreate(BaseModel):

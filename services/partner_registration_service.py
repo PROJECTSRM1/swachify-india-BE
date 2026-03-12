@@ -124,24 +124,24 @@ def create_general_education(db: Session, data: GeneralEducationCreate):
 
     return education
 
-
 def create_institution_school_college_registration(
     db: Session, payload: InstitutionSchoolCollegeRegistrationCreate
 ):
 
-    user = (
-        db.query(UserRegistration)
+    # Validate partner registration
+    partner = (
+        db.query(PartnerRegistration)
         .filter(
-            UserRegistration.id == payload.created_by,
-            UserRegistration.is_active == True,
+            PartnerRegistration.id == payload.partner_registration_id,
+            PartnerRegistration.is_active == True
         )
         .first()
     )
 
-    if not user:
+    if not partner:
         raise HTTPException(
             status_code=400,
-            detail="Invalid created_by. User not found"
+            detail="Invalid partner_registration_id. Partner not found"
         )
 
     obj = InstitutionSchoolCollegeRegistration(**payload.model_dump())
@@ -155,18 +155,19 @@ def create_institution_school_college_registration(
 
 def create_student_registration(db: Session, payload: StudentRegistrationCreate):
 
-    user = (
-        db.query(UserRegistration)
+    partner = (
+        db.query(PartnerRegistration)
         .filter(
-            UserRegistration.id == payload.created_by,
-            UserRegistration.is_active == True,
+            PartnerRegistration.id == payload.partner_registration_id,
+            PartnerRegistration.is_active == True
         )
         .first()
     )
 
-    if not user:
+    if not partner:
         raise HTTPException(
-            status_code=400, detail="Invalid created_by. User not found"
+            status_code=400,
+            detail="Invalid partner_registration_id. Partner not found"
         )
 
     obj = StudentRegistration(**payload.model_dump())
