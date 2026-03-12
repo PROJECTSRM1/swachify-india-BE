@@ -31,6 +31,11 @@ from schemas.partner_registration_schema import (
 )
 
 
+
+# -------------------------
+# Create Partner User
+# -------------------------
+
 def create_partner_user(db: Session, user: PartnerUserCreate):
 
     db_user = PartnerUsers(email=user.email, password=user.password)
@@ -42,12 +47,41 @@ def create_partner_user(db: Session, user: PartnerUserCreate):
     return db_user
 
 
-def get_users(db: Session):
+# # -------------------------
+# # Get All Users
+# # -------------------------
 
-    return db.query(PartnerUsers).all()
+# def get_users(db: Session):
+#     return db.query(PartnerUsers).all()
+
+
+# -------------------------
+# Create Partner Registration
+# -------------------------
 
 
 def create_partner_registration(db: Session, data: PartnerRegistrationCreate):
+
+    # Check if user exists
+    user = db.query(PartnerUsers).filter(
+        PartnerUsers.id == data.user_id
+    ).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check duplicate registration
+    existing = db.query(PartnerRegistration).filter(
+        PartnerRegistration.user_id == data.user_id,
+        PartnerRegistration.module_id == data.module_id,
+        PartnerRegistration.service_module_category_id == data.service_module_category_id
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Partner already registered for this module and category"
+        )
 
     registration = PartnerRegistration(
         module_id=data.module_id,
@@ -80,6 +114,8 @@ def create_general_education(db: Session, data: GeneralEducationCreate):
         building_type_id=data.building_type_id,
         upload_rental_agreement=data.upload_rental_agreement,
         phone_number=data.phone_number,
+        verify_official_email=data.verify_official_email,
+        created_by=data.created_by
     )
 
     db.add(education)
@@ -88,23 +124,24 @@ def create_general_education(db: Session, data: GeneralEducationCreate):
 
     return education
 
-
 def create_institution_school_college_registration(
     db: Session, payload: InstitutionSchoolCollegeRegistrationCreate
 ):
 
-    user = (
-        db.query(UserRegistration)
+    # Validate partner registration
+    partner = (
+        db.query(PartnerRegistration)
         .filter(
-            UserRegistration.id == payload.created_by,
-            UserRegistration.is_active == True,
+            PartnerRegistration.id == payload.partner_registration_id,
+            PartnerRegistration.is_active == True
         )
         .first()
     )
 
-    if not user:
+    if not partner:
         raise HTTPException(
-            status_code=400, detail="Invalid created_by. User not found"
+            status_code=400,
+            detail="Invalid partner_registration_id. Partner not found"
         )
 
     obj = InstitutionSchoolCollegeRegistration(**payload.model_dump())
@@ -118,18 +155,19 @@ def create_institution_school_college_registration(
 
 def create_student_registration(db: Session, payload: StudentRegistrationCreate):
 
-    user = (
-        db.query(UserRegistration)
+    partner = (
+        db.query(PartnerRegistration)
         .filter(
-            UserRegistration.id == payload.created_by,
-            UserRegistration.is_active == True,
+            PartnerRegistration.id == payload.partner_registration_id,
+            PartnerRegistration.is_active == True
         )
         .first()
     )
 
-    if not user:
+    if not partner:
         raise HTTPException(
-            status_code=400, detail="Invalid created_by. User not found"
+            status_code=400,
+            detail="Invalid partner_registration_id. Partner not found"
         )
 
     obj = StudentRegistration(**payload.model_dump())

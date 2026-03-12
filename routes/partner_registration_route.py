@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from core.database import SessionLocal
 from services.partner_registration_service import create_companies_registration, create_doctor_registration, create_general_education, create_hospital_registration, create_institution_school_college_registration, create_lab_registration, create_medical_store_registration, create_partner_user, create_partner_registration, create_student_registration, create_training_registration, create_my_food_registration
-from schemas.partner_registration_schema import CompaniesRegistrationCreate, DoctorRegistrationCreate, DoctorRegistrationResponse, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, MedicalStoreRegistrationResponse, MyFoodRegistrationResponse, PartnerUserCreate, PartnerRegistrationCreate, PartnerRegistrationResponse, PartnerUserResponse, GeneralEducationCreate, GeneralEducationResponse, StudentRegistrationCreate, TrainingRegistrationCreate, MyFoodRegistrationCreate
+from schemas.partner_registration_schema import CompaniesRegistrationCreate, DoctorRegistrationCreate, HospitalRegistrationCreate, InstitutionSchoolCollegeRegistrationCreate, LabRegistrationCreate, MedicalStoreRegistrationCreate, PartnerUserCreate, PartnerRegistrationCreate, PartnerRegistrationResponse, PartnerUserResponse, GeneralEducationCreate, GeneralEducationResponse, StudentRegistrationCreate, TrainingRegistrationCreate, MyFoodRegistrationCreate
 
 router = APIRouter(prefix="/partner-registration", tags=["Partner"])
 
@@ -11,15 +11,32 @@ def get_db():
     try: yield db
     finally: db.close()
 
+
+
+# -------------------------
+# Create Partner User
+# -------------------------
+
 @router.post("/users", response_model=PartnerUserResponse)
-def create_user(user: PartnerUserCreate, db: Session = Depends(get_db)): return create_partner_user(db, user)
+def create_user(
+    user: PartnerUserCreate,
+    db: Session = Depends(get_db)
+):
+    return create_partner_user(db, user)
 
 @router.post("/register", response_model=PartnerRegistrationResponse)
-def register_partner(data: PartnerRegistrationCreate, db: Session = Depends(get_db)): return create_partner_registration(db, data)
-
+def register_partner(
+    data: PartnerRegistrationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_partner_registration(db, data)
+    
 @router.post("/general-education", response_model=GeneralEducationResponse)
-def register_education(data: GeneralEducationCreate, db: Session = Depends(get_db)): return create_general_education(db, data)
-
+def register_education(
+    data: GeneralEducationCreate,
+    db: Session = Depends(get_db)
+):
+    return create_general_education(db, data)
 
 
 @router.post("/institution-school-college")
@@ -28,7 +45,6 @@ def create_institution_school_college_api(
     db: Session = Depends(get_db)
 ):
     return create_institution_school_college_registration(db, payload)
-
 
 @router.post("/student-registration")
 def create_student_registration_api(
@@ -74,7 +90,7 @@ def create_lab_api(
 
 
 # ---------------- MEDICAL STORE ----------------
-@router.post("/medical-store-registration", response_model=MedicalStoreRegistrationResponse)
+@router.post("/medical-store-registration")
 def create_medical_store_api(
     payload: MedicalStoreRegistrationCreate,
     db: Session = Depends(get_db)
@@ -83,7 +99,7 @@ def create_medical_store_api(
 
 
 # ---------------- DOCTOR ----------------
-@router.post("/doctor-registration", response_model=DoctorRegistrationResponse)
+@router.post("/doctor-registration")
 def create_doctor_api(
     payload: DoctorRegistrationCreate,
     db: Session = Depends(get_db)
@@ -91,7 +107,7 @@ def create_doctor_api(
     return create_doctor_registration(db, payload)
 
 
-@router.post("/my-food-registration", response_model=MyFoodRegistrationResponse)
+@router.post("/my-food-registration")
 def create_my_food_registration_api(
     payload: MyFoodRegistrationCreate,
     db: Session = Depends(get_db)
